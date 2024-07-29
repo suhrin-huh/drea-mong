@@ -1,30 +1,45 @@
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { RecoilRoot } from 'recoil';
 import { useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from '/vite.svg';
-import './App.css';
+
+import NavigationBar from './components/NavigationBar';
+import Home from './pages/MainPage';
+import LoginPage from './pages/LoginPage/LoginPage';
+import DreamDetail from './pages/DreamDetailPage';
+import DreamRecord from './pages/DreamRegisterPage';
+import Settings from './pages/SettingPage';
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState();
+
+  const toggleLoginStatus = () => {
+    setIsLoggedIn((prevState) => {
+      return !prevState;
+    });
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>count is {count}</button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">Click on the Vite and React logos to learn more</p>
-    </>
+    <RecoilRoot>
+      <Router>
+        <div className="flex min-h-screen justify-center bg-purple-100">
+          <div className="flex w-full max-w-[600px] flex-col bg-white shadow-lg">
+            <main className="flex-grow overflow-auto">
+              <Routes>
+                <Route exact path="/" element={<Home />} />
+                <Route path="/dream/:id" element={<DreamDetail />} />
+                <Route path="/record" element={<DreamRecord />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route
+                  path="/login"
+                  element={<LoginPage isLoggedIn={isLoggedIn} toggleLoginStatus={toggleLoginStatus} />}
+                />
+              </Routes>
+            </main>
+            <NavigationBar />
+          </div>
+        </div>
+      </Router>
+    </RecoilRoot>
   );
 }
 
