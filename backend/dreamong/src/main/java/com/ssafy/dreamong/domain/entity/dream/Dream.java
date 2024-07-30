@@ -5,18 +5,22 @@ import com.ssafy.dreamong.domain.entity.common.BaseTimeEntity;
 import com.ssafy.dreamong.domain.entity.dreamcategory.DreamCategory;
 import com.ssafy.dreamong.domain.entity.dreamlike.DreamLike;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
 @Table(name = "dream")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Dream extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JoinColumn(name = "dream_id")
+    @Column(name = "dream_id")
     private Integer id;
 
     @Column(name = "content")
@@ -40,12 +44,38 @@ public class Dream extends BaseTimeEntity {
     @Column(name = "user_id")
     private Integer userId;
 
-    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = false)
-    private List<DreamCategory> dreamCategories;
+    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DreamCategory> dreamCategories = new ArrayList<>();
 
-    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = false)
-    private List<DreamLike> dreamLikes;
+    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<DreamLike> dreamLikes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = false)
-    private List<Comment> comments;
+    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
+    public Dream(String content, String image, String interpretation,
+                 String summary, boolean isShared, Integer likesCount, Integer userId) {
+        this.content = content;
+        this.image = image;
+        this.interpretation = interpretation;
+        this.summary = summary;
+        this.isShared = isShared;
+        this.likesCount = likesCount;
+        this.userId = userId;
+    }
+
+    public void addDreamCategory(DreamCategory dreamCategory) {
+        this.dreamCategories.add(dreamCategory);
+        dreamCategory.setDream(this);
+    }
+
+    public void addDreamLike(DreamLike dreamLike) {
+        this.dreamLikes.add(dreamLike);
+        dreamLike.setDream(this);
+    }
+
+    public void addComment(Comment comment) {
+        this.comments.add(comment);
+        comment.setDream(this);
+    }
 }

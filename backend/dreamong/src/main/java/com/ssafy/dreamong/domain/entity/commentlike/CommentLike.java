@@ -1,11 +1,16 @@
 package com.ssafy.dreamong.domain.entity.commentlike;
 
+import com.ssafy.dreamong.domain.entity.comment.Comment;
+import com.ssafy.dreamong.domain.entity.user.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
 @Table(name = "comment_like")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CommentLike {
 
     @Id
@@ -13,9 +18,26 @@ public class CommentLike {
     @Column(name = "comment_like_id")
     private Integer id;
 
-    @Column(name = "comment_id")
-    private Integer commentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comment_id")
+    private Comment comment;
 
-    @Column(name = "user_id")
-    private Integer userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    public CommentLike(Comment comment, User user) {
+        this.comment = comment;
+        this.user = user;
+    }
+
+    public void setComment(Comment comment) {
+        this.comment = comment;
+        comment.getCommentsLikes().add(this);
+    }
+
+//    public void setUser(User user) {
+//        this.user = user;
+//        user.getCommentLikes().add(this);
+//    }
 }
