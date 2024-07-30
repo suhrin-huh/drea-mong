@@ -1,27 +1,49 @@
 const Button = ({
   children,
+  variant,
+  size = 'md',
   rounded = 'lg',
-  color = 'primary',
-  isFilled = true,
-  isFull = false,
-  isShadow = false,
+  fullWidth = false,
+  shadow = false,
+  className = '',
   ...props
 }) => {
-  let buttonClasses = isFull === true ? 'w-full m-2 select-none px-2 py-3' : 'm-2 select-none px-6 py-3';
+  const baseClasses = 'font-medium transition-colors duration-200';
 
-  // 자료형이 boolean일 때만 적용되도록 조건 직접 명시
-  if (isFilled === true) {
-    buttonClasses += ` rounded-${rounded} text-white bg-${color}-500 hover:bg-${color}-700`;
-  } else if (isFilled === false) {
-    buttonClasses += ` rounded-${rounded} text-black bg-white hover:bg-gray-100`;
-  }
+  const variantClasses = {
+    primary: 'bg-primary-500 text-white hover:bg-primary-700',
+    secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300',
+    success: 'bg-green-500 text-white hover:bg-green-600',
+    danger: 'bg-red-500 text-white hover:bg-red-600',
+    outline: 'bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-100',
+  };
 
-  if (isShadow === true) {
-    buttonClasses += ' shadow-md shadow-gray-400';
-  }
+  const sizeClasses = {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-4 py-2 text-base',
+    lg: 'px-6 py-3 text-lg',
+  };
+
+  const roundedClasses = {
+    none: 'rounded-none',
+    sm: 'rounded-sm',
+    md: 'rounded-md',
+    lg: 'rounded-lg',
+    full: 'rounded-full',
+  };
+
+  const classes = `
+    ${baseClasses}
+    ${variantClasses[variant]}
+    ${sizeClasses[size]}
+    ${roundedClasses[rounded]}
+    ${fullWidth ? 'w-full' : ''}
+    ${shadow ? 'shadow-md' : ''}
+    ${className}
+  `.trim();
 
   return (
-    <button className={buttonClasses} {...props}>
+    <button className={classes} {...props}>
       {children}
     </button>
   );
