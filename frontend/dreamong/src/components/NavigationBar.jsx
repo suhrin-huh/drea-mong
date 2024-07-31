@@ -1,9 +1,7 @@
-// import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 const NavigationBar = () => {
   const location = useLocation();
-
   const paths = [
     {
       pathname: '/',
@@ -107,7 +105,7 @@ const NavigationBar = () => {
   ];
 
   // path에 따라서 렌더링되는 내용이 바뀌도록 설정
-  return location == '/login' ? null : (
+  return location.pathname == '/login' ? null : (
     <div className="fixed bottom-0 h-[60px] max-w-[600px] bg-white text-white last:w-full">
       <div className="mx-4 my-3 flex justify-between">
         {paths.map(({ pathname, icon }) => {
