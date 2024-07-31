@@ -24,5 +24,4 @@ public class DreamCreateRequest {
     private String writeTime;
 
     private List<DreamCategory> dreamCategories;
-
 }
