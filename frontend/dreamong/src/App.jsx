@@ -6,8 +6,8 @@ import NavigationBar from './components/NavigationBar';
 import MainPage from './pages/MainPage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import LoginSuccess from './pages/LoginPage/components/LoginSuccess';
-import DreamDetail from './pages/DreamDetailPage';
-import DreamRecord from './pages/DreamRegisterPage';
+import DreamRegisterPage from './pages/DreamRegisterPage';
+import DreamDetailPage from './pages/DreamDetailPage';
 import Settings from './pages/SettingPage';
 
 function App() {
@@ -27,15 +27,22 @@ function App() {
             <main className="flex-grow overflow-auto">
               <Routes>
                 <Route exact path="/" element={<MainPage />} />
-                <Route path="/dream/:id" element={<DreamDetail />} />
-                <Route path="/record" element={<DreamRecord />} />
+                <Route path="/dream/create" element={<DreamRegisterPage />} />
+                <Route path="/dream/:dreamId" element={<DreamDetailPage />} />
+                {/* <Route path="/dream/:dreamId/update" element={} />
+                <Route path="/square" element={} />
+                <Route path="/square/:dreamId" element={} />
+                <Route path="/streaming" element={} />
+                <Route path="/streaming/create" element={} />
+                <Route path="/streaming/:roomId" element={} />
+                <Route path="/statics" element={} /> */}
                 <Route path="/settings" element={<Settings />} />
                 <Route
                   path="/login"
                   element={<LoginPage isLoggedIn={isLoggedIn} toggleLoginStatus={toggleLoginStatus} />}
                 />
                 <Route
-                  path="/login-success"
+                  path="/oauth/callback/kakao"
                   element={<LoginSuccess isLoggedIn={isLoggedIn} toggleLoginStatus={toggleLoginStatus} />}
                 />
               </Routes>

@@ -4,10 +4,11 @@ import axios from 'axios';
 
 const LoginSuccess = () => {
   const navigate = useNavigate();
+  console.log('test1');
 
   useEffect(() => {
     axios
-      .post('https://localhost:8080/auth/refresh', {}, { withCredentials: true })
+      .post('https://i11c106.p.ssafy.io/auth/refresh', {}, { withCredentials: true })
       .then((response) => {
         const accessToken = response.headers['authorization'].split(' ')[1];
         localStorage.setItem('accessToken', accessToken);

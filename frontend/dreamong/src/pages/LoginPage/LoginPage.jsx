@@ -3,7 +3,7 @@ import naverLogo from '../../assets/logoSVG/btn_naver.svg';
 import kakaoLogo from '../../assets/logoSVG/btn_kakao.svg';
 
 const LoginPage = () => {
-  const baseURL = 'https://localhost:8080';
+  const baseURL = 'https://i11c106.p.ssafy.io';
 
   const onGoogleLogin = () => {
     window.location.href = `${baseURL}/oauth2/authorization/google`;
@@ -18,7 +18,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex h-screen flex-col justify-end bg-[url('/src/assets/background.svg')]">
+    <div className="flex h-screen flex-col justify-end bg-[url('/src/assets/background.svg')] bg-cover">
       <section className="pr-[10%] text-end">
         <h1 className="mb-12 text-5xl font-bold text-white">Drea-mong</h1>
         <p className="mb-3 text-2xl text-white">꿈의 비밀을 통해</p>
