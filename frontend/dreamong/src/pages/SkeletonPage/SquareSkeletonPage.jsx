@@ -1,5 +1,3 @@
-import React from 'react';
-
 const DreamSquareSkeletonPage = () => {
   return (
     <div className="flex flex-wrap justify-around p-6 relative bg-[rgb(34,34,34)]">
