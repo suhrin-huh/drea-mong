@@ -24,7 +24,7 @@ public class Dream extends BaseTimeEntity {
     @Column(name = "dream_id")
     private Integer id;
 
-    @Column(name = "content")
+    @Column(name = "content", nullable = false)
     private String content;
 
     @Column(name = "image")
@@ -33,7 +33,7 @@ public class Dream extends BaseTimeEntity {
     @Column(name = "interpretation")
     private String interpretation;
 
-    @Column(name = "summary")
+    @Column(name = "summary", nullable = false)
     private String summary;
 
     @Column(name = "is_shared", columnDefinition = "BOOLEAN DEFAULT false")
@@ -45,10 +45,10 @@ public class Dream extends BaseTimeEntity {
     @Column(name = "user_id")
     private Integer userId;
 
-    @Column(name = "write_time")
+    @Column(name = "write_time", nullable = false)
     private String writeTime;
 
-    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DreamCategory> dreamCategories = new ArrayList<>();
 
     @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL)
@@ -58,10 +58,10 @@ public class Dream extends BaseTimeEntity {
     private List<Comment> comments = new ArrayList<>();
 
     @Builder
-    public Dream(String content, String image, String interpretation,
+    public Dream(Integer id, String content, String image, String interpretation,
                  String summary, boolean isShared, Integer likesCount,
-                 Integer userId, String writeTime,
-                 List<DreamCategory> dreamCategories) {
+                 Integer userId, String writeTime, List<DreamCategory> dreamCategories) {
+        this.id = id;
         this.content = content;
         this.image = image;
         this.interpretation = interpretation;
@@ -71,7 +71,7 @@ public class Dream extends BaseTimeEntity {
         this.writeTime = writeTime;
         this.userId = userId;
         this.dreamCategories = new ArrayList<>(dreamCategories);
-        for(DreamCategory dreamCategory : dreamCategories){
+        for (DreamCategory dreamCategory : dreamCategories) {
             dreamCategory.setDream(this);
         }
     }
@@ -90,4 +90,12 @@ public class Dream extends BaseTimeEntity {
         this.comments.add(comment);
         comment.setDream(this);
     }
+
+    public void updateDreamCategories(List<DreamCategory> newCategories) {
+        this.dreamCategories.clear();
+        for (DreamCategory newCategory : newCategories) {
+            addDreamCategory(newCategory);
+        }
+    }
 }
+
