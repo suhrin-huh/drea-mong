@@ -16,6 +16,8 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,8 +80,12 @@ public class DreamService {
     }
 
     // 메인 조회
-    public List<DreamMainResponse> getDreamsByUserId(Integer userId) {
-        List<Dream> dreams = dreamRepository.findAllByUserIdOrderByWriteTimeDesc(userId);
+    public List<DreamMainResponse> getDreamsByUserIdAndWriteTime(Integer userId, String writeTime) {
+        // 날짜를 파싱하여 연도와 월을 추출합니다.
+        LocalDate date = LocalDate.parse(writeTime, DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String yearMonth = date.format(DateTimeFormatter.ofPattern("yyyyMM"));
+
+        List<Dream> dreams = dreamRepository.findAllByUserIdAndWriteTimeLikeOrderByWriteTimeDesc(userId, yearMonth);
         List<DreamMainResponse> dreamMainResponseList = new ArrayList<>();
         for (Dream dream : dreams) {
             DreamMainResponse response = new DreamMainResponse(
@@ -91,6 +97,7 @@ public class DreamService {
         }
         return dreamMainResponseList;
     }
+
 
 
     private String SingleLineInterpretation(String message) {

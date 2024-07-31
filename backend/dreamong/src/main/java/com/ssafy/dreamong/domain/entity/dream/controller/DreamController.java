@@ -7,6 +7,7 @@ import com.ssafy.dreamong.domain.entity.dream.dto.DreamGetResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.DreamMainResponse;
 import com.ssafy.dreamong.domain.entity.dream.service.DreamService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,9 +20,9 @@ public class DreamController {
 
     private final DreamService dreamService;
 
-    @GetMapping("/{userId}")
-    public ApiResponse<?> findAll(@PathVariable Integer userId) {
-        List<DreamMainResponse> dreamMainResponseList = dreamService.getDreamsByUserId(userId);
+    @GetMapping(value = "/{userId}/{writeTime}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<?> findAll(@PathVariable Integer userId, @PathVariable String writeTime) {
+        List<DreamMainResponse> dreamMainResponseList = dreamService.getDreamsByUserIdAndWriteTime(userId, writeTime);
         if (dreamMainResponseList.isEmpty()) {
             return ApiResponse.error("DreamList is empty");
         } else {
