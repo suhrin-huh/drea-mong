@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import mkcert from 'vite-plugin-mkcert'
+import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig({
   plugins: [
@@ -18,27 +18,32 @@ export default defineConfig({
       },
       workbox: {
         cleanupOutdatedCaches: false,
-        sourcemap: true
+        sourcemap: true,
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['apple-touch-icon.png'],
       manifest: {
         name: 'AI 드리-몽',
         short_name: '드리-몽',
         description: 'AI-based dream interpretation app',
-        theme_color: '#ffffff',
+        theme_color: '#737DFE',
         icons: [
           {
-            src: "/drea-mong_192px.png",
-            type: "image/png",
-            sizes: "192x192",
+            src: '/drea-mong_192px.png',
+            type: 'image/png',
+            sizes: '192x192',
           },
           {
-            src: "/drea-mong_512px.png",
-            type: "image/png",
-            sizes: "512x512",
+            src: '/drea-mong_512px.png',
+            type: 'image/png',
+            sizes: '512x512',
           },
-        ]
-      }
-    })
-  ]
-})
+          {
+            src: '/apple-touch-icon.png',
+            type: 'image/png',
+            size: '180x180',
+          },
+        ],
+      },
+    }),
+  ],
+});
