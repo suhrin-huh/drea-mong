@@ -8,6 +8,7 @@ import com.ssafy.dreamong.domain.entity.dream.Dream;
 import com.ssafy.dreamong.domain.entity.dream.dto.DreamCreateRequest;
 import com.ssafy.dreamong.domain.entity.dream.dto.DreamGetResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.DreamMainResponse;
+import com.ssafy.dreamong.domain.entity.dream.dto.DreamUpdateRequest;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
 import com.ssafy.dreamong.domain.entity.dreamcategory.DreamCategory;
 import lombok.RequiredArgsConstructor;
@@ -96,6 +97,42 @@ public class DreamService {
             dreamMainResponseList.add(response);
         }
         return dreamMainResponseList;
+    }
+
+    //수정
+    @Transactional
+    public Dream update(Integer dreamId, DreamUpdateRequest dreamUpdateRequest) {
+        Dream existingDream = dreamRepository.findById(dreamId).orElse(null);
+
+        if (existingDream == null) {
+            return null; // 존재하지 않는 꿈 ID일 경우 null 반환
+        }
+
+        // 새로 업데이트된 정보로 Dream 객체 생성
+        String newSummary = SingleLineInterpretation(dreamUpdateRequest.getSummary());
+        String detailedPrompt = DetailedPrompt(dreamUpdateRequest.getContent());
+        String analysisResultJson = chatModel.call(detailedPrompt);
+
+        List<DreamCategory> newDreamCategories = parseDreamCategories(analysisResultJson);
+
+        // 기존 Dream 객체의 ID, isShared, likesCount, userId를 유지하며 새로 업데이트
+        existingDream.updateDreamCategories(newDreamCategories); // 카테고리 리스트 업데이트
+
+        // 엔티티의 나머지 필드를 업데이트
+        Dream updatedDream = Dream.builder()
+                .id(existingDream.getId()) // 기존 ID 유지
+                .content(dreamUpdateRequest.getContent())
+                .image(dreamUpdateRequest.getImage())
+                .interpretation(dreamUpdateRequest.getInterpretation())
+                .summary(newSummary)
+                .isShared(existingDream.isShared()) // 공유 여부는 그대로 유지
+                .likesCount(existingDream.getLikesCount()) // 좋아요 수는 그대로 유지
+                .writeTime(dreamUpdateRequest.getWriteTime())
+                .userId(existingDream.getUserId()) // 사용자 ID는 기존과 동일
+                .dreamCategories(existingDream.getDreamCategories()) // 카테고리 업데이트
+                .build();
+
+        return dreamRepository.save(updatedDream);
     }
 
 
