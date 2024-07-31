@@ -9,7 +9,7 @@ import LoginSuccess from './pages/LoginPage/components/LoginSuccess';
 import DreamRegisterPage from './pages/DreamRegisterPage';
 import DreamDetailPage from './pages/DreamDetailPage';
 import SettingsPage from './pages/SettingsPage';
-import StreamingPage from './pages/StreamingPage';
+import StreamingPage from './pages/StreamingPage/StreamingPage';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState();
