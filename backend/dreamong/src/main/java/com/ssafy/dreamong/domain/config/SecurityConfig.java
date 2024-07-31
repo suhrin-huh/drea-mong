@@ -82,6 +82,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((auth) -> auth
                         .requestMatchers("/").permitAll()
                         .requestMatchers("/auth/refresh").permitAll()
+//                        .requestMatchers("/dream/**").permitAll()
                         .anyRequest().authenticated());
 
         //세션 설정 : STATELESS
@@ -91,4 +92,16 @@ public class SecurityConfig {
 
         return http.build();
     }
+//
+//    @Bean
+//    public CorsFilter corsFilter() {
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        CorsConfiguration config = new CorsConfiguration();
+//        config.setAllowCredentials(true);
+//        config.addAllowedHeader("*");
+//        config.addAllowedMethod("*");
+//        config.addAllowedOriginPattern("*"); // 허용할 도메인 패턴 설정
+//        source.registerCorsConfiguration("/**", config);
+//        return new CorsFilter(source);
+//    }
 }
