@@ -8,7 +8,7 @@ import LoginPage from './pages/LoginPage/LoginPage';
 import LoginSuccess from './pages/LoginPage/components/LoginSuccess';
 import DreamRegisterPage from './pages/DreamRegisterPage';
 import DreamDetailPage from './pages/DreamDetailPage';
-import SettingsPage from './pages/SettingPage';
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState();
