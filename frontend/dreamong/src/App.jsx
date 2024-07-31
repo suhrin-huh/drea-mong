@@ -9,6 +9,7 @@ import LoginSuccess from './pages/LoginPage/components/LoginSuccess';
 import DreamRegisterPage from './pages/DreamRegisterPage';
 import DreamDetailPage from './pages/DreamDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import StreamingPage from './pages/StreamingPage';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState();
@@ -29,13 +30,13 @@ function App() {
                 <Route exact path="/" element={<MainPage />} />
                 <Route path="/dream/create" element={<DreamRegisterPage />} />
                 <Route path="/dream/:dreamId" element={<DreamDetailPage />} />
-                {/* <Route path="/dream/:dreamId/update" element={} />
-                <Route path="/square" element={} />
-                <Route path="/square/:dreamId" element={} />
-                <Route path="/streaming" element={} />
-                <Route path="/streaming/create" element={} />
-                <Route path="/streaming/:roomId" element={} />
-                <Route path="/statics" element={} /> */}
+                {/* <Route path="/dream/:dreamId/update" element={} /> */}
+                {/* <Route path="/square" element={} /> */}
+                {/* <Route path="/square/:dreamId" element={} /> */}
+                <Route path="/streaming" element={<StreamingPage />} />
+                {/* <Route path="/streaming/create" element={} /> */}
+                {/* <Route path="/streaming/:roomId" element={} /> */}
+                {/* <Route path="/statics" element={} /> */}
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route
                   path="/login"
