@@ -8,7 +8,7 @@ import LoginPage from './pages/LoginPage/LoginPage';
 import LoginSuccess from './pages/LoginPage/components/LoginSuccess';
 import DreamRegisterPage from './pages/DreamRegisterPage';
 import DreamDetailPage from './pages/DreamDetailPage';
-import Settings from './pages/SettingPage';
+import SettingsPage from './pages/SettingPage';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState();
@@ -36,7 +36,7 @@ function App() {
                 <Route path="/streaming/create" element={} />
                 <Route path="/streaming/:roomId" element={} />
                 <Route path="/statics" element={} /> */}
-                <Route path="/settings" element={<Settings />} />
+                <Route path="/settings" element={<SettingsPage />} />
                 <Route
                   path="/login"
                   element={<LoginPage isLoggedIn={isLoggedIn} toggleLoginStatus={toggleLoginStatus} />}
