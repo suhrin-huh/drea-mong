@@ -72,6 +72,7 @@ public class SecurityConfig {
         //oauth2
         http
                 .oauth2Login((oauth2) -> oauth2
+                        .loginPage("/login") // 상대 경로로 설정 (프론트엔드와 백엔드가 같은 도메인이라면 유효)
                         .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
                                 .userService(customOAuth2UserService))
                         .successHandler(customSuccessHandler)
@@ -80,8 +81,7 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/").permitAll()
-                        .requestMatchers("/auth/refresh").permitAll()
+                        .requestMatchers("/", "/login", "/auth/refresh").permitAll()
 //                        .requestMatchers("/dream/**").permitAll()
                         .anyRequest().authenticated());
 
