@@ -1,48 +1,67 @@
 import { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import Button from '../../components/Button';
+import { Outlet } from 'react-router-dom';
+
+// Make sure to set the app element for accessibility
+Modal.setAppElement('#root');
 
 const StreamingPage = () => {
-  const [rooms, setRooms] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [modalContentVisible, setModalContentVisible] = useState(false);
 
   const toggleModalIsOpen = () => {
-    setModalIsOpen((prevState) => !prevState);
+    if (!modalIsOpen) {
+      setModalIsOpen(true);
+      setTimeout(() => setModalContentVisible(true), 50);
+    } else {
+      setModalContentVisible(false);
+      setTimeout(() => setModalIsOpen(false), 300);
+    }
   };
 
-  useEffect(() => {
-    setRooms([
-      { id: 1, name: '지브리 OST 모음짐', count: 25 },
-      { id: 2, name: '자면서 듣는 재즈 음악', count: 43 },
-      { id: 3, name: '돈 복 들어오는 꿈 꾸고 싶으면 들어와요', count: 132 },
-      { id: 4, name: '오늘 하루 고생한 당신을 위한 힐링 음악', count: 24 },
-      { id: 5, name: '마하반야바라밀다심경 관자재보살...', count: 5 },
-    ]);
-  }, []);
+  const handleSleepTimeSave = () => {
+    toggleModalIsOpen();
+  };
 
   return (
-    <div className="h-screen bg-black p-2">
-      <Modal isOpen={modalIsOpen} ariaHideApp={false} onRequestClose={toggleModalIsOpen}>
-        아직 모달에 들어갈 내용을 채우지 않았습니다.
+    <div className="h-full bg-black p-2">
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={toggleModalIsOpen}
+        className="fixed inset-x-0 top-20 z-50 flex items-center justify-center overflow-y-auto"
+        overlayClassName="fixed inset-0 bg-black transition-opacity duration-300 ease-in-out"
+        closeTimeoutMS={300}
+        style={{
+          overlay: {
+            backgroundColor: modalIsOpen ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0)',
+          },
+        }}
+      >
+        <div
+          className={`w-full max-w-md rounded-lg bg-white p-6 shadow-lg transition-all duration-300 ease-in-out ${
+            modalContentVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+          }`}
+        >
+          <h2 className="mb-4 text-center text-2xl font-bold">취침모드 설정</h2>
+          {/* 취침 시간 선택 코드 들어갈 부분 */}
+          <div className="flex justify-end">
+            <Button variant="secondary" size="md" onClick={toggleModalIsOpen} className="mx-2">
+              취소
+            </Button>
+            <Button variant="primary" size="md" onClick={handleSleepTimeSave}>
+              저장
+            </Button>
+          </div>
+        </div>
       </Modal>
+
       <section className="flex justify-end">
         <Button size="md" className="text-white hover:text-gray-300" onClick={toggleModalIsOpen}>
           취침모드 설정
         </Button>
       </section>
-      <section className="flex flex-col text-white">
-        {rooms.map((room) => {
-          return (
-            <button key={room.id} className="mb-4 flex flex-col rounded-md bg-zinc-900 p-4">
-              <img src="placeholder.jpg" alt={room.name} className="mb-3 h-40 w-full object-cover" />
-              <div className="flex w-full justify-between">
-                <p>{room.name}</p>
-                <p>{room.count}명 시청중</p>
-              </div>
-            </button>
-          );
-        })}
-      </section>
+      <Outlet />
     </div>
   );
 };

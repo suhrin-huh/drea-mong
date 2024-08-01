@@ -10,14 +10,14 @@ import DreamRegisterPage from './pages/DreamRegisterPage';
 import DreamDetailPage from './pages/DreamDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import StreamingPage from './pages/StreamingPage/StreamingPage';
+import StreamingList from './pages/StreamingPage/components/StreamingList';
+import StreamingRoom from './pages/StreamingPage/components/StreamingRoom';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState();
 
   const toggleLoginStatus = () => {
-    setIsLoggedIn((prevState) => {
-      return !prevState;
-    });
+    setIsLoggedIn((prevState) => !prevState);
   };
 
   return (
@@ -25,7 +25,9 @@ function App() {
       <Router>
         <div className="flex min-h-screen justify-center bg-purple-100">
           <div className="flex w-full max-w-[600px] flex-col bg-white shadow-lg">
-            <main className="flex-grow overflow-auto">
+            <main className="flex-grow overflow-auto pb-[60px]">
+              {' '}
+              {/* NavigationBar 높이만큼 패딩 추가 */}
               <Routes>
                 <Route exact path="/" element={<MainPage />} />
                 <Route path="/dream/create" element={<DreamRegisterPage />} />
@@ -33,9 +35,11 @@ function App() {
                 {/* <Route path="/dream/:dreamId/update" element={} /> */}
                 {/* <Route path="/square" element={} /> */}
                 {/* <Route path="/square/:dreamId" element={} /> */}
-                <Route path="/streaming" element={<StreamingPage />} />
-                {/* <Route path="/streaming/create" element={} /> */}
-                {/* <Route path="/streaming/:roomId" element={} /> */}
+                <Route path="/streaming" element={<StreamingPage />}>
+                  <Route index element={<StreamingList />} />
+                  {/* <Route path="create" element={} /> */}
+                  <Route path=":roomId" element={<StreamingRoom />} />
+                </Route>
                 {/* <Route path="/statics" element={} /> */}
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route
