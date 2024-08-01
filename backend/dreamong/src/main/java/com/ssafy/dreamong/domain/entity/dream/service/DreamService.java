@@ -98,11 +98,22 @@ public class DreamService {
 
     // 메인 조회
     public List<DreamMainResponse> getDreamsByUserIdAndWriteTime(Integer userId, String writeTime) {
+//        System.out.println("Fetching dreams for userId: " + userId + " and writeTime: " + writeTime);
+
         // 날짜를 파싱하여 연도와 월을 추출합니다.
         LocalDate date = LocalDate.parse(writeTime, DateTimeFormatter.ofPattern("yyyyMMdd"));
         String yearMonth = date.format(DateTimeFormatter.ofPattern("yyyyMM"));
 
+//        System.out.println("Parsed yearMonth: " + yearMonth);
+
         List<Dream> dreams = dreamRepository.findAllByUserIdAndWriteTimeLikeOrderByWriteTimeDesc(userId, yearMonth);
+//        System.out.println("Fetched dreams: " + dreams);
+
+        if (dreams.isEmpty()) {
+//            System.out.println("DreamList is empty for userId: " + userId + " and writeTime: " + writeTime);
+            return new ArrayList<>();
+        }
+
         List<DreamMainResponse> dreamMainResponseList = new ArrayList<>();
         for (Dream dream : dreams) {
             DreamMainResponse response = new DreamMainResponse(
