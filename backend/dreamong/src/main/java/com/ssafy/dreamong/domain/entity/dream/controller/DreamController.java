@@ -2,10 +2,7 @@ package com.ssafy.dreamong.domain.entity.dream.controller;
 
 import com.ssafy.dreamong.domain.entity.common.ApiResponse;
 import com.ssafy.dreamong.domain.entity.dream.Dream;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamCreateRequest;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamGetResponse;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamMainResponse;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamUpdateRequest;
+import com.ssafy.dreamong.domain.entity.dream.dto.*;
 import com.ssafy.dreamong.domain.entity.dream.service.DreamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -35,7 +32,7 @@ public class DreamController {
     //꿈 생성
     @PostMapping("/create")
     public ApiResponse<?> createDream(@RequestBody DreamCreateRequest dreamCreateRequest) {
-        Dream createdDream = dreamService.create(dreamCreateRequest);
+        DreamDto createdDream = dreamService.create(dreamCreateRequest);
         if (createdDream == null) {
             return ApiResponse.error("Dream creation failed");
         } else {
@@ -57,7 +54,7 @@ public class DreamController {
     // 꿈 수정
     @PutMapping(value = "/{dreamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse<?> update(@PathVariable Integer dreamId, @RequestBody DreamUpdateRequest request) {
-        Dream updatedDream = dreamService.update(dreamId, request);
+        DreamDto updatedDream = dreamService.update(dreamId, request);
         if (updatedDream == null) {
             return ApiResponse.error("Dream not found");
         } else {

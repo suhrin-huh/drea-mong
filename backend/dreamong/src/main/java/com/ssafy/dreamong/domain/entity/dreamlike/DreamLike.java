@@ -30,14 +30,4 @@ public class DreamLike {
         this.dream = dream;
         this.user = user;
     }
-
-    public void setDream(Dream dream) {
-        this.dream = dream;
-        dream.getDreamLikes().add(this);
-    }
-
-//    public void setUser(User user) {
-//        this.user = user;
-//        user.getDreamLikes().add(this);
-//    }
 }

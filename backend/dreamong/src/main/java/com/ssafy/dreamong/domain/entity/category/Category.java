@@ -28,7 +28,7 @@ public class Category {
     @Column(name = "type")
     private Type type;
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DreamCategory> dreamCategories = new ArrayList<>();
 
     @Builder
@@ -39,6 +39,7 @@ public class Category {
 
     public void addDreamCategory(DreamCategory dreamCategory) {
         this.dreamCategories.add(dreamCategory);
-        dreamCategory.setCategory(this);
     }
 }
+
+

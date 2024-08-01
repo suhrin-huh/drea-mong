@@ -50,14 +50,4 @@ public class Comment {
         this.commentsLikes.add(commentLike);
         commentLike.setComment(this);
     }
-
-    public void setDream(Dream dream) {
-        this.dream = dream;
-        dream.getComments().add(this);
-    }
-
-//    public void setUser(User user) {
-//        this.user = user;
-//        user.getComments().add(this);
-//    }
 }
