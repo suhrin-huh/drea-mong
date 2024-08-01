@@ -35,9 +35,4 @@ public class CommentLike {
         this.comment = comment;
         comment.getCommentsLikes().add(this);
     }
-
-//    public void setUser(User user) {
-//        this.user = user;
-//        user.getCommentLikes().add(this);
-//    }
 }

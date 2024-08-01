@@ -54,6 +54,9 @@ public class Dream extends BaseTimeEntity {
     @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DreamCategory> dreamCategories = new ArrayList<>();
 
+    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+
     @Builder
     public Dream(Integer id, String content, String image, String interpretation,
                  String summary, boolean isShared, Integer likesCount,
@@ -76,12 +79,13 @@ public class Dream extends BaseTimeEntity {
         this.dreamCategories.add(dreamCategory);
     }
 
-    public void update(String content, String image, String interpretation, String summary, String writeTime, List<DreamCategory> newCategories) {
+    public void update(String content, String image, String interpretation, String summary, String writeTime, boolean isShared, List<DreamCategory> newCategories) {
         this.content = content;
         this.image = image;
         this.interpretation = interpretation;
         this.summary = summary;
         this.writeTime = writeTime;
+        this.isShared = isShared;
         setDreamCategories(newCategories);
     }
 

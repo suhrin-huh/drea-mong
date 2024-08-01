@@ -126,7 +126,7 @@ public class DreamService {
         return dreamMainResponseList;
     }
 
-    // 수정
+    // 꿈 수정
     @Transactional
     public DreamDto update(Integer dreamId, DreamUpdateRequest dreamUpdateRequest) {
         Dream existingDream = dreamRepository.findById(dreamId).orElse(null);
@@ -135,26 +135,18 @@ public class DreamService {
             return null; // 존재하지 않는 꿈 ID일 경우 null 반환
         }
 
-        // AI API 호출하여 summary 생성
-        String newSummary = SingleLineInterpretation(dreamUpdateRequest.getContent());
-        log.info("Generated Summary: {}", newSummary);
-
-        // AI API 호출하여 category 분석
-        String detailedPrompt = DetailedPrompt(dreamUpdateRequest.getContent());
-        log.info("Detailed Prompt: {}", detailedPrompt);
-
-        String analysisResultJson = chatModel.call(detailedPrompt);
-        log.info("AI Model Response: {}", analysisResultJson);
-
-        List<DreamCategoryDto> newDreamCategoryDtos = parseDreamCategories(analysisResultJson);
-
         // 기존 카테고리 삭제
         existingDream.getDreamCategories().clear();
         dreamRepository.save(existingDream); // 업데이트된 상태를 먼저 저장
 
         // 새로운 카테고리 추가
         List<DreamCategory> newDreamCategories = new ArrayList<>();
-        for (DreamCategoryDto dto : newDreamCategoryDtos) {
+        List<DreamCategoryDto> dreamCategoryDtos = dreamUpdateRequest.getDreamCategories();
+
+        if (dreamCategoryDtos == null) {
+            dreamCategoryDtos = new ArrayList<>();
+        }
+        for (DreamCategoryDto dto : dreamCategoryDtos) {
             Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
                     .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
             newDreamCategories.add(new DreamCategory(existingDream, category));
@@ -162,13 +154,14 @@ public class DreamService {
 
         existingDream.getDreamCategories().addAll(newDreamCategories);
 
-        // 기존 Dream 객체의 ID, isShared, likesCount, userId를 유지하며 새로 업데이트
+        // Dream 객체 업데이트
         existingDream.update(
                 dreamUpdateRequest.getContent(),
                 dreamUpdateRequest.getImage(),
                 dreamUpdateRequest.getInterpretation(),
-                newSummary,
+                dreamUpdateRequest.getSummary(),
                 dreamUpdateRequest.getWriteTime(),
+                dreamUpdateRequest.isShared(),
                 newDreamCategories
         );
 
@@ -303,6 +296,7 @@ public class DreamService {
                 dream.getWriteTime(), categoryDtos);
     }
 
+    //순환 참조를 방지를 위한 메소드
     private DreamCategoryDto toDreamCategoryDto(DreamCategory dreamCategory) {
         return new DreamCategoryDto(dreamCategory.getId(), dreamCategory.getCategory().getWord(),
                 dreamCategory.getCategory().getType().name());
