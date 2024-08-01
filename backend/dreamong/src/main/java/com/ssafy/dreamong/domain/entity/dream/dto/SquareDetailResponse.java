@@ -1,5 +1,6 @@
 package com.ssafy.dreamong.domain.entity.dream.dto;
 
+import com.ssafy.dreamong.domain.entity.comment.dto.CommentResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

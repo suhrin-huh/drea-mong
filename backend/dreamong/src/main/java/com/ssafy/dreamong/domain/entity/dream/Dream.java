@@ -96,7 +96,9 @@ public class Dream extends BaseTimeEntity {
         }
     }
 
-
+    public void updateLikesCount(Integer likesCount) {
+        this.likesCount = likesCount;
+    }
 }
 
 

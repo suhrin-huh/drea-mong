@@ -39,7 +39,7 @@ public class Comment {
     @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL)
     private List<CommentLike> commentsLikes = new ArrayList<>();
 
-    public Comment(String content, Integer likesCount, Dream dream, User users) {
+    public Comment(String content, Integer likesCount, Dream dream, User user) {
         this.content = content;
         this.likesCount = likesCount;
         this.dream = dream;
@@ -49,5 +49,9 @@ public class Comment {
     public void addCommentLike(CommentLike commentLike) {
         this.commentsLikes.add(commentLike);
         commentLike.setComment(this);
+    }
+
+    public void updateLikesCount(Integer likesCount) {
+        this.likesCount = likesCount;
     }
 }
