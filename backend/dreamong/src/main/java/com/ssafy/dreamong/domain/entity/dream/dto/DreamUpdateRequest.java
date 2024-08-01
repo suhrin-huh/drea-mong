@@ -22,5 +22,7 @@ public class DreamUpdateRequest {
 
     private String writeTime;
 
-    private List<DreamCategory> dreamCategories;
+    private boolean isShared;
+
+    private List<DreamCategoryDto> dreamCategories;
 }
