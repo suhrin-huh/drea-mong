@@ -7,6 +7,6 @@ export const getStreamingRoomById = selector({
     ({ get }) =>
     (id) => {
       const rooms = get(streamingRoomsState);
-      return rooms.find((room) => room.roomId === parseInt(id));
+      return rooms.find((room) => room.token === parseInt(id));
     },
 });
