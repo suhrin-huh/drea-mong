@@ -1,7 +1,7 @@
 package com.ssafy.dreamong.domain.entity.dream.service;
 
 import com.ssafy.dreamong.domain.entity.dream.Dream;
-import com.ssafy.dreamong.domain.entity.dream.dto.CommentResponse;
+import com.ssafy.dreamong.domain.entity.comment.dto.CommentResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareDetailResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareGetResponseDto;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
@@ -36,16 +36,34 @@ public class SquareService {
     }
 
     public SquareDetailResponse getDreamDetail(Integer userId, Integer dreamId) {
-        Dream dream = dreamRepository.findById(dreamId).orElse(null);
-
-        if (dream == null || !dream.isShared() || !dream.getUserId().equals(userId)) {
-            return null;
-        }
+        Dream dream = dreamRepository.findById(dreamId)
+                .filter(d -> d.isShared() && d.getUserId().equals(userId))
+                .orElseThrow(() -> new IllegalArgumentException("Invalid dream or user ID"));
 
         List<CommentResponse> comments = dream.getComments().stream()
-                .map(comment -> new CommentResponse(comment.getId(), comment.getContent(), comment.getLikesCount()))
+                .map(comment -> new CommentResponse(
+                        comment.getId(),
+                        comment.getContent(),
+                        comment.getLikesCount(),
+                        comment.getUser().getNickname())) // 닉네임 포함
                 .collect(Collectors.toList());
 
         return new SquareDetailResponse(dream.getSummary(), dream.getContent(), comments);
+    }
+
+    @Transactional
+    public void incrementDreamLikes(Integer dreamId) {
+        Dream dream = dreamRepository.findById(dreamId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid dream ID: " + dreamId));
+        dream.updateLikesCount(dream.getLikesCount() + 1);
+        dreamRepository.save(dream);
+    }
+
+    @Transactional
+    public void decrementDreamLikes(Integer dreamId) {
+        Dream dream = dreamRepository.findById(dreamId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid dream ID: " + dreamId));
+        dream.updateLikesCount(dream.getLikesCount() - 1);
+        dreamRepository.save(dream);
     }
 }

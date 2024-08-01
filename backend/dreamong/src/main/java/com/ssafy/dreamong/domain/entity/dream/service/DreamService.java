@@ -168,6 +168,7 @@ public class DreamService {
         return toDreamDto(dreamRepository.save(existingDream));
     }
 
+    //한줄 요약
     private String SingleLineInterpretation(String message) {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
@@ -175,6 +176,7 @@ public class DreamService {
         return chatModel.call(prompt);
     }
 
+    //카테고리 뽑기
     private String DetailedPrompt(String message) {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
@@ -188,6 +190,7 @@ public class DreamService {
         return prompt;
     }
 
+    //카테고리별 파싱
     private List<DreamCategoryDto> parseDreamCategories(String json) {
         try {
             log.info("Received JSON: {}", json);

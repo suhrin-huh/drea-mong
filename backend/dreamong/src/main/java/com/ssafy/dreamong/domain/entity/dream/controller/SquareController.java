@@ -1,8 +1,10 @@
 package com.ssafy.dreamong.domain.entity.dream.controller;
 
 import com.ssafy.dreamong.domain.entity.common.ApiResponse;
+import com.ssafy.dreamong.domain.entity.dream.dto.DreamUpdateLikesDto;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareDetailResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareGetResponseDto;
+import com.ssafy.dreamong.domain.entity.dream.service.DreamService;
 import com.ssafy.dreamong.domain.entity.dream.service.SquareService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,7 +17,9 @@ import org.springframework.web.bind.annotation.*;
 public class SquareController {
 
     private final SquareService squareService;
+    private final DreamService dreamService;
 
+    //꿈 광장 조회
     @GetMapping(value = "/dreams", produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse<?> getAllSharedDreams(
             @RequestParam(defaultValue = "0") int page,
@@ -33,13 +37,28 @@ public class SquareController {
         }
     }
 
+    //꿈 광장 상세 보기
     @GetMapping(value = "/{userId}/{dreamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponse<?> getDreamDetail(@PathVariable Integer userId, @PathVariable Integer dreamId) {
         SquareDetailResponse dreamDetail = squareService.getDreamDetail(userId, dreamId);
         if (dreamDetail == null) {
             return ApiResponse.error("Dream not found or access denied");
         } else {
-            return ApiResponse.success(dreamDetail, "Dream retrieved successfully");
+            return ApiResponse.success(dreamDetail, "꿈 광장 상세 보기");
         }
+    }
+
+    // 꿈 좋아요
+    @PostMapping(value = "/{dreamId}/like", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<?> likeDream(@PathVariable Integer dreamId) {
+        squareService.incrementDreamLikes(dreamId);
+        return ApiResponse.success(null, "꿈 좋아요");
+    }
+
+    // 꿈 좋아요 취소
+    @PostMapping(value = "/{dreamId}/unlike", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<?> unlikeDream(@PathVariable Integer dreamId) {
+        squareService.decrementDreamLikes(dreamId);
+        return ApiResponse.success(null, "꿈 좋아요 취소");
     }
 }
