@@ -4,11 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ssafy.dreamong.domain.entity.category.Category;
 import com.ssafy.dreamong.domain.entity.category.Type;
+import com.ssafy.dreamong.domain.entity.category.repository.CategoryRepository;
 import com.ssafy.dreamong.domain.entity.dream.Dream;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamCreateRequest;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamGetResponse;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamMainResponse;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamUpdateRequest;
+import com.ssafy.dreamong.domain.entity.dream.dto.*;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
 import com.ssafy.dreamong.domain.entity.dreamcategory.DreamCategory;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +19,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -29,39 +28,56 @@ import java.util.List;
 public class DreamService {
 
     private final DreamRepository dreamRepository;
+    private final CategoryRepository categoryRepository;
 
     private final ChatModel chatModel;
 
     private final ObjectMapper objectMapper; // Jackson ObjectMapper를 사용하여 JSON 파싱
 
-    //등록
+    //꿈 생성
     @Transactional
-    public Dream create(DreamCreateRequest dreamCreateRequest) {
-        //한줄 요약
-        String summary = SingleLineInterpretation(dreamCreateRequest.getSummary());
+    public DreamDto create(DreamCreateRequest dreamRequest) {
+        // AI API 호출하여 summary 생성
+        String newSummary = SingleLineInterpretation(dreamRequest.getContent());
+        log.info("Generated Summary: {}", newSummary);
 
-        //꿈 카테고리 분석 및 단어 추출
-        String detailedPrompt = DetailedPrompt(dreamCreateRequest.getContent());
+        // AI API 호출하여 category 분석
+        String detailedPrompt = DetailedPrompt(dreamRequest.getContent());
+        log.info("Detailed Prompt: {}", detailedPrompt);
+
         String analysisResultJson = chatModel.call(detailedPrompt);
+        log.info("AI Model Response: {}", analysisResultJson);
 
-        List<DreamCategory> dreamCategories = parseDreamCategories(analysisResultJson);
+        List<DreamCategoryDto> dreamCategoryDto = parseDreamCategories(analysisResultJson);
 
         Dream dream = Dream.builder()
-                .content(dreamCreateRequest.getContent())
-                .image(dreamCreateRequest.getImage())
-                .interpretation(dreamCreateRequest.getInterpretation())
-                .summary(summary)
+                .content(dreamRequest.getContent())
+                .image(dreamRequest.getImage())
+                .interpretation(dreamRequest.getInterpretation())
+                .summary(newSummary)
                 .isShared(false)
                 .likesCount(0)
-                .writeTime(dreamCreateRequest.getWriteTime())
-                .userId(dreamCreateRequest.getUserId())
-                .dreamCategories(dreamCategories)
+                .userId(dreamRequest.getUserId())
+                .writeTime(dreamRequest.getWriteTime())
                 .build();
 
-        return dreamRepository.save(dream);
+        dream = dreamRepository.save(dream);
+
+        List<DreamCategory> dreamCategories = new ArrayList<>();
+        for (DreamCategoryDto dto : dreamCategoryDto) {
+            Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
+                    .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
+            DreamCategory dreamCategory = new DreamCategory(dream, category);
+            dreamCategories.add(dreamCategory);
+        }
+
+        dream.getDreamCategories().addAll(dreamCategories);
+        dream = dreamRepository.save(dream);
+
+        return toDreamDto(dream);
     }
 
-    //상세보기
+    // 상세보기
     public DreamGetResponse getDream(Integer dreamId) {
         Dream dream = dreamRepository.findById(dreamId).orElse(null);
 
@@ -99,43 +115,54 @@ public class DreamService {
         return dreamMainResponseList;
     }
 
-    //수정
+    // 수정
     @Transactional
-    public Dream update(Integer dreamId, DreamUpdateRequest dreamUpdateRequest) {
+    public DreamDto update(Integer dreamId, DreamUpdateRequest dreamUpdateRequest) {
         Dream existingDream = dreamRepository.findById(dreamId).orElse(null);
 
         if (existingDream == null) {
             return null; // 존재하지 않는 꿈 ID일 경우 null 반환
         }
 
-        // 새로 업데이트된 정보로 Dream 객체 생성
-        String newSummary = SingleLineInterpretation(dreamUpdateRequest.getSummary());
-        String detailedPrompt = DetailedPrompt(dreamUpdateRequest.getContent());
-        String analysisResultJson = chatModel.call(detailedPrompt);
+        // AI API 호출하여 summary 생성
+        String newSummary = SingleLineInterpretation(dreamUpdateRequest.getContent());
+        log.info("Generated Summary: {}", newSummary);
 
-        List<DreamCategory> newDreamCategories = parseDreamCategories(analysisResultJson);
+        // AI API 호출하여 category 분석
+        String detailedPrompt = DetailedPrompt(dreamUpdateRequest.getContent());
+        log.info("Detailed Prompt: {}", detailedPrompt);
+
+        String analysisResultJson = chatModel.call(detailedPrompt);
+        log.info("AI Model Response: {}", analysisResultJson);
+
+        List<DreamCategoryDto> newDreamCategoryDtos = parseDreamCategories(analysisResultJson);
+
+        // 기존 카테고리 삭제
+        existingDream.getDreamCategories().clear();
+        dreamRepository.save(existingDream); // 업데이트된 상태를 먼저 저장
+
+        // 새로운 카테고리 추가
+        List<DreamCategory> newDreamCategories = new ArrayList<>();
+        for (DreamCategoryDto dto : newDreamCategoryDtos) {
+            Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
+                    .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
+            newDreamCategories.add(new DreamCategory(existingDream, category));
+        }
+
+        existingDream.getDreamCategories().addAll(newDreamCategories);
 
         // 기존 Dream 객체의 ID, isShared, likesCount, userId를 유지하며 새로 업데이트
-        existingDream.updateDreamCategories(newDreamCategories); // 카테고리 리스트 업데이트
+        existingDream.update(
+                dreamUpdateRequest.getContent(),
+                dreamUpdateRequest.getImage(),
+                dreamUpdateRequest.getInterpretation(),
+                newSummary,
+                dreamUpdateRequest.getWriteTime(),
+                newDreamCategories
+        );
 
-        // 엔티티의 나머지 필드를 업데이트
-        Dream updatedDream = Dream.builder()
-                .id(existingDream.getId()) // 기존 ID 유지
-                .content(dreamUpdateRequest.getContent())
-                .image(dreamUpdateRequest.getImage())
-                .interpretation(dreamUpdateRequest.getInterpretation())
-                .summary(newSummary)
-                .isShared(existingDream.isShared()) // 공유 여부는 그대로 유지
-                .likesCount(existingDream.getLikesCount()) // 좋아요 수는 그대로 유지
-                .writeTime(dreamUpdateRequest.getWriteTime())
-                .userId(existingDream.getUserId()) // 사용자 ID는 기존과 동일
-                .dreamCategories(existingDream.getDreamCategories()) // 카테고리 업데이트
-                .build();
-
-        return dreamRepository.save(updatedDream);
+        return toDreamDto(dreamRepository.save(existingDream));
     }
-
-
 
     private String SingleLineInterpretation(String message) {
         // 프롬프트 작성 로직
@@ -152,41 +179,121 @@ public class DreamService {
                 "2. 인물 (character): 꿈에 등장한 주요 인물은 누구입니까?\n" +
                 "3. 기분 (mood): 이 꿈을 꿀 때 느낀 기분은 어떠했습니까? (예: 두려움, 기쁨, 슬픔 등)\n" +
                 "4. 장소 (location): 꿈에서 나타난 주요 장소는 어디입니까?\n" +
-                "5. 사물 또는 동물 (objects): 꿈에 등장한 주요 사물이나 동물은 무엇입니까? 이 정보는 해시태그(#) 형식으로 제공해주세요.\n" +
+                "5. 사물 또는 동물 (objects): 꿈에 등장한 주요 사물이나 동물은 무엇입니까? \n" +
                 "응답은 JSON 형식으로 해주세요.";
         return prompt;
     }
 
-    private List<DreamCategory> parseDreamCategories(String json) {
+    private List<DreamCategoryDto> parseDreamCategories(String json) {
         try {
-            JsonNode root = objectMapper.readTree(json);
-            List<DreamCategory> categories = new ArrayList<>();
+            log.info("Received JSON: {}", json);
+            json = json.trim();
+            json = json.replace("```json", "").replace("```", "").replace("`", "").trim();
+            log.info("Cleaned JSON: {}", json);
 
+            JsonNode root = objectMapper.readTree(json);
+            log.info("Parsed JSON Tree: {}", root.toString());
+
+            List<DreamCategoryDto> categories = new ArrayList<>();
             if (root.has("dreamType")) {
-                Category category = new Category(root.get("dreamType").asText(), Type.dreamType);
-                categories.add(new DreamCategory(null, category));
+                String dreamType = root.get("dreamType").asText();
+                if (!dreamType.isEmpty()) {
+                    categories.add(new DreamCategoryDto(null, dreamType, "dreamType"));
+                }
             }
             if (root.has("character")) {
-                Category category = new Category(root.get("character").asText(), Type.character);
-                categories.add(new DreamCategory(null, category));
+                JsonNode characters = root.get("character");
+                if (characters.isArray()) {
+                    for (JsonNode characterNode : characters) {
+                        String character = characterNode.asText();
+                        if (!character.isEmpty()) {
+                            categories.add(new DreamCategoryDto(null, character, "character"));
+                        }
+                    }
+                } else if (characters.isObject()) {
+                    characters.fields().forEachRemaining(field -> {
+                        String character = field.getValue().asText();
+                        if (!character.isEmpty()) {
+                            categories.add(new DreamCategoryDto(null, character, "character"));
+                        }
+                    });
+                }
             }
             if (root.has("mood")) {
-                Category category = new Category(root.get("mood").asText(), Type.mood);
-                categories.add(new DreamCategory(null, category));
+                JsonNode moods = root.get("mood");
+                if (moods.isArray()) {
+                    for (JsonNode moodNode : moods) {
+                        String mood = moodNode.asText();
+                        if (!mood.isEmpty()) {
+                            categories.add(new DreamCategoryDto(null, mood, "mood"));
+                        }
+                    }
+                } else if (moods.isObject()) {
+                    moods.fields().forEachRemaining(field -> {
+                        String mood = field.getValue().asText();
+                        if (!mood.isEmpty()) {
+                            categories.add(new DreamCategoryDto(null, mood, "mood"));
+                        }
+                    });
+                }
             }
             if (root.has("location")) {
-                Category category = new Category(root.get("location").asText(), Type.location);
-                categories.add(new DreamCategory(null, category));
+                JsonNode locations = root.get("location");
+                if (locations.isArray()) {
+                    for (JsonNode locationNode : locations) {
+                        String location = locationNode.asText();
+                        if (!location.isEmpty()) {
+                            categories.add(new DreamCategoryDto(null, location, "location"));
+                        }
+                    }
+                } else if (locations.isObject()) {
+                    locations.fields().forEachRemaining(field -> {
+                        String location = field.getValue().asText();
+                        if (!location.isEmpty()) {
+                            categories.add(new DreamCategoryDto(null, location, "location"));
+                        }
+                    });
+                }
             }
             if (root.has("objects")) {
-                Category category = new Category(root.get("objects").asText(), Type.objects);
-                categories.add(new DreamCategory(null, category));
+                JsonNode objects = root.get("objects");
+                if (objects.isArray()) {
+                    for (JsonNode objectNode : objects) {
+                        String object = objectNode.asText();
+                        if (!object.isEmpty()) {
+                            categories.add(new DreamCategoryDto(null, object, "objects"));
+                        }
+                    }
+                } else if (objects.isObject()) {
+                    objects.fields().forEachRemaining(field -> {
+                        String object = field.getValue().asText();
+                        if (!object.isEmpty()) {
+                            categories.add(new DreamCategoryDto(null, object, "objects"));
+                        }
+                    });
+                }
             }
-
+            log.info("Parsed Categories: {}", categories);
             return categories;
         } catch (Exception e) {
             log.error("Error parsing dream categories JSON", e);
             return new ArrayList<>();
         }
+    }
+
+
+    //순환 참조를 방지를 위한 메소드
+    private DreamDto toDreamDto(Dream dream) {
+        List<DreamCategoryDto> categoryDtos = dream.getDreamCategories().stream()
+                .map(this::toDreamCategoryDto)
+                .collect(Collectors.toList());
+        return new DreamDto(dream.getId(), dream.getContent(), dream.getImage(), dream.getInterpretation(),
+                dream.getSummary(), dream.isShared(), dream.getLikesCount(), dream.getUserId(),
+                dream.getWriteTime(), categoryDtos);
+    }
+
+    private DreamCategoryDto toDreamCategoryDto(DreamCategory dreamCategory) {
+        return new DreamCategoryDto(dreamCategory.getId(), dreamCategory.getCategory().getWord(),
+                dreamCategory.getCategory().getType().name());
     }
 }
