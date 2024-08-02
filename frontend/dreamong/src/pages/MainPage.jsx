@@ -1,10 +1,13 @@
 import { useRef, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // Import Swiper React components
+// npm install swiper
 import { Swiper, SwiperSlide } from 'swiper/react';
 
 // import required modules
 import { Autoplay, Pagination, Navigation } from 'swiper/modules';
+
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -15,7 +18,7 @@ const MainPage = () => {
   const current = new Date();
   const [dreams, setDreams] = useState({});
   const [year, setYear] = useState(current.getFullYear());
-  const [month, setMonth] = useState(current.getMonth());
+  const [month, setMonth] = useState(current.getMonth() + 1);
 
   // 월에 포커스를 맞추기 위해서
   const swiperRef = useRef(null);
@@ -226,16 +229,29 @@ const MainPage = () => {
     setMonth(number);
   };
 
+  // 요일을 나타내기 위한 함수
+  const getWeekDay = (dateStr) => {
+    const date = new Date(year, month - 1, parseInt(dateStr.slice(6, 8)));
+    const option = { weekday: 'long' };
+    return date.toLocaleDateString('en-US', option).slice(0, 3).toUpperCase();
+  };
+
+  // 상세페이지 이동을 위한 navigate
+  const navigate = useNavigate();
+  const handleClick = (dreamId) => {
+    navigate(`/dream/${dreamId}`);
+  };
+
   return (
     <div className="relative h-dvh">
       <header className="inline-flex h-1/4 w-full flex-col items-center justify-center gap-2.5 text-center text-white">
-        <p className="text-2xl font-bold">안녕 하세요, {dreams.username}님</p>
+        <p className="text-2xl font-bold">안녕하세요, {dreams.username}님</p>
         <p className="text-sm">{dreams.totalCount}번째 꿈을 기록해주세요!!</p>
       </header>
       {/* 아랫부분부터 메인 내용 들어가는 페이지 */}
-      <div className="mx-auto h-3/4 w-full flex-col items-center gap-2 rounded-3xl bg-white px-4 py-3 text-center">
+      <div className="mx-auto h-3/4 w-full flex-col items-center gap-2 rounded-t-3xl bg-white px-4 py-3 text-center">
         {/* 날짜 선택 */}
-        <div className="h-1/6 w-full py-4 text-center">
+        <div className="h-1/5 w-full py-4 text-center">
           {/* 연도 선택 */}
           <div className="flex items-center justify-center gap-12 p-2.5 text-xl">
             <button onClick={() => handleYear(-1)}>{'<'}</button>
@@ -246,7 +262,7 @@ const MainPage = () => {
           <div className="align-center my-2 flex items-center justify-center gap-1 text-base">
             <Swiper
               ref={swiperRef}
-              slidesPerView={6.5}
+              slidesPerView={6}
               centeredSlides={true}
               spaceBetween={10}
               grabCursor={true}
@@ -276,22 +292,30 @@ const MainPage = () => {
           </div>
         </div>
         {/* 이부분에 일기 들어가기 */}
-        {/* <div className="h-3/4 overflow-y-auto">
+        <div className="my-2 h-3/4 flex-col overflow-y-auto">
           {dreams.dreams &&
-            dreams.dreams.map((dream) => (
-              <div className="inline-flex h-[60px] items-start justify-center gap-[5px] bg-white">
-                <div className="inline-flex h-[60px] w-[70px] flex-col items-center justify-center gap-[5px] px-2.5 py-5">
-                  <div className="self-stretch text-center font-['Inter'] text-xl font-medium text-black">
-                    {dream.writeDate.slice}
+            dreams.dreams.map((dream) => {
+              return (
+                <div className="my-2 flex h-20 items-start justify-center gap-x-3">
+                  <div className="mt-2 h-[60px] w-1/6 flex-col items-center justify-start">
+                    <div className="text-center text-3xl font-bold">{dream.writeDate.slice(6, 8)}</div>
+                    <div className="text-slate-500">{getWeekDay(dream.writeDate)}</div>
                   </div>
-                  <div className="#a6a6a6">MON</div>
+                  <div
+                    onClick={() => handleClick(dream.dreamId)}
+                    className={`flex w-3/4 shrink grow basis-0 items-start justify-between self-stretch rounded-lg bg-black bg-opacity-40 p-2.5 text-white bg-blend-darken`}
+                    style={{
+                      backgroundImage: `url(${dream.image})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  >
+                    <div className="m-1">{dream.content}</div>
+                  </div>
                 </div>
-                <div className="flex shrink grow basis-0 items-start justify-between self-stretch rounded-[10px] p-2.5">
-                  <div className="#ededed">밤에 길을 지나가다가 원숭이를 보았는데 너무 무서웠어</div>
-                </div>
-              </div>
-            ))}
-        </div> */}
+              );
+            })}
+        </div>
       </div>
     </div>
   );
