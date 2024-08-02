@@ -3,7 +3,6 @@ package com.ssafy.dreamong.domain.entity.dream;
 import com.ssafy.dreamong.domain.entity.comment.Comment;
 import com.ssafy.dreamong.domain.entity.common.BaseTimeEntity;
 import com.ssafy.dreamong.domain.entity.dreamcategory.DreamCategory;
-import com.ssafy.dreamong.domain.entity.dreamlike.DreamLike;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

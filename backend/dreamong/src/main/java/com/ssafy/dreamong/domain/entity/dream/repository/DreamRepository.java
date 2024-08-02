@@ -15,6 +15,4 @@ public interface DreamRepository extends JpaRepository<Dream, Integer> {
     List<Dream> findAllByUserIdAndWriteTimeLikeOrderByWriteTimeDesc(@Param("userId") Integer userId, @Param("writeTime") String writeTime);
 
     Page<Dream> findByIsSharedTrue(Pageable pageable);
-
-    Optional<Dream> findByIdAndUserId(Integer dreamId, Integer userId);
 }

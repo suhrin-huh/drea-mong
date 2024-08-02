@@ -1,10 +1,12 @@
 package com.ssafy.dreamong.domain.entity.dream.service;
 
+import com.ssafy.dreamong.domain.entity.commentlike.repository.CommentLikeRepository;
 import com.ssafy.dreamong.domain.entity.dream.Dream;
 import com.ssafy.dreamong.domain.entity.comment.dto.CommentResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareDetailResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareGetResponseDto;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
+import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,7 +24,10 @@ import java.util.stream.Collectors;
 public class SquareService {
 
     private final DreamRepository dreamRepository;
+    private final CommentLikeRepository commentLikeRepository;
+    private final UserRepository userRepository;
 
+    //꿈 광장 조회
     public Page<SquareGetResponseDto> getAllSharedDreams(int page, int size, String sort) {
         // Sort 파라미터를 나누어 정렬 기준과 순서를 설정
         String[] sortParams = sort.split(",");
@@ -35,9 +40,9 @@ public class SquareService {
         return sharedDreams.map(dream -> new SquareGetResponseDto(dream.getId(), dream.getUserId(), dream.getImage()));
     }
 
-    public SquareDetailResponse getDreamDetail(Integer userId, Integer dreamId) {
+    public SquareDetailResponse getDreamDetail(Integer dreamId, Integer userId) {
         Dream dream = dreamRepository.findById(dreamId)
-                .filter(d -> d.isShared() && d.getUserId().equals(userId))
+                .filter(Dream::isShared)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid dream or user ID"));
 
         List<CommentResponse> comments = dream.getComments().stream()
@@ -48,22 +53,11 @@ public class SquareService {
                         comment.getUser().getNickname())) // 닉네임 포함
                 .collect(Collectors.toList());
 
-        return new SquareDetailResponse(dream.getSummary(), dream.getContent(), comments);
-    }
+        boolean likeByUser = dream.getComments().stream().anyMatch(comment ->
+                commentLikeRepository.existsByCommentAndUser(comment, userRepository.findById(userId)
+                        .orElseThrow(() -> new IllegalArgumentException("Invalid user Id")))
+        );
 
-    @Transactional
-    public void incrementDreamLikes(Integer dreamId) {
-        Dream dream = dreamRepository.findById(dreamId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid dream ID: " + dreamId));
-        dream.updateLikesCount(dream.getLikesCount() + 1);
-        dreamRepository.save(dream);
-    }
-
-    @Transactional
-    public void decrementDreamLikes(Integer dreamId) {
-        Dream dream = dreamRepository.findById(dreamId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid dream ID: " + dreamId));
-        dream.updateLikesCount(dream.getLikesCount() - 1);
-        dreamRepository.save(dream);
+        return new SquareDetailResponse(dream.getSummary(), dream.getContent(), comments, likeByUser);
     }
 }

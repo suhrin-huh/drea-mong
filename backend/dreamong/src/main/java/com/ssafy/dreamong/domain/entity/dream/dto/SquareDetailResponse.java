@@ -12,4 +12,5 @@ public class SquareDetailResponse {
     private String summary;
     private String content;
     private List<CommentResponse> comments;
+    private boolean likedByUser;
 }

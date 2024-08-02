@@ -61,4 +61,26 @@ public class DreamController {
             return ApiResponse.success(updatedDream, "Dream updated successfully");
         }
     }
+
+    //꿈 삭제
+    @DeleteMapping("/{dreamId}")
+    public ApiResponse<?> delete(@PathVariable Integer dreamId) {
+        boolean isDelete = dreamService.deleteDream(dreamId);
+        if (isDelete) {
+            return ApiResponse.success(null, "Dream deleted successfully");
+        }else{
+            return ApiResponse.error("Dream not found");
+        }
+    }
+
+    //꿈 임시 저장
+    @PostMapping(value = "/temporary" , produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<?> temporaryDream(@RequestBody DreamCreateRequest dreamCreateRequest) {
+        DreamDto temporaryDream = dreamService.createTemporaryDream(dreamCreateRequest);
+        if (temporaryDream == null) {
+            return ApiResponse.error("Dream creation failed");
+        }else{
+            return ApiResponse.success(temporaryDream, "Dream created successfully");
+        }
+    }
 }
