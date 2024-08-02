@@ -61,4 +61,15 @@ public class DreamController {
             return ApiResponse.success(updatedDream, "Dream updated successfully");
         }
     }
+
+    //꿈 삭제
+    @DeleteMapping("/{dreamId}")
+    public ApiResponse<?> delete(@PathVariable Integer dreamId) {
+        boolean isDelete = dreamService.deleteDream(dreamId);
+        if (isDelete) {
+            return ApiResponse.success(null, "Dream deleted successfully");
+        }else{
+            return ApiResponse.error("Dream not found");
+        }
+    }
 }

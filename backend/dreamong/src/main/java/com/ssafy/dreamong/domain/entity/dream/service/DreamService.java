@@ -39,14 +39,11 @@ public class DreamService {
     public DreamDto create(DreamCreateRequest dreamRequest) {
         // AI API 호출하여 summary 생성
         String newSummary = SingleLineInterpretation(dreamRequest.getContent());
-        log.info("Generated Summary: {}", newSummary);
 
         // AI API 호출하여 category 분석
         String detailedPrompt = DetailedPrompt(dreamRequest.getContent());
-        log.info("Detailed Prompt: {}", detailedPrompt);
 
         String analysisResultJson = chatModel.call(detailedPrompt);
-        log.info("AI Model Response: {}", analysisResultJson);
 
         List<DreamCategoryDto> dreamCategoryDto = parseDreamCategories(analysisResultJson);
 
@@ -98,19 +95,13 @@ public class DreamService {
 
     // 메인 조회
     public List<DreamMainResponse> getDreamsByUserIdAndWriteTime(Integer userId, String writeTime) {
-//        System.out.println("Fetching dreams for userId: " + userId + " and writeTime: " + writeTime);
-
         // 날짜를 파싱하여 연도와 월을 추출합니다.
         LocalDate date = LocalDate.parse(writeTime, DateTimeFormatter.ofPattern("yyyyMMdd"));
         String yearMonth = date.format(DateTimeFormatter.ofPattern("yyyyMM"));
 
-//        System.out.println("Parsed yearMonth: " + yearMonth);
-
         List<Dream> dreams = dreamRepository.findAllByUserIdAndWriteTimeLikeOrderByWriteTimeDesc(userId, yearMonth);
-//        System.out.println("Fetched dreams: " + dreams);
 
         if (dreams.isEmpty()) {
-//            System.out.println("DreamList is empty for userId: " + userId + " and writeTime: " + writeTime);
             return new ArrayList<>();
         }
 
@@ -168,6 +159,18 @@ public class DreamService {
         return toDreamDto(dreamRepository.save(existingDream));
     }
 
+    //꿈 삭제
+    @Transactional
+    public boolean deleteDream(Integer dreamId) {
+        Dream dream = dreamRepository.findById(dreamId).orElse(null);
+        if (dream != null) {
+            dreamRepository.delete(dream);
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     //한줄 요약
     private String SingleLineInterpretation(String message) {
         // 프롬프트 작성 로직
@@ -193,13 +196,10 @@ public class DreamService {
     //카테고리별 파싱
     private List<DreamCategoryDto> parseDreamCategories(String json) {
         try {
-            log.info("Received JSON: {}", json);
             json = json.trim();
             json = json.replace("```json", "").replace("```", "").replace("`", "").trim();
-            log.info("Cleaned JSON: {}", json);
 
             JsonNode root = objectMapper.readTree(json);
-            log.info("Parsed JSON Tree: {}", root.toString());
 
             List<DreamCategoryDto> categories = new ArrayList<>();
             if (root.has("dreamType")) {
@@ -280,10 +280,9 @@ public class DreamService {
                     });
                 }
             }
-            log.info("Parsed Categories: {}", categories);
+
             return categories;
         } catch (Exception e) {
-            log.error("Error parsing dream categories JSON", e);
             return new ArrayList<>();
         }
     }
