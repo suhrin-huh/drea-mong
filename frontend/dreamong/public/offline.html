@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>오프라인 - 드리-몽</title>
+    <style>
+      body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f0f0f0;
+        color: #333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      .container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+      }
+      h1 {
+        color: #737dfe;
+        margin-bottom: 20px;
+      }
+      p {
+        margin-bottom: 15px;
+        line-height: 1.5;
+      }
+      .icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+      }
+      .retry-button {
+        background-color: #737dfe;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+      .retry-button:hover {
+        background-color: #5a64cb;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">🌙</div>
+      <h1>오프라인 상태입니다</h1>
+      <p>현재 인터넷 연결이 없어 드리-몽 서비스를 이용할 수 없습니다.</p>
+      <p>연결이 복구되면 다시 꿈 해몽 서비스를 이용하실 수 있습니다.</p>
+      <button class="retry-button" onclick="window.location.reload()">다시 시도하기</button>
+    </div>
+    <script>
+      // 온라인 상태로 변경되면 자동으로 페이지 새로고침
+      window.addEventListener('online', () => {
+        window.location.reload();
+      });
+    </script>
+  </body>
+</html>
