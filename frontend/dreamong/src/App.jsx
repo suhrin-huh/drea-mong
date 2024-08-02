@@ -9,6 +9,8 @@ import LoginSuccess from './pages/LoginPage/components/LoginSuccess';
 import DreamRegisterPage from './pages/DreamRegisterPage';
 import DreamDetailPage from './pages/DreamDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import SquarePage from './pages/SquarePage';
+import SquareDetailPage from './pages/SquareDetailPage';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState();
@@ -22,16 +24,16 @@ function App() {
   return (
     <RecoilRoot>
       <Router>
-        <div className="flex min-h-screen justify-center bg-purple-100">
+        <div className="flex justify-center min-h-screen bg-purple-100">
           <div className="flex w-full max-w-[600px] flex-col bg-white shadow-lg">
             <main className="flex-grow overflow-auto">
               <Routes>
                 <Route exact path="/" element={<MainPage />} />
                 <Route path="/dream/create" element={<DreamRegisterPage />} />
                 <Route path="/dream/:dreamId" element={<DreamDetailPage />} />
+                <Route path="/square" element={<SquarePage/>} />
+                <Route path="/square/:dreamId" element={<SquareDetailPage/>}/>
                 {/* <Route path="/dream/:dreamId/update" element={} />
-                <Route path="/square" element={} />
-                <Route path="/square/:dreamId" element={} />
                 <Route path="/streaming" element={} />
                 <Route path="/streaming/create" element={} />
                 <Route path="/streaming/:roomId" element={} />
