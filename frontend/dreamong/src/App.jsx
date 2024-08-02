@@ -23,7 +23,7 @@ function App() {
     <RecoilRoot>
       <Router>
         <div className="flex min-h-screen justify-center bg-purple-100">
-          <div className="flex w-full max-w-[600px] flex-col bg-white shadow-lg">
+          <div className="flex w-full max-w-[600px] flex-col bg-[url('/src/assets/background.svg')] bg-cover shadow-lg">
             <main className="flex-grow overflow-auto">
               <Routes>
                 <Route exact path="/" element={<MainPage />} />
