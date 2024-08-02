@@ -89,7 +89,7 @@ const SettingsPage = () => {
   return (
     <>
       <h1 className="mb-20 mt-20 text-center text-3xl text-white">환경 설정</h1>
-      <div className="fixed h-full w-full overflow-auto rounded-t-2xl bg-white p-6">
+      <div className="fixed h-full w-full max-w-[600px] overflow-auto rounded-t-2xl bg-white p-6">
         {!isLogin && (
           <div className="mb-10 flex justify-between">
             <p>로그인</p>
