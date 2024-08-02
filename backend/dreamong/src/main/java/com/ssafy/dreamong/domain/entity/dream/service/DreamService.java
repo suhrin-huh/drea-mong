@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -162,9 +163,9 @@ public class DreamService {
     //꿈 삭제
     @Transactional
     public boolean deleteDream(Integer dreamId) {
-        Dream dream = dreamRepository.findById(dreamId).orElse(null);
-        if (dream != null) {
-            dreamRepository.delete(dream);
+        Optional<Dream> dream = dreamRepository.findById(dreamId);
+        if (dream.isPresent()) {
+            dreamRepository.delete(dream.get());
             return true;
         }else{
             return false;

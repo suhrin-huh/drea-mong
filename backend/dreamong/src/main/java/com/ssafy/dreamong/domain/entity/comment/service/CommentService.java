@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -62,5 +64,16 @@ public class CommentService {
         // 좋아요 취소 로직 (User와 Comment의 관계를 삭제하는 등)
         comment.updateLikesCount(comment.getLikesCount() - 1);
         commentRepository.save(comment);
+    }
+
+    @Transactional
+    public boolean deleteComment(Integer commentId) {
+        Optional<Comment> comment = commentRepository.findById(commentId);
+        if (comment.isPresent()) {
+            commentRepository.delete(comment.get());
+            return true;
+        }else{
+            return false;
+        }
     }
 }
