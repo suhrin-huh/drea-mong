@@ -127,21 +127,25 @@ public class DreamService {
             return null; // 존재하지 않는 꿈 ID일 경우 null 반환
         }
 
+        // AI API 호출하여 summary 생성
+        String newSummary = SingleLineInterpretation(dreamUpdateRequest.getContent());
+
+        // AI API 호출하여 category 분석
+        String detailedPrompt = DetailedPrompt(dreamUpdateRequest.getContent());
+        String analysisResultJson = chatModel.call(detailedPrompt);
+        List<DreamCategoryDto> dreamCategoryDtos = parseDreamCategories(analysisResultJson);
+
         // 기존 카테고리 삭제
         existingDream.getDreamCategories().clear();
         dreamRepository.save(existingDream); // 업데이트된 상태를 먼저 저장
 
         // 새로운 카테고리 추가
         List<DreamCategory> newDreamCategories = new ArrayList<>();
-        List<DreamCategoryDto> dreamCategoryDtos = dreamUpdateRequest.getDreamCategories();
-
-        if (dreamCategoryDtos == null) {
-            dreamCategoryDtos = new ArrayList<>();
-        }
         for (DreamCategoryDto dto : dreamCategoryDtos) {
             Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
                     .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
-            newDreamCategories.add(new DreamCategory(existingDream, category));
+            DreamCategory dreamCategory = new DreamCategory(existingDream, category);
+            newDreamCategories.add(dreamCategory);
         }
 
         existingDream.getDreamCategories().addAll(newDreamCategories);
@@ -151,7 +155,7 @@ public class DreamService {
                 dreamUpdateRequest.getContent(),
                 dreamUpdateRequest.getImage(),
                 dreamUpdateRequest.getInterpretation(),
-                dreamUpdateRequest.getSummary(),
+                newSummary, // 새로운 summary 사용
                 dreamUpdateRequest.getWriteTime(),
                 dreamUpdateRequest.isShared(),
                 newDreamCategories
@@ -159,6 +163,7 @@ public class DreamService {
 
         return toDreamDto(dreamRepository.save(existingDream));
     }
+
 
     //꿈 삭제
     @Transactional

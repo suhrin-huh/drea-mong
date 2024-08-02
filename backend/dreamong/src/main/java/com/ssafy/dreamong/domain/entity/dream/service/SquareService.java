@@ -40,10 +40,9 @@ public class SquareService {
         return sharedDreams.map(dream -> new SquareGetResponseDto(dream.getId(), dream.getUserId(), dream.getImage()));
     }
 
-    //꿈 광장 상세 조회
     public SquareDetailResponse getDreamDetail(Integer dreamId, Integer userId) {
         Dream dream = dreamRepository.findById(dreamId)
-                .filter(d -> d.isShared())
+                .filter(Dream::isShared)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid dream or user ID"));
 
         List<CommentResponse> comments = dream.getComments().stream()
@@ -54,7 +53,10 @@ public class SquareService {
                         comment.getUser().getNickname())) // 닉네임 포함
                 .collect(Collectors.toList());
 
-        boolean likeByUser = commentLikeRepository.existsByCommentAndUser(dream, userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Invalid user Id")));
+        boolean likeByUser = dream.getComments().stream().anyMatch(comment ->
+                commentLikeRepository.existsByCommentAndUser(comment, userRepository.findById(userId)
+                        .orElseThrow(() -> new IllegalArgumentException("Invalid user Id")))
+        );
 
         return new SquareDetailResponse(dream.getSummary(), dream.getContent(), comments, likeByUser);
     }
