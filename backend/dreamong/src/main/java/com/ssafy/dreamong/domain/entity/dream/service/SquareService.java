@@ -23,6 +23,7 @@ public class SquareService {
 
     private final DreamRepository dreamRepository;
 
+    //꿈 광장 조회
     public Page<SquareGetResponseDto> getAllSharedDreams(int page, int size, String sort) {
         // Sort 파라미터를 나누어 정렬 기준과 순서를 설정
         String[] sortParams = sort.split(",");
@@ -35,9 +36,10 @@ public class SquareService {
         return sharedDreams.map(dream -> new SquareGetResponseDto(dream.getId(), dream.getUserId(), dream.getImage()));
     }
 
-    public SquareDetailResponse getDreamDetail(Integer userId, Integer dreamId) {
+    //꿈 광장 상세 조회
+    public SquareDetailResponse getDreamDetail(Integer dreamId) {
         Dream dream = dreamRepository.findById(dreamId)
-                .filter(d -> d.isShared() && d.getUserId().equals(userId))
+                .filter(d -> d.isShared())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid dream or user ID"));
 
         List<CommentResponse> comments = dream.getComments().stream()
@@ -49,21 +51,5 @@ public class SquareService {
                 .collect(Collectors.toList());
 
         return new SquareDetailResponse(dream.getSummary(), dream.getContent(), comments);
-    }
-
-    @Transactional
-    public void incrementDreamLikes(Integer dreamId) {
-        Dream dream = dreamRepository.findById(dreamId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid dream ID: " + dreamId));
-        dream.updateLikesCount(dream.getLikesCount() + 1);
-        dreamRepository.save(dream);
-    }
-
-    @Transactional
-    public void decrementDreamLikes(Integer dreamId) {
-        Dream dream = dreamRepository.findById(dreamId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid dream ID: " + dreamId));
-        dream.updateLikesCount(dream.getLikesCount() - 1);
-        dreamRepository.save(dream);
     }
 }

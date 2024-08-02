@@ -2,7 +2,6 @@ package com.ssafy.dreamong.domain.entity.comment.service;
 
 import com.ssafy.dreamong.domain.entity.comment.Comment;
 import com.ssafy.dreamong.domain.entity.comment.dto.CommentRequest;
-import com.ssafy.dreamong.domain.entity.comment.dto.CommentUpdateLikesDto;
 import com.ssafy.dreamong.domain.entity.comment.repository.CommentRepository;
 import com.ssafy.dreamong.domain.entity.dream.Dream;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;

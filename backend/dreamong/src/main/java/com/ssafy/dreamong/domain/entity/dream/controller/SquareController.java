@@ -38,27 +38,13 @@ public class SquareController {
     }
 
     //꿈 광장 상세 보기
-    @GetMapping(value = "/{userId}/{dreamId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<?> getDreamDetail(@PathVariable Integer userId, @PathVariable Integer dreamId) {
-        SquareDetailResponse dreamDetail = squareService.getDreamDetail(userId, dreamId);
+    @GetMapping(value = "/{dreamId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<?> getDreamDetail(@PathVariable Integer dreamId) {
+        SquareDetailResponse dreamDetail = squareService.getDreamDetail(dreamId);
         if (dreamDetail == null) {
             return ApiResponse.error("Dream not found or access denied");
         } else {
             return ApiResponse.success(dreamDetail, "꿈 광장 상세 보기");
         }
-    }
-
-    // 꿈 좋아요
-    @PostMapping(value = "/{dreamId}/like", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<?> likeDream(@PathVariable Integer dreamId) {
-        squareService.incrementDreamLikes(dreamId);
-        return ApiResponse.success(null, "꿈 좋아요");
-    }
-
-    // 꿈 좋아요 취소
-    @PostMapping(value = "/{dreamId}/unlike", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<?> unlikeDream(@PathVariable Integer dreamId) {
-        squareService.decrementDreamLikes(dreamId);
-        return ApiResponse.success(null, "꿈 좋아요 취소");
     }
 }

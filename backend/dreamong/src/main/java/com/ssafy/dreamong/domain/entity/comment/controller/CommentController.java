@@ -1,7 +1,6 @@
 package com.ssafy.dreamong.domain.entity.comment.controller;
 
 import com.ssafy.dreamong.domain.entity.comment.dto.CommentRequest;
-import com.ssafy.dreamong.domain.entity.comment.dto.CommentUpdateLikesDto;
 import com.ssafy.dreamong.domain.entity.comment.service.CommentService;
 import com.ssafy.dreamong.domain.entity.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
