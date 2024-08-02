@@ -24,33 +24,35 @@ function App() {
     <RecoilRoot>
       <Router>
         <div className="flex min-h-screen justify-center bg-purple-100">
-          <div className="flex w-full max-w-[600px] flex-col bg-white shadow-lg">
-            <main className="flex-grow overflow-auto pb-[60px]">
-              {' '}
-              {/* NavigationBar 높이만큼 패딩 추가 */}
-              <Routes>
-                <Route exact path="/" element={<MainPage />} />
-                <Route path="/dream/create" element={<DreamRegisterPage />} />
-                <Route path="/dream/:dreamId" element={<DreamDetailPage />} />
-                {/* <Route path="/dream/:dreamId/update" element={} /> */}
-                {/* <Route path="/square" element={} /> */}
-                {/* <Route path="/square/:dreamId" element={} /> */}
-                <Route path="/streaming" element={<StreamingPage />}>
-                  <Route index element={<StreamingList />} />
-                  {/* <Route path="create" element={} /> */}
-                  <Route path=":roomId" element={<StreamingRoom />} />
-                </Route>
-                {/* <Route path="/statics" element={} /> */}
-                <Route path="/settings" element={<SettingsPage />} />
-                <Route
-                  path="/login"
-                  element={<LoginPage isLoggedIn={isLoggedIn} toggleLoginStatus={toggleLoginStatus} />}
-                />
-                <Route
-                  path="/oauth/callback/kakao"
-                  element={<LoginSuccess isLoggedIn={isLoggedIn} toggleLoginStatus={toggleLoginStatus} />}
-                />
-              </Routes>
+          <div className="relative flex h-screen w-full max-w-[600px] flex-col bg-[url('/src/assets/background.svg')] bg-cover bg-center">
+            <main className="flex-1 overflow-auto">
+              <div className="min-h-full pb-[60px]">
+                {' '}
+                {/* NavigationBar 높이만큼 패딩 추가 */}
+                <Routes>
+                  <Route exact path="/" element={<MainPage />} />
+                  <Route path="/dream/create" element={<DreamRegisterPage />} />
+                  <Route path="/dream/:dreamId" element={<DreamDetailPage />} />
+                  {/* <Route path="/dream/:dreamId/update" element={} /> */}
+                  {/* <Route path="/square" element={} /> */}
+                  {/* <Route path="/square/:dreamId" element={} /> */}
+                  <Route path="/streaming" element={<StreamingPage />}>
+                    <Route index element={<StreamingList />} />
+                    {/* <Route path="create" element={} /> */}
+                    <Route path=":roomId" element={<StreamingRoom />} />
+                  </Route>
+                  {/* <Route path="/statics" element={} /> */}
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route
+                    path="/login"
+                    element={<LoginPage isLoggedIn={isLoggedIn} toggleLoginStatus={toggleLoginStatus} />}
+                  />
+                  <Route
+                    path="/oauth/callback/kakao"
+                    element={<LoginSuccess isLoggedIn={isLoggedIn} toggleLoginStatus={toggleLoginStatus} />}
+                  />
+                </Routes>
+              </div>
             </main>
             <NavigationBar />
           </div>

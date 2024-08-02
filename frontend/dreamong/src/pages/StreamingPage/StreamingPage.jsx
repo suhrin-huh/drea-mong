@@ -25,7 +25,7 @@ const StreamingPage = () => {
   };
 
   return (
-    <div className="h-full bg-black p-2">
+    <div className="h-full p-2">
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={toggleModalIsOpen}
