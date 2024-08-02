@@ -1,10 +1,12 @@
 package com.ssafy.dreamong.domain.entity.dream.service;
 
+import com.ssafy.dreamong.domain.entity.commentlike.repository.CommentLikeRepository;
 import com.ssafy.dreamong.domain.entity.dream.Dream;
 import com.ssafy.dreamong.domain.entity.comment.dto.CommentResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareDetailResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareGetResponseDto;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
+import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 public class SquareService {
 
     private final DreamRepository dreamRepository;
+    private final CommentLikeRepository commentLikeRepository;
+    private final UserRepository userRepository;
 
     //꿈 광장 조회
     public Page<SquareGetResponseDto> getAllSharedDreams(int page, int size, String sort) {
@@ -37,7 +41,7 @@ public class SquareService {
     }
 
     //꿈 광장 상세 조회
-    public SquareDetailResponse getDreamDetail(Integer dreamId) {
+    public SquareDetailResponse getDreamDetail(Integer dreamId, Integer userId) {
         Dream dream = dreamRepository.findById(dreamId)
                 .filter(d -> d.isShared())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid dream or user ID"));
@@ -50,6 +54,8 @@ public class SquareService {
                         comment.getUser().getNickname())) // 닉네임 포함
                 .collect(Collectors.toList());
 
-        return new SquareDetailResponse(dream.getSummary(), dream.getContent(), comments);
+        boolean likeByUser = commentLikeRepository.existsByCommentAndUser(dream, userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Invalid user Id")));
+
+        return new SquareDetailResponse(dream.getSummary(), dream.getContent(), comments, likeByUser);
     }
 }

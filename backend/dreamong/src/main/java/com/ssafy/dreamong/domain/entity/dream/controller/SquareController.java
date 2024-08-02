@@ -39,8 +39,8 @@ public class SquareController {
 
     //꿈 광장 상세 보기
     @GetMapping(value = "/{dreamId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<?> getDreamDetail(@PathVariable Integer dreamId) {
-        SquareDetailResponse dreamDetail = squareService.getDreamDetail(dreamId);
+    public ApiResponse<?> getDreamDetail(@PathVariable Integer dreamId, @RequestParam Integer userId) {
+        SquareDetailResponse dreamDetail = squareService.getDreamDetail(dreamId, userId);
         if (dreamDetail == null) {
             return ApiResponse.error("Dream not found or access denied");
         } else {
