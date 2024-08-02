@@ -24,27 +24,21 @@ public class CommentController {
         }
     }
 
-    //댓글 좋아요
-    @PostMapping(value = "/{userId}/{dreamId}/{commentId}/like", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<?> likeComment(@PathVariable Integer userId, @PathVariable Integer dreamId, @PathVariable Integer commentId) {
-        commentService.incrementCommentLikes(userId, dreamId, commentId);
-        return ApiResponse.success(null, "Comment liked");
-    }
-
-    //댓글 좋아요 취소
-    @PostMapping(value = "/{userId}/{dreamId}/{commentId}/unlike", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<?> unlikeComment(@PathVariable Integer userId, @PathVariable Integer dreamId, @PathVariable Integer commentId) {
-        commentService.decrementCommentLikes(userId, dreamId, commentId);
-        return ApiResponse.success(null, "Comment unliked");
+    //좋아요 토글
+    @PostMapping(value = "/{userId}/{commentId}/like", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<?> likeComment(@PathVariable Integer userId, @PathVariable Integer commentId) {
+        boolean isLike = commentService.toggleCommentLike(userId, commentId);
+        String message = isLike ? "comment like" : "comment unLike ";
+        return ApiResponse.success(null, message);
     }
 
     //댓글 삭제
     @DeleteMapping("/{commentId}")
     public ApiResponse<?> deleteComment(@PathVariable Integer commentId) {
         boolean isDeleted = commentService.deleteComment(commentId);
-        if(isDeleted){
+        if (isDeleted) {
             return ApiResponse.success(null, "Comment deleted successfully");
-        }else{
+        } else {
             return ApiResponse.error("Comment deletion failed");
         }
     }

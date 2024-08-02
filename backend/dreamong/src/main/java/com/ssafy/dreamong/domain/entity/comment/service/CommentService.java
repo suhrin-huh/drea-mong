@@ -3,6 +3,8 @@ package com.ssafy.dreamong.domain.entity.comment.service;
 import com.ssafy.dreamong.domain.entity.comment.Comment;
 import com.ssafy.dreamong.domain.entity.comment.dto.CommentRequest;
 import com.ssafy.dreamong.domain.entity.comment.repository.CommentRepository;
+import com.ssafy.dreamong.domain.entity.commentlike.CommentLike;
+import com.ssafy.dreamong.domain.entity.commentlike.repository.CommentLikeRepository;
 import com.ssafy.dreamong.domain.entity.dream.Dream;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
 import com.ssafy.dreamong.domain.entity.user.User;
@@ -20,6 +22,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final DreamRepository dreamRepository;
     private final UserRepository userRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
     // 댓글 생성
     @Transactional
@@ -38,34 +41,30 @@ public class CommentService {
         return commentRepository.save(comment);
     }
 
+    //좋아요 토글
     @Transactional
-    public void incrementCommentLikes(Integer userId, Integer dreamId, Integer commentId) {
+    public boolean toggleCommentLike(Integer userId, Integer commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid comment ID: " + commentId));
-        Dream dream = dreamRepository.findById(dreamId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid dream ID: " + dreamId));
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
 
-        // 좋아요 추가 로직 (User와 Comment의 관계를 저장하는 등)
-        comment.updateLikesCount(comment.getLikesCount() + 1);
+        Optional<CommentLike> commentLikeOptional = commentLikeRepository.findByCommentAndUser(comment,user);
+
+        if(commentLikeOptional.isPresent()){
+            commentLikeRepository.delete(commentLikeOptional.get());
+            comment.updateLikesCount(comment.getLikesCount() - 1);
+        }else{
+            CommentLike commentLike = new CommentLike(comment, user);
+            commentLikeRepository.save(commentLike);
+            comment.updateLikesCount(comment.getLikesCount() + 1);
+        }
+
         commentRepository.save(comment);
+        return !commentLikeOptional.isPresent();
     }
 
-    @Transactional
-    public void decrementCommentLikes(Integer userId, Integer dreamId, Integer commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid comment ID: " + commentId));
-        Dream dream = dreamRepository.findById(dreamId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid dream ID: " + dreamId));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
-
-        // 좋아요 취소 로직 (User와 Comment의 관계를 삭제하는 등)
-        comment.updateLikesCount(comment.getLikesCount() - 1);
-        commentRepository.save(comment);
-    }
-
+    //댓글 삭제
     @Transactional
     public boolean deleteComment(Integer commentId) {
         Optional<Comment> comment = commentRepository.findById(commentId);
