@@ -172,6 +172,25 @@ public class DreamService {
         }
     }
 
+    //꿈 임시저장
+    @Transactional
+    public DreamDto createTemporaryDream(DreamCreateRequest dreamCreateRequest) {
+        Dream dream = Dream.builder()
+                .content(dreamCreateRequest.getContent())
+                .image(dreamCreateRequest.getImage())
+                .interpretation(dreamCreateRequest.getInterpretation())
+                .summary("")
+                .isShared(false)
+                .likesCount(0)
+                .userId(dreamCreateRequest.getUserId())
+                .writeTime(dreamCreateRequest.getWriteTime())
+                .dreamCategories(new ArrayList<>())
+                .build();
+
+        dream = dreamRepository.save(dream);
+        return toDreamDto(dream);
+    }
+
     //한줄 요약
     private String SingleLineInterpretation(String message) {
         // 프롬프트 작성 로직

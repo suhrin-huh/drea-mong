@@ -72,4 +72,15 @@ public class DreamController {
             return ApiResponse.error("Dream not found");
         }
     }
+
+    //꿈 임시 저장
+    @PostMapping(value = "/temporary" , produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<?> temporaryDream(@RequestBody DreamCreateRequest dreamCreateRequest) {
+        DreamDto temporaryDream = dreamService.createTemporaryDream(dreamCreateRequest);
+        if (temporaryDream == null) {
+            return ApiResponse.error("Dream creation failed");
+        }else{
+            return ApiResponse.success(temporaryDream, "Dream created successfully");
+        }
+    }
 }
