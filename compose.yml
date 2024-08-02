@@ -1,3 +1,5 @@
+## compose.yml
+
 services:
   mysql:
     image: mysql:latest
@@ -29,9 +31,18 @@ services:
     networks:
       - spring-mysql-net
 
+  frontend:
+    build:
+      context: ./frontend/dreamong
+    container_name: frontend-container
+    ports:
+      - "5173:80"
+    networks:
+      - spring-mysql-net
+
 volumes:
   mysql-data:
 
 networks:
   spring-mysql-net:
-
+          
