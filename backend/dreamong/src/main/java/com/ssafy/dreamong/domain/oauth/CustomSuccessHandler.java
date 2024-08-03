@@ -47,8 +47,11 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         }
 
         response.addCookie(createCookie("RefreshToken", refreshToken));
-        response.sendRedirect("https://localhost:5173/oauth/callback/kakao");
-//        response.sendRedirect("http://localhost:3000/login-success"); // 리디렉션 경로 설정
+
+        // 리디렉션 경로 설정
+        response.sendRedirect("https://localhost:5173/oauth/callback");
+//        response.sendRedirect("https://i11c106.p.ssafy.io/oauth/callback");
+//        response.sendRedirect("http://localhost:3000/login-success");
 
     }
 
@@ -58,7 +61,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         cookie.setMaxAge(7 * 24 * 60 * 60);
         cookie.setSecure(true); // HTTPS (SSL) 에서만 쿠키 사용가능하도록
         cookie.setPath("/");
-        cookie.setHttpOnly(true); // 자바 스크립트에서 쿠키값을 읽어가지 못하도록 설정
+        cookie.setHttpOnly(true); // 자바스크립트에서 쿠키값을 읽어가지 못하도록 설정
 
 
         log.info("cookie: {}", cookie);
