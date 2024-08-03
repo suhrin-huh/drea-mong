@@ -9,8 +9,8 @@ import com.ssafy.dreamong.domain.entity.dream.Dream;
 import com.ssafy.dreamong.domain.entity.dream.dto.*;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
 import com.ssafy.dreamong.domain.entity.dreamcategory.DreamCategory;
+import com.ssafy.dreamong.domain.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +19,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -30,12 +28,10 @@ public class DreamService {
 
     private final DreamRepository dreamRepository;
     private final CategoryRepository categoryRepository;
-
     private final ChatModel chatModel;
-
     private final ObjectMapper objectMapper; // Jackson ObjectMapper를 사용하여 JSON 파싱
 
-    //꿈 생성
+    // 꿈 생성
     @Transactional
     public DreamDto create(DreamCreateRequest dreamRequest) {
         // AI API 호출하여 summary 생성
@@ -43,7 +39,6 @@ public class DreamService {
 
         // AI API 호출하여 category 분석
         String detailedPrompt = DetailedPrompt(dreamRequest.getContent());
-
         String analysisResultJson = chatModel.call(detailedPrompt);
 
         List<DreamCategoryDto> dreamCategoryDto = parseDreamCategories(analysisResultJson);
@@ -77,21 +72,17 @@ public class DreamService {
 
     // 상세보기
     public DreamGetResponse getDream(Integer dreamId) {
-        Dream dream = dreamRepository.findById(dreamId).orElse(null);
+        Dream dream = dreamRepository.findById(dreamId).orElseThrow(() -> new NotFoundException("Dream not found"));
 
-        if (dream != null) {
-            return new DreamGetResponse(
-                    dream.getContent(),
-                    dream.getImage(),
-                    dream.getInterpretation(),
-                    dream.getSummary(),
-                    dream.isShared(),
-                    dream.getLikesCount(),
-                    dream.getWriteTime()
-            );
-        } else {
-            return null;
-        }
+        return new DreamGetResponse(
+                dream.getContent(),
+                dream.getImage(),
+                dream.getInterpretation(),
+                dream.getSummary(),
+                dream.isShared(),
+                dream.getLikesCount(),
+                dream.getWriteTime()
+        );
     }
 
     // 메인 조회
@@ -121,11 +112,7 @@ public class DreamService {
     // 꿈 수정
     @Transactional
     public DreamDto update(Integer dreamId, DreamUpdateRequest dreamUpdateRequest) {
-        Dream existingDream = dreamRepository.findById(dreamId).orElse(null);
-
-        if (existingDream == null) {
-            return null; // 존재하지 않는 꿈 ID일 경우 null 반환
-        }
+        Dream existingDream = dreamRepository.findById(dreamId).orElseThrow(() -> new NotFoundException("Dream not found"));
 
         // AI API 호출하여 summary 생성
         String newSummary = SingleLineInterpretation(dreamUpdateRequest.getContent());
@@ -164,20 +151,15 @@ public class DreamService {
         return toDreamDto(dreamRepository.save(existingDream));
     }
 
-
-    //꿈 삭제
+    // 꿈 삭제
     @Transactional
     public boolean deleteDream(Integer dreamId) {
-        Optional<Dream> dream = dreamRepository.findById(dreamId);
-        if (dream.isPresent()) {
-            dreamRepository.delete(dream.get());
-            return true;
-        }else{
-            return false;
-        }
+        Dream dream = dreamRepository.findById(dreamId).orElseThrow(() -> new NotFoundException("Dream not found"));
+        dreamRepository.delete(dream);
+        return true;
     }
 
-    //꿈 임시저장
+    // 꿈 임시저장
     @Transactional
     public DreamDto createTemporaryDream(DreamCreateRequest dreamCreateRequest) {
         Dream dream = Dream.builder()
@@ -196,7 +178,7 @@ public class DreamService {
         return toDreamDto(dream);
     }
 
-    //한줄 요약
+    // 한줄 요약
     private String SingleLineInterpretation(String message) {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
@@ -204,7 +186,7 @@ public class DreamService {
         return chatModel.call(prompt);
     }
 
-    //카테고리 뽑기
+    // 카테고리 뽑기
     private String DetailedPrompt(String message) {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
@@ -218,7 +200,7 @@ public class DreamService {
         return prompt;
     }
 
-    //카테고리별 파싱
+    // 카테고리별 파싱
     private List<DreamCategoryDto> parseDreamCategories(String json) {
         try {
             json = json.trim();
@@ -312,8 +294,7 @@ public class DreamService {
         }
     }
 
-
-    //순환 참조를 방지를 위한 메소드
+    // 순환 참조를 방지를 위한 메소드
     private DreamDto toDreamDto(Dream dream) {
         List<DreamCategoryDto> categoryDtos = dream.getDreamCategories().stream()
                 .map(this::toDreamCategoryDto)
@@ -323,7 +304,7 @@ public class DreamService {
                 dream.getWriteTime(), categoryDtos);
     }
 
-    //순환 참조를 방지를 위한 메소드
+    // 순환 참조를 방지를 위한 메소드
     private DreamCategoryDto toDreamCategoryDto(DreamCategory dreamCategory) {
         return new DreamCategoryDto(dreamCategory.getId(), dreamCategory.getCategory().getWord(),
                 dreamCategory.getCategory().getType().name());

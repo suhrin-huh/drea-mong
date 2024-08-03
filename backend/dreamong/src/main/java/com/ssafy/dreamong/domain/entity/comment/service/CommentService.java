@@ -9,6 +9,9 @@ import com.ssafy.dreamong.domain.entity.dream.Dream;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
 import com.ssafy.dreamong.domain.entity.user.User;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
+import com.ssafy.dreamong.domain.exception.InvalidCommentException;
+import com.ssafy.dreamong.domain.exception.InvalidDreamException;
+import com.ssafy.dreamong.domain.exception.InvalidUserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,34 +30,30 @@ public class CommentService {
     // 댓글 생성
     @Transactional
     public Comment createComment(CommentRequest request) {
-        System.out.println("CommentRequest: " + request);
-
         Dream dream = dreamRepository.findById(request.getDreamId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid dream ID: " + request.getDreamId()));
-        System.out.println("Dream: " + dream);
+                .orElseThrow(() -> new InvalidDreamException("Invalid dream ID: " + request.getDreamId()));
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + request.getUserId()));
-        System.out.println("User: " + user);
+                .orElseThrow(() -> new InvalidUserException("Invalid user ID: " + request.getUserId()));
 
         Comment comment = new Comment(request.getContent(), 0, dream, user);
         return commentRepository.save(comment);
     }
 
-    //좋아요 토글
+    // 좋아요 토글
     @Transactional
     public boolean toggleCommentLike(Integer userId, Integer commentId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid comment ID: " + commentId));
+                .orElseThrow(() -> new InvalidCommentException("Invalid comment ID: " + commentId));
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
+                .orElseThrow(() -> new InvalidUserException("Invalid user ID: " + userId));
 
-        Optional<CommentLike> commentLikeOptional = commentLikeRepository.findByCommentAndUser(comment,user);
+        Optional<CommentLike> commentLikeOptional = commentLikeRepository.findByCommentAndUser(comment, user);
 
-        if(commentLikeOptional.isPresent()){
+        if (commentLikeOptional.isPresent()) {
             commentLikeRepository.delete(commentLikeOptional.get());
             comment.updateLikesCount(comment.getLikesCount() - 1);
-        }else{
+        } else {
             CommentLike commentLike = new CommentLike(comment, user);
             commentLikeRepository.save(commentLike);
             comment.updateLikesCount(comment.getLikesCount() + 1);
@@ -64,15 +63,12 @@ public class CommentService {
         return !commentLikeOptional.isPresent();
     }
 
-    //댓글 삭제
+    // 댓글 삭제
     @Transactional
     public boolean deleteComment(Integer commentId) {
-        Optional<Comment> comment = commentRepository.findById(commentId);
-        if (comment.isPresent()) {
-            commentRepository.delete(comment.get());
-            return true;
-        }else{
-            return false;
-        }
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new InvalidCommentException("Invalid comment ID: " + commentId));
+        commentRepository.delete(comment);
+        return true;
     }
 }

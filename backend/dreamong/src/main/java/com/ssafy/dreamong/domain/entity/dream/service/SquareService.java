@@ -7,6 +7,8 @@ import com.ssafy.dreamong.domain.entity.dream.dto.SquareDetailResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareGetResponseDto;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
+import com.ssafy.dreamong.domain.exception.InvalidDreamException;
+import com.ssafy.dreamong.domain.exception.InvalidUserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,7 +29,7 @@ public class SquareService {
     private final CommentLikeRepository commentLikeRepository;
     private final UserRepository userRepository;
 
-    //꿈 광장 조회
+    // 꿈 광장 조회
     public Page<SquareGetResponseDto> getAllSharedDreams(int page, int size, String sort) {
         // Sort 파라미터를 나누어 정렬 기준과 순서를 설정
         String[] sortParams = sort.split(",");
@@ -43,7 +45,7 @@ public class SquareService {
     public SquareDetailResponse getDreamDetail(Integer dreamId, Integer userId) {
         Dream dream = dreamRepository.findById(dreamId)
                 .filter(Dream::isShared)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid dream or user ID"));
+                .orElseThrow(() -> new InvalidDreamException("Invalid dream or user ID"));
 
         List<CommentResponse> comments = dream.getComments().stream()
                 .map(comment -> new CommentResponse(
@@ -55,7 +57,7 @@ public class SquareService {
 
         boolean likeByUser = dream.getComments().stream().anyMatch(comment ->
                 commentLikeRepository.existsByCommentAndUser(comment, userRepository.findById(userId)
-                        .orElseThrow(() -> new IllegalArgumentException("Invalid user Id")))
+                        .orElseThrow(() -> new InvalidUserException("Invalid user Id")))
         );
 
         return new SquareDetailResponse(dream.getSummary(), dream.getContent(), comments, likeByUser);
