@@ -29,6 +29,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
 
+        log.info("Authentication successful. Redirecting to callback.");
+
         //OAuth2User
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
 
@@ -48,8 +50,12 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         response.addCookie(createCookie("RefreshToken", refreshToken));
 
+        log.info("Cookie Set and Redirecting to callback.");
+
         // 리디렉션 경로 설정
-        response.sendRedirect("https://localhost:5173/oauth/callback");
+        response.sendRedirect("https://i11c106.p.ssafy.io/callback");
+
+//        response.sendRedirect("https://localhost:5173/oauth/callback");
 //        response.sendRedirect("https://i11c106.p.ssafy.io/oauth/callback");
 //        response.sendRedirect("http://localhost:3000/login-success");
 
