@@ -18,7 +18,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex h-screen flex-col justify-end bg-[url('/src/assets/background.svg')] bg-cover">
+    <div className="flex h-screen flex-col justify-end">
       <section className="pr-[10%] text-end">
         <h1 className="mb-12 text-5xl font-bold text-white">Drea-mong</h1>
         <p className="mb-3 text-2xl text-white">꿈의 비밀을 통해</p>

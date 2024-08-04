@@ -36,7 +36,7 @@ function App() {
                   <Route path="/dream/create" element={<DreamRegisterPage />} />
                   <Route path="/dream/:dreamId" element={<DreamDetailPage />} />
                   {/* <Route path="/dream/:dreamId/update" element={} /> */}
-                  <Route path="/square" element={<SquarePage/>} />
+                  <Route path="/square" element={<SquarePage />} />
                   {/* <Route path="/square/:dreamId" element={<SquareDetailPage />} /> */}
                   <Route path="/streaming" element={<StreamingPage />}>
                     <Route index element={<StreamingList />} />
