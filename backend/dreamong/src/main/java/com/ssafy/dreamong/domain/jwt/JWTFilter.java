@@ -1,7 +1,7 @@
 package com.ssafy.dreamong.domain.jwt;
 
 import com.ssafy.dreamong.domain.entity.user.User;
-import com.ssafy.dreamong.domain.entity.user.dto.CustomOAuth2User;
+import com.ssafy.dreamong.domain.oauth.dto.CustomOAuth2User;
 import com.ssafy.dreamong.domain.entity.user.dto.UserDto;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import jakarta.servlet.FilterChain;
@@ -40,20 +40,14 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-
         String requestUri = request.getRequestURI();
 
-        if (requestUri.matches("^\\/login(?:\\/.*)?$")) {
-
+        // 예외 처리 경로 설정
+        if (requestUri.matches("^\\/login(?:\\/.*)?$") || requestUri.matches("^\\/oauth2(?:\\/.*)?$") || requestUri.matches("^\\/api(?:\\/.*)?$")) {
+            log.debug("login,oauth2,api: rqeustURI: {}", requestUri);
             filterChain.doFilter(request, response);
             return;
         }
-        if (requestUri.matches("^\\/oauth2(?:\\/.*)?$")) {
-
-            filterChain.doFilter(request, response);
-            return;
-        }
-
 
         String accessToken = request.getHeader("Authorization");
         log.info("request: {}", request);

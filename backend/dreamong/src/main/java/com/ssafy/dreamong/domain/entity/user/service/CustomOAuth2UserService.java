@@ -4,6 +4,7 @@ package com.ssafy.dreamong.domain.entity.user.service;
 import com.ssafy.dreamong.domain.entity.user.dto.*;
 import com.ssafy.dreamong.domain.entity.user.User;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
+import com.ssafy.dreamong.domain.oauth.dto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
