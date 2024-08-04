@@ -3,12 +3,14 @@ package com.ssafy.dreamong.domain.entity.dream.controller;
 import com.ssafy.dreamong.domain.entity.common.ApiResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareDetailResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareGetResponseDto;
-import com.ssafy.dreamong.domain.entity.dream.service.DreamService;
 import com.ssafy.dreamong.domain.entity.dream.service.SquareService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/square")
@@ -16,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 public class SquareController {
 
     private final SquareService squareService;
-    private final DreamService dreamService;
 
     // 꿈 광장 조회
     @GetMapping(value = "/dreams", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -25,14 +26,16 @@ public class SquareController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdDate,desc") String sort) {
 
-        // 서비스 메소드를 통해 페이징된 결과 조회
         Page<SquareGetResponseDto> sharedDreams = squareService.getAllSharedDreams(page, size, sort);
 
-        // 결과가 비어있을 경우 에러 메시지 반환
         if (sharedDreams.isEmpty()) {
             return ApiResponse.error("No shared dreams found");
         } else {
-            return ApiResponse.success(sharedDreams, "Shared dreams retrieved successfully");
+            Map<String, Object> result = new HashMap<>();
+            result.put("content", sharedDreams.getContent());
+            result.put("page", sharedDreams.getPageable());
+
+            return ApiResponse.success(result, "Shared dreams retrieved successfully");
         }
     }
 
@@ -43,3 +46,6 @@ public class SquareController {
         return ApiResponse.success(dreamDetail, "Dream detail retrieved successfully");
     }
 }
+
+
+
