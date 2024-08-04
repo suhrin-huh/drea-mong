@@ -1,5 +1,6 @@
-package com.ssafy.dreamong.domain.entity.user.dto;
+package com.ssafy.dreamong.domain.oauth.dto;
 
+import com.ssafy.dreamong.domain.entity.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;

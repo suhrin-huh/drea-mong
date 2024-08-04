@@ -1,10 +1,14 @@
 package com.ssafy.dreamong.domain.entity.user;
 
+import com.ssafy.dreamong.domain.entity.comment.Comment;
 import com.ssafy.dreamong.domain.entity.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -20,6 +24,9 @@ public class User extends BaseTimeEntity {
     private String nickname; // 사용자 인터페이스에 표시될 이름
     private String role;
     private String refreshToken;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 
     private User(String email, String name, String providerUserId, String nickname, String role) {
         this.email = email;

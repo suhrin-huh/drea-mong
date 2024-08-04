@@ -1,4 +1,4 @@
-package com.ssafy.dreamong.domain.entity.user.dto;
+package com.ssafy.dreamong.domain.oauth.dto;
 
 import java.util.Map;
 

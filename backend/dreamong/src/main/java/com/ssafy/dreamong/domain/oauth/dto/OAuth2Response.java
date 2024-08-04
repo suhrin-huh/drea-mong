@@ -1,4 +1,4 @@
-package com.ssafy.dreamong.domain.entity.user.dto;
+package com.ssafy.dreamong.domain.oauth.dto;
 
 public interface OAuth2Response {
 

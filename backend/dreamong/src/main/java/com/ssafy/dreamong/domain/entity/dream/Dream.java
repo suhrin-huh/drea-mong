@@ -3,7 +3,6 @@ package com.ssafy.dreamong.domain.entity.dream;
 import com.ssafy.dreamong.domain.entity.comment.Comment;
 import com.ssafy.dreamong.domain.entity.common.BaseTimeEntity;
 import com.ssafy.dreamong.domain.entity.dreamcategory.DreamCategory;
-import com.ssafy.dreamong.domain.entity.dreamlike.DreamLike;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -12,6 +11,8 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Getter
@@ -24,6 +25,7 @@ public class Dream extends BaseTimeEntity {
     @Column(name = "dream_id")
     private Integer id;
 
+    @Lob
     @Column(name = "content", nullable = false)
     private String content;
 
@@ -51,10 +53,7 @@ public class Dream extends BaseTimeEntity {
     @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DreamCategory> dreamCategories = new ArrayList<>();
 
-    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL)
-    private List<DreamLike> dreamLikes = new ArrayList<>();
-
-    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
     @Builder
@@ -70,32 +69,37 @@ public class Dream extends BaseTimeEntity {
         this.likesCount = likesCount;
         this.writeTime = writeTime;
         this.userId = userId;
-        this.dreamCategories = new ArrayList<>(dreamCategories);
-        for (DreamCategory dreamCategory : dreamCategories) {
-            dreamCategory.setDream(this);
+        if (dreamCategories != null) {
+            this.dreamCategories = new ArrayList<>(dreamCategories);
         }
     }
 
     public void addDreamCategory(DreamCategory dreamCategory) {
         this.dreamCategories.add(dreamCategory);
-        dreamCategory.setDream(this);
     }
 
-    public void addDreamLike(DreamLike dreamLike) {
-        this.dreamLikes.add(dreamLike);
-        dreamLike.setDream(this);
+    public void update(String content, String image, String interpretation, String summary, String writeTime, boolean isShared, List<DreamCategory> newCategories) {
+        this.content = content;
+        this.image = image;
+        this.interpretation = interpretation;
+        this.summary = summary;
+        this.writeTime = writeTime;
+        this.isShared = isShared;
+        setDreamCategories(newCategories);
     }
 
-    public void addComment(Comment comment) {
-        this.comments.add(comment);
-        comment.setDream(this);
-    }
-
-    public void updateDreamCategories(List<DreamCategory> newCategories) {
+    private void setDreamCategories(List<DreamCategory> newCategories) {
         this.dreamCategories.clear();
-        for (DreamCategory newCategory : newCategories) {
-            addDreamCategory(newCategory);
+        for (DreamCategory category : newCategories) {
+            this.addDreamCategory(category);
         }
     }
+
+    public void updateLikesCount(Integer likesCount) {
+        this.likesCount = likesCount;
+    }
 }
+
+
+
 
