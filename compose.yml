@@ -1,0 +1,48 @@
+## compose.yml
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - spring-mysql-net
+
+  backend:
+    build:
+      context: ./backend/dreamong
+    container_name: backend-container
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-container:3306/${MYSQL_DATABASE}?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    networks:
+      - spring-mysql-net
+
+  frontend:
+    build:
+      context: ./frontend/dreamong
+    container_name: frontend-container
+    ports:
+      - "5173:80"
+    networks:
+      - spring-mysql-net
+
+volumes:
+  mysql-data:
+
+networks:
+  spring-mysql-net:
+          
