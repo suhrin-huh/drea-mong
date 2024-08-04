@@ -10,6 +10,8 @@ const StreamingPage = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalContentVisible, setModalContentVisible] = useState(false);
 
+  const [sleepTime, setSleepTime] = useState(sessionStorage.getItem('sleepTime') || null);
+
   const toggleModalIsOpen = () => {
     if (!modalIsOpen) {
       setModalIsOpen(true);
@@ -20,8 +22,38 @@ const StreamingPage = () => {
     }
   };
 
-  const handleSleepTimeSave = () => {
+  const handleSleepTimeSave = (event) => {
+    event.preventDefault();
+    const setTime = event.target.elements.sleepTime.value;
+    setSleepTime(setTime);
+
+    const [hours, mins] = setTime.split(':').map(Number);
+    const now = new Date();
+    const nowHours = now.getHours();
+    const nowMins = now.getMinutes();
+
+    // 시간 차이 계산
+    let diffHours = hours - nowHours;
+    let diffMins = mins - nowMins;
+
+    // 분 조정
+    if (diffMins < 0) {
+      diffMins += 60;
+      diffHours -= 1;
+    }
+
+    // 시간 조정
+    if (diffHours < 0) {
+      diffHours += 24;
+    }
+
+    const isNewSetting = !sessionStorage.getItem('sleepTime');
+    sessionStorage.setItem('sleepTime', setTime);
     toggleModalIsOpen();
+
+    const message = isNewSetting ? '취침모드 설정이 완료되었습니다!' : '취침모드 수정이 완료되었습니다!';
+
+    alert(`${message}\n취침 예정 시간까지 약 ${diffHours}시간 ${diffMins}분 남았습니다.`);
   };
 
   return (
@@ -29,7 +61,7 @@ const StreamingPage = () => {
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={toggleModalIsOpen}
-        className="fixed inset-x-0 top-20 z-50 flex items-center justify-center overflow-y-auto"
+        className="fixed left-8 right-8 top-12 z-50"
         overlayClassName="fixed inset-0 bg-black transition-opacity duration-300 ease-in-out"
         closeTimeoutMS={300}
         style={{
@@ -38,22 +70,29 @@ const StreamingPage = () => {
           },
         }}
       >
-        <div
-          className={`w-full max-w-md rounded-lg bg-white p-6 shadow-lg transition-all duration-300 ease-in-out ${
+        <form
+          onSubmit={handleSleepTimeSave}
+          className={`flex w-full max-w-md flex-col justify-center rounded-lg bg-white p-6 shadow-lg transition-all duration-300 ease-in-out ${
             modalContentVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
           }`}
         >
           <h2 className="mb-4 text-center text-2xl font-bold">취침모드 설정</h2>
-          {/* 취침 시간 선택 코드 들어갈 부분 */}
+          <input
+            type="time"
+            name="sleepTime"
+            id="sleepTime"
+            defaultValue={sleepTime}
+            className="mb-4 h-10 w-full appearance-none text-lg"
+          />
           <div className="flex justify-end">
-            <Button variant="secondary" size="md" onClick={toggleModalIsOpen} className="mx-2">
+            <Button type="button" variant="secondary" size="md" onClick={toggleModalIsOpen} className="mx-2">
               취소
             </Button>
-            <Button variant="primary" size="md" onClick={handleSleepTimeSave}>
+            <Button type="submit" variant="primary" size="md">
               저장
             </Button>
           </div>
-        </div>
+        </form>
       </Modal>
 
       <section className="flex justify-end">
