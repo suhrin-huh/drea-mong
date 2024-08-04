@@ -1,112 +1,75 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { OpenVidu } from 'openvidu-browser';
 import YouTube from 'react-youtube';
 import axios from 'axios';
-import io from 'socket.io-client';
 
 import { useRecoilValue } from 'recoil';
 import { getStreamingRoomById } from '../../../recoil/selectors';
 
 const StreamingRoom = () => {
   const { roomId } = useParams();
-  const navigate = useNavigate();
   const getRoomById = useRecoilValue(getStreamingRoomById);
   const room = getRoomById(roomId);
 
-  const [socket, setSocket] = useState(null);
+  const [session, setSession] = useState(undefined);
   const [messages, setMessages] = useState([]);
   const [videoId, setVideoId] = useState('');
   const [roomInfo, setRoomInfo] = useState({ title: '', participantCount: 0 });
   const [inputMessage, setInputMessage] = useState('');
   const playerRef = useRef(null);
 
-  // localStorage에서 sleepTime 가져오기
-  const [sleepTime, setSleepTime] = useState(() => {
-    return localStorage.getItem('sleepTime') || null;
-  });
-
   useEffect(() => {
-    // Socket.io 연결 설정
-    const newSocket = io('http://your-server-url');
-    setSocket(newSocket);
+    // OpenVidu 세션 초기화 및 설정
+    const OV = new OpenVidu();
+    const session = OV.initSession();
 
-    // 방 정보 가져오기
-    // axios({
-    //   method: 'get',
-    //   url: `/api/rooms/${roomId}`,
-    // })
+    // 새 스트림이 생성될 때 구독
+    session.on('streamCreated', (event) => {
+      session.subscribe(event.stream, undefined);
+    });
+
+    // 채팅 메시지 수신 시 처리
+    session.on('signal:chat', (event) => {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { text: event.data, fromSelf: event.from.connectionId === session.connection.connectionId },
+      ]);
+    });
+
+    // 백엔드에서 토큰 생성 및 방 정보 가져오기
+    // axios
+    //   .post(`/api/rooms/${roomId}/join`)
     //   .then((response) => {
-    //     const { youtubeLink, title, participantCount } = response.data;
+    //     const { token, youtubeLink, title, participantCount } = response.data;
     //     setVideoId(extractVideoId(youtubeLink));
     //     setRoomInfo({ title, participantCount });
+    //     return session.connect(token);
+    //   })
+    //   .then(() => {
+    //     setSession(session);
     //   })
     //   .catch((error) => {
-    //     console.error('방 정보 조회 오류:', error);
+    //     console.error('세션 연결 오류:', error);
     //   });
-    setVideoId(extractVideoId(room.youtubeLink)); // 임시 코드(추후 삭제)
 
-    // 소켓 이벤트 리스너 설정
-    newSocket.on('chat-message', (msg) => {
-      setMessages((prevMessages) => [...prevMessages, msg]);
-    });
+    setVideoId(extractVideoId(room.youtubeLink)); // 테스트용 코드
 
-    newSocket.on('video-time-update', (time) => {
-      if (playerRef.current) {
-        playerRef.current.seekTo(time);
-      }
-    });
-
-    let intervalId;
-
-    // sleepTime이 존재할 때만 취침 시간 체크 인터벌 설정
-    if (sleepTime) {
-      intervalId = setInterval(checkSleepTime, 60000); // 1분마다 체크
-    }
-
-    // localStorage의 sleepTime 변경 감지
-    const handleStorageChange = (e) => {
-      if (e.key === 'sleepTime') {
-        const updatedSleepTime = localStorage.getItem('sleepTime');
-        setSleepTime(updatedSleepTime);
-
-        // 인터벌 초기화
-        if (intervalId) {
-          clearInterval(intervalId);
-        }
-        if (updatedSleepTime) {
-          intervalId = setInterval(checkSleepTime, 60000);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    // 컴포넌트 언마운트 시 정리
+    // 컴포넌트 언마운트 시 세션 연결 해제
     return () => {
-      newSocket.close();
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (session) {
+        session.disconnect();
       }
-      window.removeEventListener('storage', handleStorageChange);
     };
-  }, [roomId, sleepTime]);
-
-  // 취침 시간 체크 함수
-  const checkSleepTime = () => {
-    if (!sleepTime) return; // sleepTime이 null이면 함수 종료
-
-    const now = new Date();
-    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-    if (currentTime === sleepTime) {
-      navigate('/'); // 루트 URL로 이동
-    }
-  };
+  }, [roomId]);
 
   // 채팅 메시지 전송 함수
   const sendMessage = () => {
-    if (inputMessage && socket) {
-      socket.emit('chat-message', { roomId, message: inputMessage });
+    if (inputMessage && session) {
+      session.signal({
+        data: inputMessage,
+        type: 'chat',
+      });
       setInputMessage('');
     }
   };
@@ -121,17 +84,14 @@ const StreamingRoom = () => {
   // YouTube 플레이어 준비 완료 시 호출되는 함수
   const onReady = (event) => {
     playerRef.current = event.target;
-    // 주기적으로 현재 재생 시간을 서버에 전송
-    setInterval(() => {
-      socket.emit('video-time-update', { roomId, time: event.target.getCurrentTime() });
-    }, 5000);
   };
 
   return (
     <section className="mx-2">
       <div className="mb-5">
-        {/* YouTube 플레이어 */}
+        {/* YouTube 플레이어를 위한 반응형 컨테이너 */}
         <div className="my-5 w-full overflow-hidden rounded-md bg-slate-600 text-white">
+          {/* 16:9 비율을 위한 패딩 설정 */}
           <div className="relative pt-[56.25%]">
             <YouTube
               videoId={videoId}
@@ -143,8 +103,8 @@ const StreamingRoom = () => {
                   controls: 0,
                   disablekb: 0,
                   loop: 1,
-                  rel: 0,
-                  modestbranding: 1,
+                  rel: 0, //관련 동영상 표시하지 않음
+                  modestbranding: 1, // 컨트롤 바에 youtube 로고를 표시하지 않음
                 },
               }}
               onReady={onReady}
@@ -153,8 +113,8 @@ const StreamingRoom = () => {
           </div>
         </div>
         <div className="flex w-full justify-between text-white">
-          <p>{roomInfo.title}</p>
-          <p>{roomInfo.participantCount}명 시청중</p>
+          <p>{room.title}</p>
+          <p>{room.participantCount}명 시청중</p>
         </div>
       </div>
       {/* 채팅 영역 */}
