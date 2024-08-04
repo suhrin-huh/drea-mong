@@ -14,9 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +28,6 @@ public class SquareService {
     private final DreamRepository dreamRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final UserRepository userRepository;
-    private final PagedResourcesAssembler<SquareGetResponseDto> pagedResourcesAssembler;
 
     // 꿈 광장 조회
     public Page<SquareGetResponseDto> getAllSharedDreams(int page, int size, String sort) {
