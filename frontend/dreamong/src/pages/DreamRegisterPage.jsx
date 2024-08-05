@@ -1,15 +1,16 @@
 // 의존성 파일 설치 목록
 
 // 1) npm install sweetalert2
-import Swal, { swal } from 'sweetalert2/dist/sweetalert2.js';
+import Swal from 'sweetalert2/dist/sweetalert2.js';
 import 'sweetalert2/src/sweetalert2.scss';
 
 // ----------------------------------------------------
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Button from '../components/Button';
-import { baseURLState } from '../recoil/test';
+import { useRecoilState } from 'recoil'
+import { isListeningState } from '../recoil/atoms';
 
 const DreamRegisterPage = () => {
   // box별로 같은 기본 클래스들 정리
@@ -117,27 +118,71 @@ const DreamRegisterPage = () => {
   };
 
   // 3) 꿈 일기 content 입력
-  const MinContent = 25;
-  const MaxContent = 500;
+  const MIN_LENGTH = 25;
+  const MAX_LENGTH = 500;
 
   // 3) 내용입력시 textarea에 반영
+  const contentRef = useRef(null)
+
   const handleContent = (e) => {
     setIsInterpVisible(false);
     // setContent(e.target.value);
     console.log(e.target.value.length);
-    if (e.target.value.length <= MaxContent) {
+    if (e.target.value.length <= MAX_LENGTH) {
       setContent(e.target.value);
     }
   };
+
+  // 음성인식 관련 함수들
+  const [isListening, setIsListening] = useRecoilState(isListeningState)
+  const recognition = new window.webkitSpeechRecognition()
+  recognition.lang = 'ko-KR'
+  recognition.interimResults = false // 중간 결과 포함여부 
+
+
+  // useEffect(() => {
+  //   if (isListeningState) {
+  //     // 녹음이 시작하면
+  //     // recognition.onstart = () => {
+  //     // }
+      
+  //     // 녹음이 끝나면
+  //     recognition.opspeechend = () => {
+  //       setIsListening(false)
+  //       recognition.stop();
+  //     }
+  //     recognition.onresult = (event) => {
+  //       const transcript = event.results[0][0].transcript
+  //       console.table("transcript", transcript)
+  //     }
+  //     recognition.onerror = () => {
+  //       handleError()
+  //     }
+  //     console.log("STT start")
+  //     recognition.start()
+  //   }}, [isListeningState])  
+  
+  // const insertTextAtCursor = (textToInsert) {
+    //   // 현재 contentRef가 위치한 태그
+    //   const contentArea = contentRef.current;
+    //   const startPoint = contentArea.selectionStart;
+    //   const endPoint = contentArea.selectionEnd;
+    //   const newContent = text.slice(0, startPoint) + textToInsert + text.slice(endPoint)
+    //   setContent(newContent)
+    // insertTextAtCursor(transcript)
+  // } 
+    
+
+
 
   // 꿈 해석 화면 표시 여부
   const [isInterpVisible, setIsInterpVisible] = useState(false);
 
   async function handleInterp() {
     try {
-      if (content.length < MinContent) {
+      if (content.length < MIN_LENGTH) {
         Swal.fire({
-          text: `정확한 해석을 위해 꿈 내용을 ${MinContent}자 이상 작성해주세요.`,
+          text: `정확한 해석을 위해 꿈 내용을 ${MIN_LENGTH}자 이상 작성해주세요.`,
           icon: 'warning',
           confirmButtonText: '확인',
         });
@@ -258,6 +303,7 @@ const DreamRegisterPage = () => {
       {/* 꿈내용 입력 - textarea */}
       <div className="relative">
         <textarea
+        ref={contentRef}
           className={`${classList} h-40 w-full resize-none placeholder:text-slate-300`}
           value={content}
           onChange={(e) => {
@@ -266,7 +312,7 @@ const DreamRegisterPage = () => {
           placeholder="꿈 내용을 입력해주세요."
         ></textarea>
         <p className="absolute bottom-5 right-2 text-slate-500">
-          {content.length}/{MaxContent}
+          {content.length}/{MAX_LENGTH}
         </p>
       </div>
       {/* 꿈 해석공간 */}

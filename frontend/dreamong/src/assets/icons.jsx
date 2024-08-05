@@ -85,8 +85,10 @@ export const SettingsIcon = ({color}) => (
   </svg>
 );
 
-export const STTIcon = (
+export const STTIcon = ({handleSTT}) => {
+  return(
   <svg
+  onClick={() => handleSTT()}
     className="absolute left-[-26px] top-[-25px]"
     width="50"
     height="50"
@@ -115,7 +117,7 @@ export const STTIcon = (
     <path d="M24.8594 35.3311V41.537" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     <path d="M18.6543 41.5371H31.0661" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
-);
+)};
 
 // MainPage에서 사용하는 svg
 export const StatisticsIcon = (

@@ -45,3 +45,8 @@ export const streamingRoomsState = atom({
     },
   ],
 });
+
+export const isListeningState = atom({
+  key:'isListeningState',
+  default:false
+})
