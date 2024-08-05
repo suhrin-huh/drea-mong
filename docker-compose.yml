@@ -1,5 +1,3 @@
-## compose.yml
-
 services:
   mysql:
     image: mysql:latest
@@ -45,4 +43,3 @@ volumes:
 
 networks:
   spring-mysql-net:
-          
