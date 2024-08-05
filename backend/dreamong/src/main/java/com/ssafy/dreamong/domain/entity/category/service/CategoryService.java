@@ -3,7 +3,10 @@ package com.ssafy.dreamong.domain.entity.category.service;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ssafy.dreamong.domain.entity.category.dto.*;
+import com.ssafy.dreamong.domain.entity.category.dto.CategoryResponseDto;
+import com.ssafy.dreamong.domain.entity.category.dto.CommonResponseDto;
+import com.ssafy.dreamong.domain.entity.category.dto.DreamTypeCountDto;
+import com.ssafy.dreamong.domain.entity.category.dto.ObjectResponseDto;
 import com.ssafy.dreamong.domain.entity.category.repository.CategoryRepository;
 import com.ssafy.dreamong.domain.exception.BadRequestException;
 import com.ssafy.dreamong.domain.exception.ServerErrorException;
@@ -38,25 +41,25 @@ public class CategoryService {
         String endDate = yearMonth.atEndOfMonth().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
         // 꿈 종류 데이터 (전체)
-        List<DreamTypeResponseDto> dreamTypeDtos = categoryRepository.findDreamCategoriesByDateRange(startDate, endDate).stream()
-                .map(category -> new DreamTypeResponseDto(category.getWord(), category.getType()))
+        List<CommonResponseDto> dreamTypeDtos = categoryRepository.findDreamCategoriesByDateRange(startDate, endDate).stream()
+                .map(category -> new CommonResponseDto(category.getWord(), category.getType()))
                 .collect(Collectors.toList());
 
         // 기분 데이터
-        List<MoodResponseDto> moodDtos = categoryRepository.findMoodCategoriesByDateRange(startDate, endDate).stream()
-                .map(category -> new MoodResponseDto(category.getWord(), category.getType()))
+        List<CommonResponseDto> moodDtos = categoryRepository.findMoodCategoriesByDateRange(startDate, endDate).stream()
+                .map(category -> new CommonResponseDto(category.getWord(), category.getType()))
                 .collect(Collectors.toList());
 
         // 인물 데이터 (빈도수 상위 3개)
-        List<CharacterResponseDto> characterDtos = categoryRepository.findCharacterCategoriesByDateRange(startDate, endDate).stream()
+        List<CommonResponseDto> characterDtos = categoryRepository.findCharacterCategoriesByDateRange(startDate, endDate).stream()
                 .limit(3)
-                .map(category -> new CharacterResponseDto(category.getWord(), category.getType()))
+                .map(category -> new CommonResponseDto(category.getWord(), category.getType()))
                 .collect(Collectors.toList());
 
         // 장소 데이터 (빈도수 상위 3개)
-        List<LocationResponseDto> locationDtos = categoryRepository.findLocationCategoriesByDateRange(startDate, endDate).stream()
+        List<CommonResponseDto> locationDtos = categoryRepository.findLocationCategoriesByDateRange(startDate, endDate).stream()
                 .limit(3)
-                .map(category -> new LocationResponseDto(category.getWord(), category.getType()))
+                .map(category -> new CommonResponseDto(category.getWord(), category.getType()))
                 .collect(Collectors.toList());
 
         // 사물 데이터 (빈도수 상위 3개)

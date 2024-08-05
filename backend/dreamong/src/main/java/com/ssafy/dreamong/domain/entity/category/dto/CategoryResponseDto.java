@@ -9,13 +9,13 @@ import java.util.List;
 @AllArgsConstructor
 public class CategoryResponseDto {
 
-    private List<DreamTypeResponseDto> dreamType;
+    private List<CommonResponseDto> dreamType;
 
-    private List<MoodResponseDto> moods;
+    private List<CommonResponseDto> moods;
 
-    private List<CharacterResponseDto> characters;
+    private List<CommonResponseDto> characters;
 
-    private List<LocationResponseDto> locations;
+    private List<CommonResponseDto> locations;
 
     private List<ObjectResponseDto> objects;
 

@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class MoodResponseDto {
+public class CommonResponseDto {
     private String word;
     private Type type;
 }
