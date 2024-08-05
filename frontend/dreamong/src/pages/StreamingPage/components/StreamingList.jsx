@@ -19,7 +19,7 @@ const StreamingList = () => {
 
   useEffect(() => {
     // 현재 사용자의 권한 확인(관리자 여부)
-    checkAdminStatus();
+    // checkAdminStatus();
 
     // 방 목록 업데이트
     // fetchRooms();
@@ -104,6 +104,7 @@ const StreamingList = () => {
     }
   };
 
+  // 방 생성 모달 input 입력 값 -> state에 반영
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setNewRoom((prev) => ({ ...prev, [name]: value }));
@@ -111,41 +112,53 @@ const StreamingList = () => {
 
   const handleCreateRoom = (event) => {
     event.preventDefault();
-
-    // 방 생성 API 호출 (주석 처리)
+    // 방 생성 API 호출
     axios({
       method: 'post',
       url: '/api/create-rooms',
-      data: newRoom,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      data: {
+        title: newRoom.title,
+        youtubeLink: newRoom.youtubeLink,
+        thumbnailImg: `https://img.youtube.com/vi/${extractVideoId(createdRoom.youtubeLink)}/0.jpg`,
+        createdBy: localStorage.getItem('userId'), // 방 생성자의 ID
+        startTime: new Date().toISOString(), // 방 생성 시간
+        status: 'active', // 방의 상태 (활성/비활성)
+        maxParticipants: 100, // 최대 참가자 수 (선택적)
+        // description: newRoom.description, // 방 설명 (선택적)
+        // tags: newRoom.tags, // 방 태그 (선택적)
+        // isPrivate: false, // 공개/비공개 여부 (선택적)
+        // password: newRoom.password // 비공개 방일 경우 비밀번호 (선택적)
       },
     })
       .then((response) => {
         const createdRoom = response.data;
-        createdRoom.thumbnailImg = `https://img.youtube.com/vi/${extractVideoId(createdRoom.youtubeLink)}/0.jpg`;
         setRooms((prev) => [...prev, createdRoom]);
         toggleModalIsOpen();
         console.log('방 생성 성공!');
-        setNewRoom({ title: '', youtubeLink: '' });
-        console.log('newRoom State 초기화 완료');
       })
       .catch((error) => {
         console.error('방 생성 중 오류 발생', error);
         setError('방 생성에 실패했습니다. 나중에 다시 시도해 주세요.');
+      })
+      .then((response) => {
+        setNewRoom({ title: '', youtubeLink: '' });
+        console.log('newRoom State 초기화 완료');
       });
 
-    // 더미 데이터로 방 생성
-    const createdRoom = {
-      token: rooms.length + 1,
-      title: newRoom.title,
-      youtubeLink: newRoom.youtubeLink,
-      thumbnailImg: `https://img.youtube.com/vi/${extractVideoId(newRoom.youtubeLink)}/0.jpg`,
-      participantCount: 0,
-    };
-    setRooms((prev) => [...prev, createdRoom]);
-    toggleModalIsOpen();
-    setNewRoom({ title: '', youtubeLink: '' });
+    // // 더미 데이터로 방 생성
+    // const createdRoom = {
+    //   token: rooms.length + 1,
+    //   title: newRoom.title,
+    //   youtubeLink: newRoom.youtubeLink,
+    //   thumbnailImg: `https://img.youtube.com/vi/${extractVideoId(newRoom.youtubeLink)}/0.jpg`,
+    //   participantCount: 0,
+    // };
+    // setRooms((prev) => [...prev, createdRoom]);
+    // toggleModalIsOpen();
+    // setNewRoom({ title: '', youtubeLink: '' });
   };
 
   if (error) {
@@ -188,7 +201,7 @@ const StreamingList = () => {
                 value={newRoom.title}
                 onChange={handleInputChange}
                 required
-                className="mt-1 block w-full rounded-md border-[1px] border-gray-200 p-2 text-base text-black shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="focus:ring-primary-200 mt-1 block w-full rounded-md border-[1px] border-gray-200 p-2 text-base text-black shadow-sm focus:border-indigo-300 focus:ring focus:ring-opacity-50"
               />
             </div>
             <div className="mb-4">
@@ -202,7 +215,7 @@ const StreamingList = () => {
                 value={newRoom.youtubeLink}
                 onChange={handleInputChange}
                 required
-                className="mt-1 block w-full rounded-md border-[1px] border-gray-200 p-2 text-black shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="focus:ring-primary-200 mt-1 block w-full rounded-md border-[1px] border-gray-200 p-2 text-black shadow-sm focus:border-indigo-300 focus:ring focus:ring-opacity-50"
               />
             </div>
             <div className="flex justify-end space-x-2">

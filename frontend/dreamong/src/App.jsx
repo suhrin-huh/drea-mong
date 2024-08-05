@@ -13,7 +13,7 @@ import StreamingPage from './pages/StreamingPage/StreamingPage';
 import StreamingList from './pages/StreamingPage/components/StreamingList';
 import StreamingRoom from './pages/StreamingPage/components/StreamingRoom';
 import SquarePage from './pages/SquarePage';
-// import SquareDetailPage from './pages/SquareDetailPage';
+import SquareDetailPage from './pages/SquareDetailPage';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState();
@@ -37,7 +37,7 @@ function App() {
                   <Route path="/dream/:dreamId" element={<DreamDetailPage />} />
                   {/* <Route path="/dream/:dreamId/update" element={} /> */}
                   <Route path="/square" element={<SquarePage />} />
-                  {/* <Route path="/square/:dreamId" element={<SquareDetailPage />} /> */}
+                  <Route path="/square/:dreamId" element={<SquareDetailPage />} />
                   <Route path="/streaming" element={<StreamingPage />}>
                     <Route index element={<StreamingList />} />
                     {/* <Route path="create" element={} /> */}

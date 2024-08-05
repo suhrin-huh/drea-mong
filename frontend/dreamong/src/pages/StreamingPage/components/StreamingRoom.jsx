@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import YouTube from 'react-youtube';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -9,7 +9,6 @@ import { getStreamingRoomById } from '../../../recoil/selectors';
 
 const StreamingRoom = () => {
   const { roomId } = useParams();
-  const navigate = useNavigate();
   const getRoomById = useRecoilValue(getStreamingRoomById);
   const room = getRoomById(roomId);
 
@@ -75,14 +74,14 @@ const StreamingRoom = () => {
     // 주기적으로 현재 재생 시간을 서버에 전송
     setInterval(() => {
       socket.emit('video-time-update', { roomId, time: event.target.getCurrentTime() });
-    }, 5000);
+    }, 10000);
   };
 
   return (
-    <section className="mx-2">
+    <section className="mx-2 flex h-[calc(100dvh-130px)] flex-col">
       <div className="mb-5">
         {/* YouTube 플레이어 */}
-        <div className="my-5 w-full overflow-hidden rounded-md bg-slate-600 text-white">
+        <div className="my-3 w-full overflow-hidden rounded-md bg-slate-600 text-white">
           <div className="relative pt-[56.25%]">
             <YouTube
               videoId={videoId}
@@ -109,7 +108,7 @@ const StreamingRoom = () => {
         </div>
       </div>
       {/* 채팅 영역 */}
-      <div className="h-[57dvh] rounded-t-lg bg-slate-700 px-3">
+      <div className="flex flex-grow flex-col overflow-hidden rounded-t-lg border-b-2 border-gray-500 bg-gray-700">
         <div className="mb-4 h-4/5 overflow-y-auto">
           {messages.map((message, index) => (
             <div key={index} className={`mb-2 ${message.fromSelf ? 'text-blue-400' : 'text-white'}`}>
@@ -118,19 +117,19 @@ const StreamingRoom = () => {
             </div>
           ))}
         </div>
-        <div className="flex">
-          <input
-            type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            className="flex-grow rounded-l-md p-2 text-black"
-            placeholder="메시지를 입력하세요..."
-          />
-          <button onClick={sendMessage} className="rounded-r-md bg-blue-500 p-2 text-white">
-            전송
-          </button>
-        </div>
+      </div>
+      <div className="flex rounded-b-lg bg-gray-700">
+        <input
+          type="text"
+          value={inputMessage}
+          onChange={(event) => setInputMessage(event.target.value)}
+          onKeyDown={(event) => event.key === 'Enter' && sendMessage()}
+          className="flex-grow appearance-none bg-transparent p-2 text-white"
+          placeholder="메시지를 입력하세요..."
+        />
+        <button onClick={sendMessage} className="rounded-br-md bg-primary-500 p-3 text-white">
+          전송
+        </button>
       </div>
     </section>
   );

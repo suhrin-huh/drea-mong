@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import Button from '../../components/Button';
-import { Outlet } from 'react-router-dom';
+import { useNavigate, Outlet } from 'react-router-dom';
+
+import back from '../../assets/back.svg';
 
 // Make sure to set the app element for accessibility
 Modal.setAppElement('#root');
 
 const StreamingPage = () => {
+  const navigate = useNavigate();
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalContentVisible, setModalContentVisible] = useState(false);
   const [sleepTime, setSleepTime] = useState(sessionStorage.getItem('sleepTime') || null);
 
-  // 취침 시간 관련 useEffect
+  // 취침 시간 설정 관련 useEffect
   useEffect(() => {
-    // 취침 시간 관련 로직
     let intervalId;
 
     // sleepTime이 존재할 때만 취침 시간 체크 인터벌 설정
@@ -22,8 +24,8 @@ const StreamingPage = () => {
     }
 
     // localStorage의 sleepTime 변경 감지
-    const handleStorageChange = (e) => {
-      if (e.key === 'sleepTime') {
+    const handleStorageChange = (event) => {
+      if (event.key === 'sleepTime') {
         const updatedSleepTime = localStorage.getItem('sleepTime');
         setSleepTime(updatedSleepTime);
 
@@ -142,8 +144,13 @@ const StreamingPage = () => {
         </form>
       </Modal>
 
-      <section className="flex justify-end">
-        <Button size="md" className="text-white hover:text-gray-300" onClick={toggleModalIsOpen}>
+      <section className="mb-2 flex justify-end">
+        {location.pathname !== '/streaming' && (
+          <Button size="md" className="mr-auto text-white hover:text-gray-400" onClick={() => navigate(-1)}>
+            <img src={back} alt="뒤로가기" className="w-[21px]" />
+          </Button>
+        )}
+        <Button size="md" className="text-white hover:text-gray-400" onClick={toggleModalIsOpen}>
           취침모드 설정
         </Button>
       </section>
