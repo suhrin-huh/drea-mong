@@ -18,7 +18,7 @@ const SettingsPage = () => {
   const [push, setPush] = useState(pushRef.current);
 
   // 사용자 로그인 상태 확인 코드 작성 예정 (일단은 임시로)
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(localStorage.getItem('accessToken') ? true : false);
 
   // 컴포넌트 마운트 시 로컬 스토리지에서 설정 불러오기
   useEffect(() => {
@@ -45,6 +45,7 @@ const SettingsPage = () => {
       .then((response) => {
         console.log(response);
         // 로그아웃 처리 후 로직 추가 예정
+        localStorage.removeItem('accessToken');
         navigate('/');
       })
       .catch((error) => {

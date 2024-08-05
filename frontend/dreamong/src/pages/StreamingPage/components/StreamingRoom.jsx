@@ -23,7 +23,7 @@ const StreamingRoom = () => {
   // 소켓 관리 관련 useEffect
   useEffect(() => {
     // Socket.io 연결 설정
-    const newSocket = io('http://your-server-url');
+    const newSocket = io('');
     setSocket(newSocket);
 
     setVideoId(extractVideoId(room.youtubeLink)); // 임시 코드(추후 삭제)

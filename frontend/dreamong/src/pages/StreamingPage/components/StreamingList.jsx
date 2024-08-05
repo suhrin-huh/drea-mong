@@ -126,9 +126,9 @@ const StreamingList = () => {
         createdRoom.thumbnailImg = `https://img.youtube.com/vi/${extractVideoId(createdRoom.youtubeLink)}/0.jpg`;
         setRooms((prev) => [...prev, createdRoom]);
         toggleModalIsOpen();
-        console.log('방 생성 성공!')
+        console.log('방 생성 성공!');
         setNewRoom({ title: '', youtubeLink: '' });
-        console.log('newRoom State 초기화 완료')
+        console.log('newRoom State 초기화 완료');
       })
       .catch((error) => {
         console.error('방 생성 중 오류 발생', error);
