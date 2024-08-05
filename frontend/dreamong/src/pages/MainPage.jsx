@@ -242,16 +242,29 @@ const MainPage = () => {
     navigate(`/dream/${dreamId}`);
   };
 
+  const navigateToStatistics = () => {
+    navigate('/statistics');
+  };
   return (
     <div className="relative h-dvh">
+      <div className="absolute right-3 top-3" onClick={() => navigateToStatistics()}>
+        <svg width="36" height="29" viewBox="0 0 36 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M12.4297 1.79167C11.9349 1.79167 11.5339 2.19274 11.5339 2.6875V26.763H16.7969V2.6875C16.7969 2.19274 16.3958 1.79167 15.901 1.79167H12.4297ZM18.5885 26.763H23.8516V11.1797H18.5885V26.763ZM18.5885 9.38808V2.6875C18.5885 1.20323 17.3853 0 15.901 0H12.4297C10.9454 0 9.74219 1.20323 9.74219 2.6875V18.0755H5.15104C3.66678 18.0755 2.46354 19.2788 2.46354 20.7631V26.763H0.895833C0.401078 26.763 0 27.1641 0 27.6589C0 28.1536 0.401078 28.5547 0.895833 28.5547H34.7135C35.2083 28.5547 35.6094 28.1536 35.6094 27.6589C35.6094 27.1641 35.2083 26.763 34.7135 26.763H32.6979V7.31148C32.6979 5.82721 31.4947 4.62398 30.0104 4.62398H26.5391C25.0548 4.62398 23.8516 5.82721 23.8516 7.31148V9.38808H18.5885ZM30.9063 26.763V7.31148C30.9063 6.81672 30.5052 6.41564 30.0104 6.41564H26.5391C26.0443 6.41564 25.6432 6.81672 25.6432 7.31148V26.763H30.9063ZM4.25521 26.763H9.74219V19.8672H5.15104C4.65629 19.8672 4.25521 20.2683 4.25521 20.7631V26.763Z"
+            fill="black"
+          />
+        </svg>
+      </div>
       <header className="inline-flex h-1/4 w-full flex-col items-center justify-center gap-2.5 text-center text-white">
         <p className="text-2xl font-bold">안녕하세요, {dreams.username}님</p>
         <p className="text-sm">{dreams.totalCount}번째 꿈을 기록해주세요!!</p>
       </header>
       {/* 아랫부분부터 메인 내용 들어가는 페이지 */}
-      <div className="mx-auto h-3/4 w-full flex-col items-center gap-2 rounded-t-3xl bg-white px-4 py-3 text-center">
+      <div className="flex-col items-center w-full gap-2 px-4 py-3 mx-auto text-center bg-white h-3/4 rounded-t-3xl">
         {/* 날짜 선택 */}
-        <div className="h-1/5 w-full py-4 text-center">
+        <div className="w-full py-4 text-center h-1/5">
           {/* 연도 선택 */}
           <div className="flex items-center justify-center gap-12 p-2.5 text-xl">
             <button onClick={() => handleYear(-1)}>{'<'}</button>
@@ -259,7 +272,7 @@ const MainPage = () => {
             <button onClick={() => handleYear(1)}>{'>'}</button>
           </div>
           {/* 월 선택 */}
-          <div className="align-center my-2 flex items-center justify-center gap-1 text-base">
+          <div className="flex items-center justify-center gap-1 my-2 text-base align-center">
             <Swiper
               ref={swiperRef}
               slidesPerView={6}
@@ -269,7 +282,7 @@ const MainPage = () => {
               modules={[Pagination]}
               slideToClickedSlide={true}
               //Swiper 컴포넌트에서 슬라이드를 클릭하면 해당 슬라이드가 중심에 오도록 설정하려면, Swiper 컴포넌트의 slideToClickedSlide 속성을 사용해야 합니다. 이 속성은 클릭한 슬라이드로 자동으로 이동하게 합니다.
-              className="mySwiper h-full"
+              className="h-full mySwiper"
             >
               {/* 1월부터 12월까지 */}
               {Array.from({ length: 12 }).map((_, i) => (
@@ -294,13 +307,13 @@ const MainPage = () => {
 
         
         {/* 이부분에 일기 들어가기 */}
-        <div className="my-2 h-3/4 flex-col overflow-y-auto">
+        <div className="flex-col my-2 overflow-y-auto h-3/4">
           {dreams.dreams &&
             dreams.dreams.map((dream) => {
               return (
-                <div className="my-2 flex h-20 items-start justify-center gap-x-3">
+                <div className="flex items-start justify-center h-20 my-2 gap-x-3">
                   <div className="mt-2 h-[60px] w-1/6 flex-col items-center justify-start">
-                    <div className="text-center text-3xl font-bold">{dream.writeDate.slice(6, 8)}</div>
+                    <div className="text-3xl font-bold text-center">{dream.writeDate.slice(6, 8)}</div>
                     <div className="text-slate-500">{getWeekDay(dream.writeDate)}</div>
                   </div>
                   <div
