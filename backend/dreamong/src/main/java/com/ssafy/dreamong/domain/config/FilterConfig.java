@@ -3,8 +3,8 @@ package com.ssafy.dreamong.domain.config;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.core.Ordered;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 
 /**
  * Proxy 환경에서는 ForwardedHeaderFilter 가 실행되서 HTTP 요청의

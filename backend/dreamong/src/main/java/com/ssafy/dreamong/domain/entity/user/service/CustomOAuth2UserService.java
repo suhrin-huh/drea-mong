@@ -1,8 +1,8 @@
 package com.ssafy.dreamong.domain.entity.user.service;
 
 
-import com.ssafy.dreamong.domain.entity.user.dto.*;
 import com.ssafy.dreamong.domain.entity.user.User;
+import com.ssafy.dreamong.domain.entity.user.dto.UserDto;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import com.ssafy.dreamong.domain.oauth.dto.*;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +52,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             return new CustomOAuth2User(userDto);
         } else { // 이전에 로그인한 기록이 있는 경우
-            findUser.updateUserInfo(oAuth2Response.getEmail(),oAuth2Response.getName());
+            findUser.updateUserInfo(oAuth2Response.getEmail(), oAuth2Response.getName());
             userRepository.save(findUser); // 변경 감지 쓸거면 삭제해도 될 거 같음
 
 

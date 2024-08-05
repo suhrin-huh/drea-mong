@@ -1,9 +1,9 @@
 package com.ssafy.dreamong.domain.jwt;
 
 import com.ssafy.dreamong.domain.entity.user.User;
-import com.ssafy.dreamong.domain.oauth.dto.CustomOAuth2User;
 import com.ssafy.dreamong.domain.entity.user.dto.UserDto;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
+import com.ssafy.dreamong.domain.oauth.dto.CustomOAuth2User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;

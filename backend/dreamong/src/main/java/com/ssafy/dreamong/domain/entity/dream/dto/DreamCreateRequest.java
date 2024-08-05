@@ -1,11 +1,8 @@
 package com.ssafy.dreamong.domain.entity.dream.dto;
 
 
-import com.ssafy.dreamong.domain.entity.dreamcategory.DreamCategory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 @AllArgsConstructor

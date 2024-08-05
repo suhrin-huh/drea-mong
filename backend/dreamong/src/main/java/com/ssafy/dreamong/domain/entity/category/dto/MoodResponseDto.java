@@ -6,8 +6,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class CategoryDto {
-    private Integer id;
+public class MoodResponseDto {
     private String word;
     private Type type;
 }
