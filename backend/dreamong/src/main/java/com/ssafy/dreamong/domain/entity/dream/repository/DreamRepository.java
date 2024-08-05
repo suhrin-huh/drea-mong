@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface DreamRepository extends JpaRepository<Dream, Integer> {
     @Query("SELECT d FROM Dream d WHERE d.userId = :userId AND d.writeTime LIKE :writeTime% ORDER BY d.writeTime DESC")
