@@ -1,0 +1,30 @@
+package com.ssafy.dreamong.domain.socket;
+
+import com.corundumstudio.socketio.SocketIOServer;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@Slf4j
+public class SocketIoConfig {
+
+    @Value("${socketio.server.hostname}")
+    private String hostname;
+
+    @Value("${socketio.server.port}")
+    private int port;
+
+    /**
+     * Tomcat 서버와 별도로 돌아가는 netty 서버를 생성
+     */
+    @Bean
+    public SocketIOServer socketIoServer() {
+        com.corundumstudio.socketio.Configuration config = new com.corundumstudio.socketio.Configuration();
+        config.setHostname(hostname);
+        config.setPort(port);
+        log.info("socketio server started at {}:{}", hostname, port);
+        return new SocketIOServer(config);
+    }
+}
