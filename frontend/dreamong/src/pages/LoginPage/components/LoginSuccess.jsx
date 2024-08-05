@@ -1,10 +1,12 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useSetRecoilState } from 'recoil';
+import { userState } from '../../../recoil/atoms';
 
 const LoginSuccess = () => {
   const navigate = useNavigate();
-  console.log('test1');
+  const setUser = useSetRecoilState(userState);
 
   useEffect(() => {
     axios
@@ -18,6 +20,17 @@ const LoginSuccess = () => {
       .catch((error) => {
         console.log(error);
         alert('Failed to refresh access token');
+      })
+      .then((response) => {
+        axios({
+          method: 'get',
+          url: '/api/user/me',
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+        }).then((res) => {
+          setUser(res.data);
+        });
       });
   }, [navigate]);
 

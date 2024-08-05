@@ -9,8 +9,55 @@ Modal.setAppElement('#root');
 const StreamingPage = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalContentVisible, setModalContentVisible] = useState(false);
-
   const [sleepTime, setSleepTime] = useState(sessionStorage.getItem('sleepTime') || null);
+
+  // 취침 시간 관련 useEffect
+  useEffect(() => {
+    // 취침 시간 관련 로직
+    let intervalId;
+
+    // sleepTime이 존재할 때만 취침 시간 체크 인터벌 설정
+    if (sleepTime) {
+      intervalId = setInterval(checkSleepTime, 60000); // 1분마다 체크
+    }
+
+    // localStorage의 sleepTime 변경 감지
+    const handleStorageChange = (e) => {
+      if (e.key === 'sleepTime') {
+        const updatedSleepTime = localStorage.getItem('sleepTime');
+        setSleepTime(updatedSleepTime);
+
+        // 인터벌 초기화
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
+        if (updatedSleepTime) {
+          intervalId = setInterval(checkSleepTime, 60000);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [sleepTime]);
+
+  // 취침 시간 체크 함수
+  const checkSleepTime = () => {
+    if (!sleepTime) return; // sleepTime이 null이면 함수 종료
+
+    const now = new Date();
+    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    if (currentTime === sleepTime) {
+      navigate('/'); // 루트 URL로 이동
+    }
+  };
 
   const toggleModalIsOpen = () => {
     if (!modalIsOpen) {

@@ -20,88 +20,39 @@ const StreamingRoom = () => {
   const [inputMessage, setInputMessage] = useState('');
   const playerRef = useRef(null);
 
-  // localStorage에서 sleepTime 가져오기
-  const [sleepTime, setSleepTime] = useState(() => {
-    return localStorage.getItem('sleepTime') || null;
-  });
-
+  // 소켓 관리 관련 useEffect
   useEffect(() => {
     // Socket.io 연결 설정
     const newSocket = io('http://your-server-url');
     setSocket(newSocket);
 
-    // 방 정보 가져오기
-    // axios({
-    //   method: 'get',
-    //   url: `/api/rooms/${roomId}`,
-    // })
-    //   .then((response) => {
-    //     const { youtubeLink, title, participantCount } = response.data;
-    //     setVideoId(extractVideoId(youtubeLink));
-    //     setRoomInfo({ title, participantCount });
-    //   })
-    //   .catch((error) => {
-    //     console.error('방 정보 조회 오류:', error);
-    //   });
     setVideoId(extractVideoId(room.youtubeLink)); // 임시 코드(추후 삭제)
 
     // 소켓 이벤트 리스너 설정
+    // 방 입장
+    newSocket.emit('join-room', roomId);
+
+    // 채팅 관련 로직
     newSocket.on('chat-message', (msg) => {
       setMessages((prevMessages) => [...prevMessages, msg]);
     });
 
+    // 비디오 시간 동기화 로직
     newSocket.on('video-time-update', (time) => {
       if (playerRef.current) {
         playerRef.current.seekTo(time);
       }
     });
 
-    let intervalId;
-
-    // sleepTime이 존재할 때만 취침 시간 체크 인터벌 설정
-    if (sleepTime) {
-      intervalId = setInterval(checkSleepTime, 60000); // 1분마다 체크
-    }
-
-    // localStorage의 sleepTime 변경 감지
-    const handleStorageChange = (e) => {
-      if (e.key === 'sleepTime') {
-        const updatedSleepTime = localStorage.getItem('sleepTime');
-        setSleepTime(updatedSleepTime);
-
-        // 인터벌 초기화
-        if (intervalId) {
-          clearInterval(intervalId);
-        }
-        if (updatedSleepTime) {
-          intervalId = setInterval(checkSleepTime, 60000);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
+    newSocket.on('participant-count-update', (count) => {
+      // 참가자 수 업데이트 로직
+    });
 
     // 컴포넌트 언마운트 시 정리
     return () => {
       newSocket.close();
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-      window.removeEventListener('storage', handleStorageChange);
     };
-  }, [roomId, sleepTime]);
-
-  // 취침 시간 체크 함수
-  const checkSleepTime = () => {
-    if (!sleepTime) return; // sleepTime이 null이면 함수 종료
-
-    const now = new Date();
-    const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-    if (currentTime === sleepTime) {
-      navigate('/'); // 루트 URL로 이동
-    }
-  };
+  }, [roomId]);
 
   // 채팅 메시지 전송 함수
   const sendMessage = () => {

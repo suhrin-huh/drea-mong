@@ -67,15 +67,13 @@ const StreamingList = () => {
     axios({
       method: 'get',
       url: '/api/rooms', // 백엔드 api 명세 관련 논의 후 수정 예정
-      authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
     })
       .then((response) => {
-        setRooms(
-          response.data.map((room) => ({
-            ...room,
-            thumbnailImg: `https://img.youtube.com/vi/${extractVideoId(room.youtubeLink)}/0.jpg`,
-          })),
-        );
+        setRooms(response.data);
+        console.log('방 목록 fetch 완료!');
       })
       .catch((error) => {
         console.error('방 목록 조회 중 오류 발생', error);
@@ -90,10 +88,12 @@ const StreamingList = () => {
     return match && match[2].length === 11 ? match[2] : null;
   };
 
+  // 스트리밍 방 입장 시 리다이렉션 함수
   const handleNavigate = (roomId) => {
     navigate(`${roomId}`);
   };
 
+  // 모달 on/off 함수
   const toggleModalIsOpen = () => {
     if (!modalIsOpen) {
       setModalIsOpen(true);
@@ -113,22 +113,27 @@ const StreamingList = () => {
     event.preventDefault();
 
     // 방 생성 API 호출 (주석 처리)
-    // axios({
-    //   method: 'post',
-    //   url: '/api/rooms',
-    //   data: newRoom
-    // })
-    //   .then((response) => {
-    //     const createdRoom = response.data;
-    //     createdRoom.thumbnailImg = `https://img.youtube.com/vi/${extractVideoId(createdRoom.youtubeLink)}/0.jpg`;
-    //     setRooms((prev) => [...prev, createdRoom]);
-    //     toggleModalIsOpen();
-    //     setNewRoom({ title: '', youtubeLink: '' });
-    //   })
-    //   .catch((error) => {
-    //     console.error('방 생성 중 오류 발생', error);
-    //     setError('방 생성에 실패했습니다. 나중에 다시 시도해 주세요.');
-    //   });
+    axios({
+      method: 'post',
+      url: '/api/create-rooms',
+      data: newRoom,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    })
+      .then((response) => {
+        const createdRoom = response.data;
+        createdRoom.thumbnailImg = `https://img.youtube.com/vi/${extractVideoId(createdRoom.youtubeLink)}/0.jpg`;
+        setRooms((prev) => [...prev, createdRoom]);
+        toggleModalIsOpen();
+        console.log('방 생성 성공!')
+        setNewRoom({ title: '', youtubeLink: '' });
+        console.log('newRoom State 초기화 완료')
+      })
+      .catch((error) => {
+        console.error('방 생성 중 오류 발생', error);
+        setError('방 생성에 실패했습니다. 나중에 다시 시도해 주세요.');
+      });
 
     // 더미 데이터로 방 생성
     const createdRoom = {
