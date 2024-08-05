@@ -1,58 +1,64 @@
 package com.ssafy.dreamong.domain.socket;
 
-import com.corundumstudio.socketio.AckRequest;
-import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
-import com.corundumstudio.socketio.listener.ConnectListener;
-import com.corundumstudio.socketio.listener.DataListener;
-import com.corundumstudio.socketio.listener.DisconnectListener;
+import com.ssafy.dreamong.domain.entity.room.Room;
+import com.ssafy.dreamong.domain.entity.room.service.RoomService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class SocketIOEventHandler {
 
     private final SocketIOServer server;
+    private final RoomService roomService;
 
     @Autowired
-    public SocketIOEventHandler(SocketIOServer server) {
+    public SocketIOEventHandler(SocketIOServer server, RoomService roomService) {
         this.server = server;
+        this.roomService = roomService;
+
         init();
     }
 
     private void init() {
-        server.addConnectListener(new ConnectListener() {
-            @Override
-            public void onConnect(SocketIOClient client) {
-                System.out.println("Client connected: " + client.getSessionId());
+        server.addConnectListener(client -> System.out.println("Client connected: " + client.getSessionId()));
+
+        server.addDisconnectListener(client -> System.out.println("Client disconnected: " + client.getSessionId()));
+
+        server.addEventListener("join-room", String.class, (client, roomId, ackRequest) -> {
+            log.info("Received join-room event for room: {}", roomId);
+
+            Room room = roomService.getRoomById(Integer.parseInt(roomId));
+            if (room == null) {
+                log.info("Room not found: {}", roomId);
+                client.sendEvent("error", "Room not found");
+                return;
             }
+
+            client.joinRoom(roomId);
+            int participantCount = getParticipantCount(roomId);
+            server.getRoomOperations(roomId).sendEvent("participant-count-update", participantCount);
+            log.info("Client joined room: {}, participant count: {}", roomId, participantCount);
         });
 
-        server.addDisconnectListener(new DisconnectListener() {
-            @Override
-            public void onDisconnect(SocketIOClient client) {
-                System.out.println("Client disconnected: " + client.getSessionId());
-            }
+        server.addEventListener("chat-message", ChatMessage.class, (client, data, ackRequest) -> {
+            log.info("Received chat-message event: {}", data.getContent());
+            server.getRoomOperations(data.getRoomId()).sendEvent("chat-message", data);
         });
 
-        server.addEventListener("join-room", String.class, new DataListener<String>() {
-            @Override
-            public void onData(SocketIOClient client, String roomId, AckRequest ackRequest) {
-                client.joinRoom(roomId);
-                server.getRoomOperations(roomId).sendEvent("participant-count-update", getParticipantCount(roomId));
-            }
-        });
-
-        server.addEventListener("chat-message", ChatMessage.class, new DataListener<ChatMessage>() {
-            @Override
-            public void onData(SocketIOClient client, ChatMessage data, AckRequest ackRequest) {
-                server.getRoomOperations(data.getRoomId()).sendEvent("chat-message", data);
-            }
+        server.addEventListener("leave-room", String.class, (client, roomId, ackRequest) -> {
+            log.info("Received leave-room event for room: {}", roomId);
+            client.leaveRoom(roomId);
+            int participantCount = getParticipantCount(roomId);
+            server.getRoomOperations(roomId).sendEvent("participant-count-update", participantCount);
+            log.info("Client left room: {}, participant count: {}", roomId, participantCount);
         });
     }
 
     private int getParticipantCount(String roomId) {
+        log.info("Get participant count for room: {} , participant count: {}", roomId, server.getRoomOperations(roomId).getClients().size());
         return server.getRoomOperations(roomId).getClients().size();
     }
 }
