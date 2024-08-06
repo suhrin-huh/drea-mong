@@ -130,7 +130,7 @@ const MainPage = () => {
 
         {/* 이부분에 일기 들어가기 */}
         <div className="my-2 h-3/4 flex-col overflow-y-auto">
-          {dreams.dreams ?
+          {dreams.dreams ? (
             dreams.dreams.map((dream) => {
               return (
                 <div className="my-2 flex h-20 items-start justify-center gap-x-3">
@@ -151,7 +151,10 @@ const MainPage = () => {
                   </div>
                 </div>
               );
-            }): <div className={}></div>}
+            })
+          ) : (
+            <div></div>
+          )}
         </div>
       </div>
     </div>

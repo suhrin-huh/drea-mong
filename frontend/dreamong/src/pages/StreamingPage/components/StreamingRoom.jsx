@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import YouTube from 'react-youtube';
 import axios from 'axios';
 import io from 'socket.io-client';
@@ -8,6 +8,8 @@ import { useRecoilValue } from 'recoil';
 import { userState, baseURLState, socketURLState } from '../../../recoil/atoms';
 
 const StreamingRoom = () => {
+  const navigate = useNavigate();
+
   const { roomId } = useParams(); // URL 파라미터에서 방 ID 추출
   const [socket, setSocket] = useState(null); // 소켓 연결 상태 관리
   const [messages, setMessages] = useState([]); // 채팅 메시지 목록 상태 관리
@@ -60,6 +62,11 @@ const StreamingRoom = () => {
     // 참가자 수 업데이트 이벤트 리스너
     newSocket.on('participant-count-update', (count) => {
       setRoomInfo((prev) => ({ ...prev, participantCount: count }));
+    });
+
+    newSocket.on('force-leave', (roomId) => {
+      navigate('/streaming');
+      alert('관리자에 의해 현재 접속 중인 방이 삭제되었습니다!');
     });
 
     // 컴포넌트 언마운트 시 정리 작업

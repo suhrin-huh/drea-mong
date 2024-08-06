@@ -103,6 +103,29 @@ const StreamingList = () => {
       });
   };
 
+  const handleDeleteRoom = (event, selectedRoomId) => {
+    event.preventDefault();
+    axios({
+      method: 'delete',
+      url: `${baseURL}/rooms/${selectedRoomId}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    })
+      .then((response) => {
+        setRooms(
+          rooms.filter((room) => {
+            return room.roomId !== selectedRoomId;
+          }),
+        );
+        alert('선택하신 방이 성공적으로 삭제되었습니다!');
+      })
+      .catch((error) => {
+        console.error('방 삭제 실패!', error);
+        alert('방 삭제 실패!');
+      });
+  };
+
   return (
     <section className="mx-2 flex flex-col text-white">
       <Modal
@@ -178,10 +201,17 @@ const StreamingList = () => {
             className="mb-4 flex h-full w-full flex-col rounded-lg bg-black bg-opacity-50 bg-clip-padding p-4 backdrop-blur-sm backdrop-filter"
           >
             <img src={room.thumbnail} alt={room.title} className="mb-3 h-48 w-full rounded-md object-cover" />
-            <div className="flex w-full justify-between">
+            <div className="mb-3 flex w-full justify-between">
               <p className="max-w-[60%] truncate">{room.title}</p>
               <p>{room.participantCount}명 시청중</p>
             </div>
+            {isAdmin && (
+              <div className="flex justify-end">
+                <Button variant="danger" onClick={() => handleDeleteRoom(room.roomId)}>
+                  방 삭제하기
+                </Button>
+              </div>
+            )}
           </button>
         ))}
     </section>
