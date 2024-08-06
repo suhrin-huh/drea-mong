@@ -40,7 +40,7 @@ const SettingsPage = () => {
   const handleLogout = () => {
     axios({
       method: 'post',
-      url: '',
+      url: 'api/user/logout',
     })
       .then((response) => {
         console.log(response);

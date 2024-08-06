@@ -4,6 +4,9 @@ import Modal from 'react-modal';
 import axios from 'axios';
 import Button from '../../../components/Button';
 
+import { useRecoilValue } from 'recoil';
+import { userState } from '../../../recoil/atoms';
+
 Modal.setAppElement('#root');
 
 const StreamingList = () => {
@@ -12,15 +15,11 @@ const StreamingList = () => {
   const [modalContentVisible, setModalContentVisible] = useState(false);
 
   const [rooms, setRooms] = useState([]);
-  // isAdmin : 관리자 여부 확인용 => 추후에 default value를 false로 변경 예정!!
-  const [isAdmin, setIsAdmin] = useState(true);
   const [newRoom, setNewRoom] = useState({ title: '', youtubeLink: '' });
-  const [error, setError] = useState(null);
+
+  const isAdmin = useRecoilValue(userState).role === 'ADMIN' ? true : false;
 
   useEffect(() => {
-    // 현재 사용자의 권한 확인(관리자 여부)
-    // checkAdminStatus();
-
     // 방 목록 업데이트
     // fetchRooms();
 
@@ -29,7 +28,7 @@ const StreamingList = () => {
       [
         {
           token: 1,
-          title: '지브리 OST 모음짐',
+          title: '지브리 OST 모음집',
           youtubeLink: 'https://www.youtube.com/watch?v=U34kLXjdw90&ab_channel=SoothingPianoRelaxing',
         },
         { token: 2, title: '자면서 듣는 재즈 음악', youtubeLink: 'test2' },
@@ -56,12 +55,6 @@ const StreamingList = () => {
     );
   }, []);
 
-  // 관리자 여부 확인 함수
-  const checkAdminStatus = () => {
-    const userInfo = localStorage.getItem('role');
-    setIsAdmin(userInfo === 'ADMIN' ? true : false);
-  };
-
   // 방 목록 가져오기 함수
   const fetchRooms = () => {
     axios({
@@ -77,7 +70,7 @@ const StreamingList = () => {
       })
       .catch((error) => {
         console.error('방 목록 조회 중 오류 발생', error);
-        setError('방 목록을 불러오는 데 실패했습니다. 나중에 다시 시도해 주세요.');
+        alert('방 목록을 불러오는 데 실패했습니다. 나중에 다시 시도해 주세요.');
       });
   };
 
@@ -122,11 +115,11 @@ const StreamingList = () => {
       data: {
         title: newRoom.title,
         youtubeLink: newRoom.youtubeLink,
-        thumbnailImg: `https://img.youtube.com/vi/${extractVideoId(createdRoom.youtubeLink)}/0.jpg`,
-        createdBy: localStorage.getItem('userId'), // 방 생성자의 ID
-        startTime: new Date().toISOString(), // 방 생성 시간
-        status: 'active', // 방의 상태 (활성/비활성)
-        maxParticipants: 100, // 최대 참가자 수 (선택적)
+        thumbnailImg: `https://img.youtube.com/vi/${extractVideoId(newRoom.youtubeLink)}/0.jpg`,
+        createdDate: new Date().toISOString(), // 방 생성 시간
+        // createdBy: localStorage.getItem('userId'), // 방 생성자의 ID
+        // status: 'active', // 방의 상태 (활성/비활성)
+        // maxParticipants: 100, // 최대 참가자 수 (선택적)
         // description: newRoom.description, // 방 설명 (선택적)
         // tags: newRoom.tags, // 방 태그 (선택적)
         // isPrivate: false, // 공개/비공개 여부 (선택적)
@@ -135,17 +128,16 @@ const StreamingList = () => {
     })
       .then((response) => {
         const createdRoom = response.data;
-        setRooms((prev) => [...prev, createdRoom]);
+        fetchRooms();
         toggleModalIsOpen();
         console.log('방 생성 성공!');
-      })
-      .catch((error) => {
-        console.error('방 생성 중 오류 발생', error);
-        setError('방 생성에 실패했습니다. 나중에 다시 시도해 주세요.');
-      })
-      .then((response) => {
+
         setNewRoom({ title: '', youtubeLink: '' });
         console.log('newRoom State 초기화 완료');
+      })
+      .catch((error) => {
+        console.error(error);
+        alert('방 생성에 실패했습니다. 나중에 다시 시도해 주세요.');
       });
 
     // // 더미 데이터로 방 생성
@@ -161,13 +153,11 @@ const StreamingList = () => {
     // setNewRoom({ title: '', youtubeLink: '' });
   };
 
-  if (error) {
-    return (
-      <div className="text-red-500">
-        <p>{error}</p>
-      </div>
-    );
-  }
+  // if (error) {
+  //   navigate('');
+  //   alert({ error });
+  //   setError(null);
+  // }
 
   return (
     <section className="mx-2 flex flex-col text-white">

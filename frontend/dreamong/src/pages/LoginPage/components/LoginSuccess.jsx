@@ -8,7 +8,7 @@ import 'ldrs/squircle';
 
 const LoginSuccess = () => {
   const navigate = useNavigate();
-  const setUser = useSetRecoilState(userState);
+  const setUserState = useSetRecoilState(userState);
 
   useEffect(() => {
     axios
@@ -16,8 +16,6 @@ const LoginSuccess = () => {
       .then((response) => {
         const accessToken = response.headers['authorization'].split(' ')[1];
         localStorage.setItem('accessToken', accessToken);
-        alert('Access token stored in local storage');
-        navigate('/');
       })
       .catch((error) => {
         console.log(error);
@@ -26,15 +24,16 @@ const LoginSuccess = () => {
       .then((response) => {
         axios({
           method: 'get',
-          url: '/api/user/me',
+          url: '/api/users/info',
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         }).then((res) => {
-          setUser(res.data);
+          setUserState(res.data);
+          navigate('/');
         });
       });
-  }, [navigate]);
+  }, []);
 
   return (
     <div className="flex h-full items-center justify-center">
