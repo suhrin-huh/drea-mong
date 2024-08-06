@@ -29,16 +29,15 @@ public class User extends BaseTimeEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
-    private User(String email, String name, String providerUserId, String nickname, Role role) {
+    private User(String email, String name, String providerUserId, Role role) {
         this.email = email;
         this.name = name;
         this.providerUserId = providerUserId;
-        this.nickname = nickname;
         this.role = role;
     }
 
-    public static User createUser(String email, String name, String providerUserId, String nickname, Role role) {
-        return new User(email, name, providerUserId, nickname, role);
+    public static User createUser(String email, String name, String providerUserId, Role role) {
+        return new User(email, name, providerUserId, role);
     }
 
     public void updateUserInfo(String email, String name) {
