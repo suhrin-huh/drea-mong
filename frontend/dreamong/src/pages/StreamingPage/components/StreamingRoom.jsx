@@ -5,7 +5,7 @@ import axios from 'axios';
 import io from 'socket.io-client';
 
 import { useRecoilValue } from 'recoil';
-import { userState, baseURLState, socketURLState, socketURLState } from '../../../recoil/atoms';
+import { userState, baseURLState, socketURLState } from '../../../recoil/atoms';
 
 const StreamingRoom = () => {
   const { roomId } = useParams(); // URL 파라미터에서 방 ID 추출
