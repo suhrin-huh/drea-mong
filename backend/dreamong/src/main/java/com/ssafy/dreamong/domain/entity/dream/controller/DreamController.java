@@ -8,8 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/dream")
 @RequiredArgsConstructor
@@ -20,8 +18,8 @@ public class DreamController {
     //메인 조회
     @GetMapping(value = "/{userId}/{writeTime}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<?>> findAll(@PathVariable Integer userId, @PathVariable String writeTime) {
-        List<DreamMainResponse> dreamMainResponseList = dreamService.getDreamsByUserIdAndWriteTime(userId, writeTime);
-        return ResponseEntity.ok(ApiResponse.success(dreamMainResponseList));
+        DreamMainResponseWithCount response = dreamService.getDreamsByUserIdAndWriteTime(userId, writeTime);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     //꿈 등록
