@@ -23,14 +23,15 @@ public class JWTUtil {
 
         secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
+    public Integer getUserId(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", Integer.class);
+    }
 
     public String getProviderUserId(String token) {
-
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("providerUserId", String.class);
     }
 
     public String getRole(String token) {
-
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role", String.class);
     }
 
@@ -46,8 +47,9 @@ public class JWTUtil {
 //        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 
-    public String createAccessToken(String providerUserId, Role role, Long expiredMs) {
+    public String createAccessToken(Integer userId, String providerUserId, Role role, Long expiredMs) {
         return Jwts.builder()
+                .claim("userId", userId)
                 .claim("providerUserId", providerUserId)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
@@ -56,8 +58,9 @@ public class JWTUtil {
                 .compact();
     }
 
-    public String createRefreshToken(String providerUserId, Long expiredMs) {
+    public String createRefreshToken(Integer userId, String providerUserId, Long expiredMs) {
         return Jwts.builder()
+                .claim("userId", userId)
                 .claim("providerUserId", providerUserId)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiredMs))

@@ -43,7 +43,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String accessToken = jwtUtil.createAccessToken(providerUserId, user.getRole(), 60 * 60 * 1000L); // 1시간
+        String accessToken = jwtUtil.createAccessToken(user.getId(), providerUserId, user.getRole(), 60 * 60 * 1000L); // 1시간
 
 //        String accessToken = jwtUtil.createAccessToken(providerUserId, user.getRole(), 60 * 60 * 1000L); // 1시간
         response.setHeader("Authorization", "Bearer " + accessToken);

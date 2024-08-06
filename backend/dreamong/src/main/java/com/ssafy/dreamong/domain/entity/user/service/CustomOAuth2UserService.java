@@ -2,7 +2,6 @@ package com.ssafy.dreamong.domain.entity.user.service;
 
 
 import com.ssafy.dreamong.domain.entity.user.Role;
-import com.ssafy.dreamong.domain.entity.user.dto.*;
 import com.ssafy.dreamong.domain.entity.user.User;
 import com.ssafy.dreamong.domain.entity.user.dto.UserDto;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
@@ -21,12 +20,13 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final String PREFIX = "dreamer_";
 
     @Override
-    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
@@ -42,15 +42,19 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User findUser = userRepository.findByProviderUserId(providerUserId);
 
         if (findUser == null) { // 우리 서비스에 처음 로그인한 경우
-            String defaultNickname = "dreamer_" + System.currentTimeMillis(); // 기본 닉네임 생성
-            User user = User.createUser(oAuth2Response.getEmail(), oAuth2Response.getName(), providerUserId, defaultNickname, Role.MEMBER);
+            User user = User.createUser(oAuth2Response.getEmail(), oAuth2Response.getName(), providerUserId, Role.MEMBER);
+            userRepository.save(user);
 
+            String defaultNickname = PREFIX + user.getId();
+            user.updateNickname(defaultNickname);
             userRepository.save(user);
 
             UserDto userDto = new UserDto();
+            userDto.setUserId(user.getId());
             userDto.setProviderUserId(providerUserId);
             userDto.setName(oAuth2Response.getName());
             userDto.setRole(Role.MEMBER);
+            userDto.setNickname(defaultNickname);
 
             return new CustomOAuth2User(userDto);
         } else { // 이전에 로그인한 기록이 있는 경우
@@ -59,9 +63,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
 
             UserDto userDto = new UserDto();
+            userDto.setUserId(findUser.getId());
             userDto.setProviderUserId(findUser.getProviderUserId());
             userDto.setName(oAuth2Response.getName());
             userDto.setRole(findUser.getRole());
+            userDto.setNickname(findUser.getNickname());
 
             return new CustomOAuth2User(userDto);
         }

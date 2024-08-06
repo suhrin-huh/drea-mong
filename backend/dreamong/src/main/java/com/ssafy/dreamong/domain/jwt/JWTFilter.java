@@ -79,7 +79,7 @@ public class JWTFilter extends OncePerRequestFilter {
                         String providerUserId = jwtUtil.getProviderUserId(refreshToken);
                         User findUser = userRepository.findByProviderUserId(providerUserId);
                         if (findUser != null && refreshToken.equals(findUser.getRefreshToken())) {
-                            String newAccessToken = jwtUtil.createAccessToken(providerUserId, findUser.getRole(), 60 * 60 * 1000L);
+                            String newAccessToken = jwtUtil.createAccessToken(findUser.getId(), providerUserId, findUser.getRole(), 60 * 60 * 1000L);
                             response.setHeader("Authorization", "Bearer " + newAccessToken);
                             log.info("New access token created: {}", newAccessToken);
                             accessToken = newAccessToken;
