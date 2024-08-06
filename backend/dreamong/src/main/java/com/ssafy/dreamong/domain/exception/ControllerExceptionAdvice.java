@@ -51,6 +51,6 @@ public class ControllerExceptionAdvice {
 
     @ExceptionHandler(RoomNotFoundException.class)
     public ResponseEntity<ApiResponse<?>> handleRoomNotFoundException(RoomNotFoundException e) {
-        return new ResponseEntity<>(ApiResponse.error("Room not found: " + e.getMessage()), HttpStatus.NOT_FOUND); // 404
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.NOT_FOUND); // 404
     }
 }
