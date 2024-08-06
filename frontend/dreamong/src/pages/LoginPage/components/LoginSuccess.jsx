@@ -4,6 +4,8 @@ import axios from 'axios';
 import { useSetRecoilState } from 'recoil';
 import { userState } from '../../../recoil/atoms';
 
+import 'ldrs/squircle';
+
 const LoginSuccess = () => {
   const navigate = useNavigate();
   const setUser = useSetRecoilState(userState);
@@ -34,7 +36,11 @@ const LoginSuccess = () => {
       });
   }, [navigate]);
 
-  return <div>카카오 로그인 처리 중...</div>;
+  return (
+    <div className="flex h-full items-center justify-center">
+      <l-tailspin size="50" stroke="6" speed="0.8" color="black"></l-tailspin>
+    </div>
+  );
 };
 
 export default LoginSuccess;
