@@ -21,6 +21,6 @@ public class CategoryController {
     public ResponseEntity<ApiResponse<CategoryResponseDto>> getCategoryDataByUserAndDate(
             @PathVariable Integer userId, @PathVariable String currentDate) {
         CategoryResponseDto categoryData = categoryService.getCategoryDataByUserAndDate(userId, currentDate);
-        return ResponseEntity.ok(ApiResponse.success(categoryData, "Successfully retrieved category data by user and date"));
+        return ResponseEntity.ok(ApiResponse.success(categoryData));
     }
 }
