@@ -1,8 +1,8 @@
 package com.ssafy.dreamong.domain.entity.dream.service;
 
+import com.ssafy.dreamong.domain.entity.comment.dto.CommentResponse;
 import com.ssafy.dreamong.domain.entity.commentlike.repository.CommentLikeRepository;
 import com.ssafy.dreamong.domain.entity.dream.Dream;
-import com.ssafy.dreamong.domain.entity.comment.dto.CommentResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareDetailResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareGetResponseDto;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;

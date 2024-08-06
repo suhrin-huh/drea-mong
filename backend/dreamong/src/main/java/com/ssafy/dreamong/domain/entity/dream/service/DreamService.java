@@ -86,27 +86,19 @@ public class DreamService {
     }
 
     // 메인 조회
-    public List<DreamMainResponse> getDreamsByUserIdAndWriteTime(Integer userId, String writeTime) {
-        // 날짜를 파싱하여 연도와 월을 추출합니다.
+    public DreamMainResponseWithCount getDreamsByUserIdAndWriteTime(Integer userId, String writeTime) {
         LocalDate date = LocalDate.parse(writeTime, DateTimeFormatter.ofPattern("yyyyMMdd"));
         String yearMonth = date.format(DateTimeFormatter.ofPattern("yyyyMM"));
 
         List<Dream> dreams = dreamRepository.findAllByUserIdAndWriteTimeLikeOrderByWriteTimeDesc(userId, yearMonth);
 
-        if (dreams.isEmpty()) {
-            return new ArrayList<>();
-        }
+        List<DreamMainResponse> dreamMainResponseList = dreams.stream()
+                .map(dream -> new DreamMainResponse(dream.getContent(), dream.getImage(), dream.getWriteTime()))
+                .collect(Collectors.toList());
 
-        List<DreamMainResponse> dreamMainResponseList = new ArrayList<>();
-        for (Dream dream : dreams) {
-            DreamMainResponse response = new DreamMainResponse(
-                    dream.getContent(),
-                    dream.getImage(),
-                    dream.getWriteTime()
-            );
-            dreamMainResponseList.add(response);
-        }
-        return dreamMainResponseList;
+        long totalCount = dreamRepository.countByUserId(userId);
+
+        return new DreamMainResponseWithCount(dreamMainResponseList, totalCount);
     }
 
     // 꿈 수정
@@ -191,7 +183,7 @@ public class DreamService {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
                 "이 꿈을 다음의 카테고리로 분류하고 각 카테고리별로 주요 단어를 JSON 형식으로 추출해주세요:\n" +
-                "1. 꿈 종류 (dreamType): 이 꿈의 종류는 무엇입니까? (예: 악몽, 행복한 꿈, 예지몽 등)\n" +
+                "1. 꿈 종류 (dreamType): 이 꿈의 종류는 무엇입니까? (예: 일반 / 루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈) 예시에 있는 종류로만 구분 해주세요 (루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈)여기에 해당하지 않는 꿈은 일반으로 해주세요\n" +
                 "2. 인물 (character): 꿈에 등장한 주요 인물은 누구입니까?\n" +
                 "3. 기분 (mood): 이 꿈을 꿀 때 느낀 기분은 어떠했습니까? (예: 두려움, 기쁨, 슬픔 등)\n" +
                 "4. 장소 (location): 꿈에서 나타난 주요 장소는 어디입니까?\n" +

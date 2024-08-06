@@ -4,6 +4,7 @@ package com.ssafy.dreamong.domain.entity.user.service;
 import com.ssafy.dreamong.domain.entity.user.Role;
 import com.ssafy.dreamong.domain.entity.user.dto.*;
 import com.ssafy.dreamong.domain.entity.user.User;
+import com.ssafy.dreamong.domain.entity.user.dto.UserDto;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import com.ssafy.dreamong.domain.oauth.dto.*;
 import lombok.RequiredArgsConstructor;

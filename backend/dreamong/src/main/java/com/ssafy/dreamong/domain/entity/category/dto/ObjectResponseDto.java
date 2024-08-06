@@ -1,13 +1,15 @@
 package com.ssafy.dreamong.domain.entity.category.dto;
 
-import com.ssafy.dreamong.domain.entity.category.Type;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class CategoryDto {
-    private Integer id;
+@NoArgsConstructor
+public class ObjectResponseDto {
     private String word;
-    private Type type;
+    private List<String> hashTags;
 }

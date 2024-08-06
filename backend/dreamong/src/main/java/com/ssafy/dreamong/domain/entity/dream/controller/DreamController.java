@@ -5,9 +5,8 @@ import com.ssafy.dreamong.domain.entity.dream.dto.*;
 import com.ssafy.dreamong.domain.entity.dream.service.DreamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/dream")
@@ -16,50 +15,47 @@ public class DreamController {
 
     private final DreamService dreamService;
 
-    // 리스트 조회
+    //메인 조회
     @GetMapping(value = "/{userId}/{writeTime}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<?> findAll(@PathVariable Integer userId, @PathVariable String writeTime) {
-        List<DreamMainResponse> dreamMainResponseList = dreamService.getDreamsByUserIdAndWriteTime(userId, writeTime);
-        if (dreamMainResponseList.isEmpty()) {
-            return ApiResponse.error("DreamList is empty");
-        } else {
-            return ApiResponse.success(dreamMainResponseList, "Dreams retrieved successfully");
-        }
+    public ResponseEntity<ApiResponse<?>> findAll(@PathVariable Integer userId, @PathVariable String writeTime) {
+        DreamMainResponseWithCount response = dreamService.getDreamsByUserIdAndWriteTime(userId, writeTime);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // 꿈 생성
+    //꿈 등록
     @PostMapping("/create")
-    public ApiResponse<?> createDream(@RequestBody DreamCreateRequest dreamCreateRequest) {
+    public ResponseEntity<ApiResponse<?>> createDream(@RequestBody DreamCreateRequest dreamCreateRequest) {
         DreamDto createdDream = dreamService.create(dreamCreateRequest);
-        return ApiResponse.success(createdDream, "Dream created successfully");
+        return ResponseEntity.ok(ApiResponse.success(createdDream));
     }
 
-    // 상세 보기
+    //상세 보기
     @GetMapping("/{dreamId}")
-    public ApiResponse<?> getDream(@PathVariable Integer dreamId) {
+    public ResponseEntity<ApiResponse<?>> getDream(@PathVariable Integer dreamId) {
         DreamGetResponse dreamGetResponse = dreamService.getDream(dreamId);
-        return ApiResponse.success(dreamGetResponse, "Dream retrieved successfully");
+        return ResponseEntity.ok(ApiResponse.success(dreamGetResponse));
     }
 
-    // 꿈 수정
+    //꿈 수정
     @PutMapping(value = "/{dreamId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<?> update(@PathVariable Integer dreamId, @RequestBody DreamUpdateRequest request) {
+    public ResponseEntity<ApiResponse<?>> update(@PathVariable Integer dreamId, @RequestBody DreamUpdateRequest request) {
         DreamDto updatedDream = dreamService.update(dreamId, request);
-        return ApiResponse.success(updatedDream, "Dream updated successfully");
+        return ResponseEntity.ok(ApiResponse.success(updatedDream));
     }
 
-    // 꿈 삭제
+    //꿈 삭제
     @DeleteMapping("/{dreamId}")
-    public ApiResponse<?> delete(@PathVariable Integer dreamId) {
-        boolean isDelete = dreamService.deleteDream(dreamId);
-        return isDelete ? ApiResponse.success(null, "Dream deleted successfully")
-                : ApiResponse.error("Dream not found");
+    public ResponseEntity<ApiResponse<?>> delete(@PathVariable Integer dreamId) {
+        boolean isDeleted = dreamService.deleteDream(dreamId);
+        return ResponseEntity.ok(isDeleted
+                ? ApiResponse.success()
+                : ApiResponse.error());
     }
 
-    // 꿈 임시 저장
+    //꿈 임시 저장
     @PostMapping(value = "/temporary", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponse<?> temporaryDream(@RequestBody DreamCreateRequest dreamCreateRequest) {
+    public ResponseEntity<ApiResponse<?>> temporaryDream(@RequestBody DreamCreateRequest dreamCreateRequest) {
         DreamDto temporaryDream = dreamService.createTemporaryDream(dreamCreateRequest);
-        return ApiResponse.success(temporaryDream, "Dream created successfully");
+        return ResponseEntity.ok(ApiResponse.success(temporaryDream));
     }
 }

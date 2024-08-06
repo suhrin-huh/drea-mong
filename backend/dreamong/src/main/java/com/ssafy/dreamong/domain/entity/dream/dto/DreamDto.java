@@ -3,7 +3,6 @@ package com.ssafy.dreamong.domain.entity.dream.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
