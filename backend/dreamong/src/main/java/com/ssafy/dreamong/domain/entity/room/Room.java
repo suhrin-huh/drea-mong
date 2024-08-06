@@ -19,7 +19,7 @@ public class Room extends BaseTimeEntity {
     private Integer id;
     @Column(name = "title", nullable = false)
     private String title;
-    @Column(name = "youtube_link", nullable = false)
+    @Column(name = "youtube_link", nullable = false, length = 1000)
     private String youtubeLink;
     @Column(name = "thumbnail", nullable = false)
     private String thumbnail;
