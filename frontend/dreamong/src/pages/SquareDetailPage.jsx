@@ -9,15 +9,29 @@ const SquareDetailPage = () => {
     '고양이는 밤하늘을 바라보며 언덕 위에 앉아 있었다. 그날 밤은 유난히 고요했고, 달빛이 언덕을 은은하게 비추고 있었다. 고양이는 은빛으로 빛나는 하늘을 응시하며 무언가를 기다리는 듯했다. 그러던 중, 하늘에서 작은 빛이 빠르게 떨어지는 것을 보았다. 운석이었다. 고양이는 그 빛을 따라 숲 속으로 사라졌다. 언덕 아래에서는 토끼가 나뭇잎 사이에서 고개를 내밀고 있었다. 운석이 떨어진 곳에서 이상한 빛이 반짝이고 있었고, 토끼는 두려움을 무릅쓰고 천천히 그쪽으로 다가갔다. 밤의 정적 속에서 운석이 빛나는 장면은 신비로웠고, 고양이와 토끼는 그렇게 언덕 위에서 운석을 바라보며 밤을 보냈다.',
   );
   const [comments, setComments] = useState([
-    { id: 1, content: 'This is a new comment', likesCount: 50, nickname: 'testuser' },
-    { id: 2, content: 'This is a new comment', likesCount: 30, nickname: 'testuser' },
-    { id: 3, content: 'This is a new comment', likesCount: 12, nickname: 'testuser' },
-    { id: 4, content: 'This is a new comment', likesCount: 6, nickname: 'testuser' },
-    { id: 5, content: 'This is a new comment', likesCount: 3, nickname: 'testuser' },
+    { id: 1, content: 'This is a new comment', likesCount: 50, nickname: 'testuser', liked: false },
+    { id: 2, content: 'This is a new comment', likesCount: 30, nickname: 'testuser', liked: false },
+    { id: 3, content: 'This is a new comment', likesCount: 12, nickname: 'testuser', liked: false },
+    { id: 4, content: 'This is a new comment', likesCount: 6, nickname: 'testuser', liked: false },
+    { id: 5, content: 'This is a new comment', likesCount: 3, nickname: 'testuser', liked: false },
   ]);
 
   const handleToggleClick = () => {
     setIsToggled(!isToggled);
+  };
+
+  const handleLikeClick = (id) => {
+    setComments(
+      comments.map((comment) =>
+        comment.id === id
+          ? {
+              ...comment,
+              likesCount: comment.liked ? comment.likesCount - 1 : comment.likesCount + 1,
+              liked: !comment.liked,
+            }
+          : comment,
+      ),
+    );
   };
 
   return (
@@ -59,13 +73,16 @@ const SquareDetailPage = () => {
               <div className="text-sm text-black">{comment.content}</div>
             </div>
             <div className="flex flex-col items-center justify-center">
-              <div className="flex h-6 w-6 items-center justify-center">
+              <div
+                className="flex h-6 w-6 cursor-pointer items-center justify-center"
+                onClick={() => handleLikeClick(comment.id)}
+              >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
                   height="16"
                   fill="currentColor"
-                  class="bi bi-heart"
+                  className={`bi bi-heart ${comment.liked ? 'text-red-500' : ''}`}
                   viewBox="0 0 16 16"
                 >
                   <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143q.09.083.176.171a3 3 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15" />
