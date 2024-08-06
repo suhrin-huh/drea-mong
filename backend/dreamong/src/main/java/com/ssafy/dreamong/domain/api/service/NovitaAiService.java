@@ -55,37 +55,24 @@ public class NovitaAiService {
                 .post(body)
                 .build();
 
-        // 요청 데이터 로깅
-        // System.out.println("Request: " + jsonObject.toString());
-
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                System.err.println("API Error: " + response.code() + " " + response.message());
                 throw new IOException("Unexpected code " + response);
             }
 
-            // 응답 본문 추출 및 로깅
-            String responseBody = response.body().string(); //API 응답 데이터를 문자열로 추출합니다. (Base64인코딩 된 문자열로 받고 있음)
+            String responseBody = response.body().string();
+            JSONObject responseJson = new JSONObject(responseBody);
 
-            // System.out.println("API Response: " + responseBody);
-
-            // 응답 JSON 데이터 파싱
-            JSONObject responseJson = new JSONObject(responseBody); //JSON 객체로 변환합니다.
-
-            // 'images' 배열과 'image' 배열 모두 처리
-            JSONArray imagesArray = responseJson.optJSONArray("images"); //이미지 데이터 추출
-//            JSONArray imageArray = responseJson.optJSONArray("image"); //이미지 데이터 추출
+            JSONArray imagesArray = responseJson.optJSONArray("images");
 
             List<String> imageUrls = new ArrayList<>();
             int count = 0;
 
-            // 'images' 배열에서 'image_file' 필드 추출 (최대 4장)
             if (imagesArray != null) {
                 for (int i = 0; i < imagesArray.length() && count < 4; i++) {
                     JSONObject imageObject = imagesArray.getJSONObject(i);
                     String imageFile = imageObject.optString("image_file");
                     if (!imageFile.isEmpty()) {
-                        // Base64를 디코딩하여 S3에 업로드
                         byte[] imageBytes = Base64.getDecoder().decode(imageFile);
                         String imageUrl = s3UploadService.uploadImageToS3(imageBytes, "image_" + count + ".png");
                         imageUrls.add(imageUrl);
@@ -93,18 +80,6 @@ public class NovitaAiService {
                     }
                 }
             }
-
-            // 'image' 배열에서 'image_url' 필드 추출 (최대 4장)
-//            if (imageArray != null) {
-//                for (int i = 0; i < imageArray.length() && count < 4; i++) {
-//                    JSONObject imageObject = imageArray.getJSONObject(i);
-//                    String imageUrl = imageObject.optString("image_url");
-//                    if (!imageUrl.isEmpty()) {
-//                        imageUrls.add(imageUrl);
-//                        count++;
-//                    }
-//                }
-//            }
 
             return imageUrls;
         }
