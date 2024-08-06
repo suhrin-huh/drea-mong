@@ -19,7 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,11 +51,11 @@ public class ImageService {
         // 이미지 생성
         List<String> imageUrls = novitaAiService.generateImages(translatedPrompt);
 
-        // 이미지 검열
-        return censorImages(imageUrls);
+        // 이미지 검열 및 S3 업로드
+        return censorAndUploadImages(imageUrls);
     }
 
-    private List<String> censorImages(List<String> imageUrls) throws IOException {
+    private List<String> censorAndUploadImages(List<String> imageUrls) throws IOException {
         List<String> censoredImageUrls = new ArrayList<>();
 
         for (String imageUrl : imageUrls) {
@@ -105,13 +108,29 @@ public class ImageService {
 
                         // 특정 임계값을 초과하는 이미지를 필터링하는 로직
                         if (adultConfidence < 0.5 && pornConfidence < 0.5 && sexyConfidence < 0.5) {
-                            censoredImageUrls.add(imageUrl);
+                            // 이미지 다운로드
+                            byte[] imageBytes = downloadImage(imageUrl);
+                            // S3에 이미지 업로드
+                            String s3Url = s3UploadService.uploadImageToS3(imageBytes, "image_" + System.currentTimeMillis() + ".png");
+                            censoredImageUrls.add(s3Url);
                         }
                     }
                 }
             }
         }
         return censoredImageUrls;
+    }
+
+    private byte[] downloadImage(String imageUrl) throws IOException {
+        URL url = new URL(imageUrl);
+        try (InputStream in = url.openStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[4096];
+            int n;
+            while ((n = in.read(buffer)) != -1) {
+                out.write(buffer, 0, n);
+            }
+            return out.toByteArray();
+        }
     }
 
     public String generateInterpretation(String message) {
