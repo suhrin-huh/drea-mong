@@ -139,9 +139,9 @@ const StreamingRoom = () => {
         <div className="mx-4 mt-auto overflow-y-auto">
           <div className="mb-2 overflow-y-auto">
             {messages.map((message, index) => (
-              <div key={index} className={`mb-3 ${message.fromSelf ? 'text-end' : null}`}>
+              <div key={index} className={`mb-3 ${message.nickname === userNickname ? 'text-end' : null}`}>
                 <p className="text-sm text-gray-300">{message.nickname}</p>
-                <p className={`text-white ${message.fromSelf ? 'mr-2' : 'ml-2'}`}>{message.message}</p>
+                <p className={`text-white ${message.nickname === userNickname ? 'mr-2' : 'ml-2'}`}>{message.message}</p>
               </div>
             ))}
           </div>
