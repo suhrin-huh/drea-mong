@@ -4,24 +4,31 @@ import YouTube from 'react-youtube';
 import axios from 'axios';
 import io from 'socket.io-client';
 
+import { useRecoilValue } from 'recoil';
+import { userState, baseURLState, socketURLState, socketURLState } from '../../../recoil/atoms';
+
 const StreamingRoom = () => {
   const { roomId } = useParams(); // URL 파라미터에서 방 ID 추출
   const [socket, setSocket] = useState(null); // 소켓 연결 상태 관리
   const [messages, setMessages] = useState([]); // 채팅 메시지 목록 상태 관리
   const [videoId, setVideoId] = useState(''); // YouTube 비디오 ID 상태 관리
-  const [roomInfo, setRoomInfo] = useState({ title: '', youtubeLink: '', participantCount: 0 }); // 방 정보 상태 관리 (제목, YouTube 링크, 참가자 수)
+  const [roomInfo, setRoomInfo] = useState({}); // 방 정보 상태 관리 (제목, YouTube 링크, 참가자 수)
   const [inputMessage, setInputMessage] = useState(''); // 채팅 입력 메시지 상태 관리
   const playerRef = useRef(null); // YouTube 플레이어 참조 관리
+
+  const userNickname = useRecoilValue(userState).nickname;
+  const baseURL = useRecoilValue(baseURLState);
+  const socketURL = useRecoilValue(socketURLState);
 
   // 컴포넌트 마운트 시 방 정보를 가져오는 함수
   const fetchRoomInfo = useCallback(() => {
     axios({
       method: 'get',
-      url: `/api/rooms/${roomId}`,
+      url: `${baseURL}/rooms/${roomId}`,
     })
       .then((response) => {
-        setRoomInfo(response.data);
-        setVideoId(extractVideoId(response.data.youtubeLink));
+        setRoomInfo(response.data.data);
+        setVideoId(extractVideoId(response.data.data.youtubeLink));
       })
       .catch((err) => {
         console.error('방 정보를 가져오는데 실패했습니다:', err);
@@ -32,7 +39,7 @@ const StreamingRoom = () => {
   useEffect(() => {
     fetchRoomInfo();
 
-    const newSocket = io('https://localhost:9093');
+    const newSocket = io(socketURL);
     setSocket(newSocket);
 
     // 방 입장 이벤트 발생
@@ -65,7 +72,7 @@ const StreamingRoom = () => {
   // 채팅 메시지 전송 함수
   const sendMessage = useCallback(() => {
     if (inputMessage && socket) {
-      socket.emit('chat-message', { roomId, message: inputMessage });
+      socket.emit('chat-message', { roomId, nickname: userNickname, message: inputMessage });
       setInputMessage('');
     }
   }, [inputMessage, socket, roomId]);
@@ -94,23 +101,6 @@ const StreamingRoom = () => {
     },
     [socket, roomId],
   );
-
-  // const dummyMessages = [
-  //   { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
-  //   { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
-  //   { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
-  //   { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
-  //   { fromSelf: false, nickname: '민채', text: '반갑습니다!' },
-  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-  //   { fromSelf: true, nickname: '규범', text: '오늘 하루 너무 힘들었네요ㅠ' },
-  // ];
 
   return (
     <section className="mx-2 flex h-[calc(100dvh-130px)] flex-col">
@@ -151,7 +141,7 @@ const StreamingRoom = () => {
             {messages.map((message, index) => (
               <div key={index} className={`mb-3 ${message.fromSelf ? 'text-end' : null}`}>
                 <p className="text-sm text-gray-300">{message.nickname}</p>
-                <p className={`text-white ${message.fromSelf ? 'mr-2' : 'ml-2'}`}>{message.text}</p>
+                <p className={`text-white ${message.fromSelf ? 'mr-2' : 'ml-2'}`}>{message.message}</p>
               </div>
             ))}
           </div>

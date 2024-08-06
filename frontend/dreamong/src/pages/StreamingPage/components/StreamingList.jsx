@@ -5,7 +5,7 @@ import axios from 'axios';
 import Button from '../../../components/Button';
 
 import { useRecoilValue } from 'recoil';
-import { userState } from '../../../recoil/atoms';
+import { userState, baseURLState } from '../../../recoil/atoms';
 
 Modal.setAppElement('#root');
 
@@ -18,54 +18,25 @@ const StreamingList = () => {
   const [newRoom, setNewRoom] = useState({ title: '', youtubeLink: '' });
 
   const isAdmin = useRecoilValue(userState).role === 'ADMIN' ? true : false;
+  const baseURL = useRecoilValue(baseURLState);
 
+  // 방 목록 업데이트
   useEffect(() => {
-    // 방 목록 업데이트
-    // fetchRooms();
-
-    // 더미 데이터 사용 => 추후에 서버와 정상 연결 되면 setRooms([...]) 이하 부분 코드 제거 예정
-    setRooms(
-      [
-        {
-          token: 1,
-          title: '지브리 OST 모음집',
-          youtubeLink: 'https://www.youtube.com/watch?v=U34kLXjdw90&ab_channel=SoothingPianoRelaxing',
-        },
-        { token: 2, title: '자면서 듣는 재즈 음악', youtubeLink: 'test2' },
-        {
-          token: 3,
-          title: '돈 복 들어오는 꿈 꾸고 싶으면 들어와요',
-          youtubeLink: 'test3',
-        },
-        {
-          token: 4,
-          title: '오늘 하루 고생한 당신을 위한 힐링 음악',
-          youtubeLink:
-            'https://www.youtube.com/watch?v=p2fxv3PAtLU&ab_channel=%ED%9E%90%EB%A7%81%ED%8A%B8%EB%A6%AC%EB%AE%A4%EC%A7%81HealingTreeMusic%26Sounds',
-        },
-        {
-          token: 5,
-          title: '마하반야바라밀다심경 관자재보살...',
-          youtubeLink: 'test5',
-        },
-      ].map((room) => ({
-        ...room,
-        thumbnailImg: `https://img.youtube.com/vi/${extractVideoId(room.youtubeLink)}/0.jpg`,
-      })),
-    );
+    fetchRooms();
   }, []);
 
   // 방 목록 가져오기 함수
   const fetchRooms = () => {
     axios({
       method: 'get',
-      url: '/api/rooms', // 백엔드 api 명세 관련 논의 후 수정 예정
+      url: `${baseURL}/rooms`, // 백엔드 api 명세 관련 논의 후 수정 예정
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
     })
       .then((response) => {
-        setRooms(response.data);
+        // console.log(response.data.data)
+        setRooms(response.data.data);
         console.log('방 목록 fetch 완료!');
       })
       .catch((error) => {
@@ -108,26 +79,17 @@ const StreamingList = () => {
     // 방 생성 API 호출
     axios({
       method: 'post',
-      url: '/api/create-rooms',
+      url: `${baseURL}/rooms`,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
       data: {
         title: newRoom.title,
         youtubeLink: newRoom.youtubeLink,
-        thumbnailImg: `https://img.youtube.com/vi/${extractVideoId(newRoom.youtubeLink)}/0.jpg`,
-        createdDate: new Date().toISOString(), // 방 생성 시간
-        // createdBy: localStorage.getItem('userId'), // 방 생성자의 ID
-        // status: 'active', // 방의 상태 (활성/비활성)
-        // maxParticipants: 100, // 최대 참가자 수 (선택적)
-        // description: newRoom.description, // 방 설명 (선택적)
-        // tags: newRoom.tags, // 방 태그 (선택적)
-        // isPrivate: false, // 공개/비공개 여부 (선택적)
-        // password: newRoom.password // 비공개 방일 경우 비밀번호 (선택적)
+        thumbnail: `https://img.youtube.com/vi/${extractVideoId(newRoom.youtubeLink)}/0.jpg`,
       },
     })
       .then((response) => {
-        const createdRoom = response.data;
         fetchRooms();
         toggleModalIsOpen();
         console.log('방 생성 성공!');
@@ -139,25 +101,7 @@ const StreamingList = () => {
         console.error(error);
         alert('방 생성에 실패했습니다. 나중에 다시 시도해 주세요.');
       });
-
-    // // 더미 데이터로 방 생성
-    // const createdRoom = {
-    //   token: rooms.length + 1,
-    //   title: newRoom.title,
-    //   youtubeLink: newRoom.youtubeLink,
-    //   thumbnailImg: `https://img.youtube.com/vi/${extractVideoId(newRoom.youtubeLink)}/0.jpg`,
-    //   participantCount: 0,
-    // };
-    // setRooms((prev) => [...prev, createdRoom]);
-    // toggleModalIsOpen();
-    // setNewRoom({ title: '', youtubeLink: '' });
   };
-
-  // if (error) {
-  //   navigate('');
-  //   alert({ error });
-  //   setError(null);
-  // }
 
   return (
     <section className="mx-2 flex flex-col text-white">
@@ -220,25 +164,26 @@ const StreamingList = () => {
         </div>
       </Modal>
 
-      {rooms.map((room) => (
-        <button
-          key={room.token}
-          onClick={() => handleNavigate(room.token)}
-          className="mb-4 flex h-full w-full flex-col rounded-lg bg-black bg-opacity-50 bg-clip-padding p-4 backdrop-blur-sm backdrop-filter"
-        >
-          <img src={room.thumbnailImg} alt={room.title} className="mb-3 h-48 w-full rounded-md object-cover" />
-          <div className="flex w-full justify-between">
-            <p className="max-w-[60%] truncate">{room.title}</p>
-            <p>{room.participantCount}명 시청중</p>
-          </div>
-        </button>
-      ))}
-
       {isAdmin && (
-        <Button variant="primary" size="lg" fullWidth={true} className="mb-3" onClick={toggleModalIsOpen}>
+        <Button variant="primary" size="lg" fullWidth={true} className="my-3" onClick={toggleModalIsOpen}>
           방 생성하기
         </Button>
       )}
+
+      {rooms &&
+        rooms.map((room) => (
+          <button
+            key={room.roomId}
+            onClick={() => handleNavigate(room.roomId)}
+            className="mb-4 flex h-full w-full flex-col rounded-lg bg-black bg-opacity-50 bg-clip-padding p-4 backdrop-blur-sm backdrop-filter"
+          >
+            <img src={room.thumbnail} alt={room.title} className="mb-3 h-48 w-full rounded-md object-cover" />
+            <div className="flex w-full justify-between">
+              <p className="max-w-[60%] truncate">{room.title}</p>
+              <p>{room.participantCount}명 시청중</p>
+            </div>
+          </button>
+        ))}
     </section>
   );
 };

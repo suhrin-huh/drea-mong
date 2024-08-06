@@ -19,3 +19,8 @@ export const baseURLState = atom({
   key: 'baseURLState',
   default: 'http://localhost:8080',
 });
+
+export const socketURLState = atom({
+  key: 'socketURLState',
+  default: 'https://localhost:9093',
+});
