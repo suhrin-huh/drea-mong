@@ -44,7 +44,7 @@ public class SocketIOEventHandler {
         });
 
         server.addEventListener("chat-message", ChatMessage.class, (client, data, ackRequest) -> {
-            log.info("Received chat-message event: {}", data.getContent());
+            log.info("Received chat-message event: {}", data.getMessage());
             server.getRoomOperations(data.getRoomId()).sendEvent("chat-message", data);
         });
 
@@ -54,6 +54,12 @@ public class SocketIOEventHandler {
             int participantCount = getParticipantCount(roomId);
             server.getRoomOperations(roomId).sendEvent("participant-count-update", participantCount);
             log.info("Client left room: {}, participant count: {}", roomId, participantCount);
+        });
+
+
+        server.addEventListener("force-leave", String.class, (client, roomId, ackRequest) -> {
+            log.info("Received force-leave event for room: {}", roomId);
+            server.getRoomOperations(roomId).sendEvent("force-leave", roomId);
         });
     }
 

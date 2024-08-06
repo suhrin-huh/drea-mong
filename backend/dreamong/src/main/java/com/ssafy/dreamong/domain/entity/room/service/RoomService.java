@@ -6,6 +6,7 @@ import com.ssafy.dreamong.domain.entity.room.dto.RoomListResponse;
 import com.ssafy.dreamong.domain.entity.room.repository.RoomRepository;
 import com.ssafy.dreamong.domain.exception.RoomNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RoomService {
 
     private final RoomRepository roomRepository;
@@ -36,7 +38,9 @@ public class RoomService {
 
     public void deleteRoom(Integer romeId) {
         Room room = roomRepository.findById(romeId).orElseThrow(RoomNotFoundException::new);
+        log.info("Deleting room: {}", romeId);
         String roomIdToString = room.getId().toString();
+        log.info("roomIdToString: {}", roomIdToString);
         socketIOServer.getRoomOperations(roomIdToString).sendEvent("force-leave", "Room has been deleted. Please leave the room.");
         socketIOServer.getRoomOperations(roomIdToString).getClients().forEach(client -> client.leaveRoom(roomIdToString));
         roomRepository.deleteById(romeId);
