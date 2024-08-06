@@ -11,6 +11,11 @@ export const userState = atom({
 });
 
 export const isListeningState = atom({
-  key:'isListeningState',
-  default:false
-})
+  key: 'isListeningState',
+  default: false,
+});
+
+export const baseURLState = atom({
+  key: 'baseURLState',
+  default: 'http://localhost:8080',
+});

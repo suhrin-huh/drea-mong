@@ -1,18 +1,19 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useSetRecoilState } from 'recoil';
-import { userState } from '../../../recoil/atoms';
+import { useRecoilValue, useSetRecoilState } from 'recoil';
+import { userState, baseURLState } from '../../../recoil/atoms';
 
 import 'ldrs/squircle';
 
 const LoginSuccess = () => {
   const navigate = useNavigate();
   const setUserState = useSetRecoilState(userState);
+  const baseURL = useRecoilValue(baseURLState);
 
   useEffect(() => {
     axios
-      .post('https://i11c106.p.ssafy.io/auth/refresh', {}, { withCredentials: true })
+      .post(`${baseURL}/auth/refresh`, {}, { withCredentials: true })
       .then((response) => {
         const accessToken = response.headers['authorization'].split(' ')[1];
         localStorage.setItem('accessToken', accessToken);
@@ -24,7 +25,7 @@ const LoginSuccess = () => {
       .then((response) => {
         axios({
           method: 'get',
-          url: '/api/users/info',
+          url: `${baseURL}/api/users/info`,
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
