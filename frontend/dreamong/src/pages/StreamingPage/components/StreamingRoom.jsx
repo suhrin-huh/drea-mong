@@ -95,22 +95,22 @@ const StreamingRoom = () => {
     [socket, roomId],
   );
 
-  const dummyMessages = [
-    { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
-    { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
-    { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
-    { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
-    { fromSelf: false, nickname: '민채', text: '반갑습니다!' },
-    { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-    { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-    { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-    { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-    { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-    { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-    { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-    { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
-    { fromSelf: true, nickname: '규범', text: '오늘 하루 너무 힘들었네요ㅠ' },
-  ];
+  // const dummyMessages = [
+  //   { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
+  //   { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
+  //   { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
+  //   { fromSelf: true, nickname: '규범', text: '안녕하세요~~' },
+  //   { fromSelf: false, nickname: '민채', text: '반갑습니다!' },
+  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
+  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
+  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
+  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
+  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
+  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
+  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
+  //   { fromSelf: false, nickname: '민주', text: '안녕하세요~~~~~' },
+  //   { fromSelf: true, nickname: '규범', text: '오늘 하루 너무 힘들었네요ㅠ' },
+  // ];
 
   return (
     <section className="mx-2 flex h-[calc(100dvh-130px)] flex-col">
@@ -148,7 +148,7 @@ const StreamingRoom = () => {
       <div className="flex flex-grow flex-col overflow-hidden rounded-t-lg border-b-2 border-gray-500 bg-black bg-opacity-50 backdrop-blur-sm backdrop-filter">
         <div className="mx-4 mt-auto overflow-y-auto">
           <div className="mb-2 overflow-y-auto">
-            {dummyMessages.map((message, index) => (
+            {messages.map((message, index) => (
               <div key={index} className={`mb-3 ${message.fromSelf ? 'text-end' : null}`}>
                 <p className="text-sm text-gray-300">{message.nickname}</p>
                 <p className={`text-white ${message.fromSelf ? 'mr-2' : 'ml-2'}`}>{message.text}</p>
