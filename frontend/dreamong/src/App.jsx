@@ -51,7 +51,7 @@ function App() {
                     element={<LoginPage isLoggedIn={isLoggedIn} toggleLoginStatus={toggleLoginStatus} />}
                   />
                   <Route
-                    path="/oauth/callback/kakao"
+                    path="/callback"
                     element={<LoginSuccess isLoggedIn={isLoggedIn} toggleLoginStatus={toggleLoginStatus} />}
                   />
                 </Routes>

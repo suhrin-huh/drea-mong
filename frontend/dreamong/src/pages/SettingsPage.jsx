@@ -20,7 +20,7 @@ const SettingsPage = () => {
   const [push, setPush] = useState(pushRef.current);
 
   // 사용자 로그인 상태 확인 코드 작성 예정 (일단은 임시로)
-  const [isLogin, setIsLogin] = useState(false);
+  const [isLogin, setIsLogin] = useState(localStorage.getItem('accessToken') ? true : false);
 
   // 사용자 닉네임 변경 모달 관리
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -61,7 +61,7 @@ const SettingsPage = () => {
   const handleLogout = () => {
     axios({
       method: 'post',
-      url: '',
+      url: 'api/users/logout',
       headers: {
         Authorization: ``,
       },
@@ -69,6 +69,7 @@ const SettingsPage = () => {
       .then((response) => {
         console.log(response);
         // 로그아웃 처리 후 로직 추가 예정
+        localStorage.removeItem('accessToken');
         navigate('/');
       })
       .catch((error) => {
