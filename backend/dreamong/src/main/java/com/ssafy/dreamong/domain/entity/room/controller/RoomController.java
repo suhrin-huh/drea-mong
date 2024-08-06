@@ -20,7 +20,7 @@ public class RoomController {
 
     private final RoomService roomService;
 
-//  @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<Room>> createRoom(@RequestBody Room room) {
         try {
@@ -41,7 +41,7 @@ public class RoomController {
             }
             return ResponseEntity.ok(ApiResponse.success(allRooms, "방 목록 조회를 성공했습니다."));
         } catch (Exception e) {
-             return new ResponseEntity<>(ApiResponse.error("방 목록 조회 중 오류가 발생했습니다."), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(ApiResponse.error("방 목록 조회 중 오류가 발생했습니다."), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -57,8 +57,7 @@ public class RoomController {
         }
     }
 
-
-    //    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{roomId}")
     public ResponseEntity<ApiResponse<Void>> deleteRoom(@PathVariable Integer roomId) {
         try {

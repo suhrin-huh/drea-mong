@@ -1,6 +1,7 @@
 package com.ssafy.dreamong.domain.entity.room;
 
 import com.ssafy.dreamong.domain.entity.common.BaseTimeEntity;
+import com.ssafy.dreamong.domain.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -23,11 +24,17 @@ public class Room extends BaseTimeEntity {
     @Column(name = "thumbnail", nullable = false)
     private String thumbnail;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+
     @Builder
-    public Room(Integer id, String title, String youtubeLink, String thumbnail) {
+    public Room(Integer id, String title, String youtubeLink, String thumbnail, User user) {
         this.id = id;
         this.title = title;
         this.youtubeLink = youtubeLink;
         this.thumbnail = thumbnail;
+        this.user = user;
     }
 }

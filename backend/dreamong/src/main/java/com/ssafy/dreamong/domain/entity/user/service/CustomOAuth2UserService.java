@@ -1,6 +1,7 @@
 package com.ssafy.dreamong.domain.entity.user.service;
 
 
+import com.ssafy.dreamong.domain.entity.user.Role;
 import com.ssafy.dreamong.domain.entity.user.dto.*;
 import com.ssafy.dreamong.domain.entity.user.User;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
@@ -41,18 +42,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         if (findUser == null) { // 우리 서비스에 처음 로그인한 경우
             String defaultNickname = "dreamer_" + System.currentTimeMillis(); // 기본 닉네임 생성
-            User user = User.createUser(oAuth2Response.getEmail(), oAuth2Response.getName(), providerUserId, defaultNickname, "ROLE_USER");
+            User user = User.createUser(oAuth2Response.getEmail(), oAuth2Response.getName(), providerUserId, defaultNickname, Role.MEMBER);
 
             userRepository.save(user);
 
             UserDto userDto = new UserDto();
             userDto.setProviderUserId(providerUserId);
             userDto.setName(oAuth2Response.getName());
-            userDto.setRole("ROLE_USER");
+            userDto.setRole(Role.MEMBER);
 
             return new CustomOAuth2User(userDto);
         } else { // 이전에 로그인한 기록이 있는 경우
-            findUser.updateUserInfo(oAuth2Response.getEmail(),oAuth2Response.getName());
+            findUser.updateUserInfo(oAuth2Response.getEmail(), oAuth2Response.getName());
             userRepository.save(findUser); // 변경 감지 쓸거면 삭제해도 될 거 같음
 
 

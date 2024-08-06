@@ -1,5 +1,6 @@
 package com.ssafy.dreamong.domain.jwt;
 
+import com.ssafy.dreamong.domain.entity.user.Role;
 import com.ssafy.dreamong.domain.entity.user.User;
 import com.ssafy.dreamong.domain.oauth.dto.CustomOAuth2User;
 import com.ssafy.dreamong.domain.entity.user.dto.UserDto;
@@ -99,7 +100,7 @@ public class JWTFilter extends OncePerRequestFilter {
 
             if (!jwtUtil.isExpired(accessToken)) {
                 String providerUserId = jwtUtil.getProviderUserId(accessToken);
-                String role = jwtUtil.getRole(accessToken);
+                Role role = jwtUtil.getRole(accessToken);
 
                 UserDto userDTO = new UserDto();
                 userDTO.setProviderUserId(providerUserId);

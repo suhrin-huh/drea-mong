@@ -1,5 +1,6 @@
 package com.ssafy.dreamong.domain.jwt;
 
+import com.ssafy.dreamong.domain.entity.user.Role;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
@@ -28,9 +29,9 @@ public class JWTUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("providerUserId", String.class);
     }
 
-    public String getRole(String token) {
+    public Role getRole(String token) {
 
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role", String.class);
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("role", Role.class);
     }
 
     public Boolean isExpired(String token) {
@@ -45,7 +46,7 @@ public class JWTUtil {
 //        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 
-    public String createAccessToken(String providerUserId, String role, Long expiredMs) {
+    public String createAccessToken(String providerUserId, Role role, Long expiredMs) {
         return Jwts.builder()
                 .claim("providerUserId", providerUserId)
                 .claim("role", role)
