@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 public class UserDto {
 
+    private Integer userId;
     private Role role;
     private String name;
     private String providerUserId;
