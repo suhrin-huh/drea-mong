@@ -100,11 +100,11 @@ public class JWTFilter extends OncePerRequestFilter {
 
             if (!jwtUtil.isExpired(accessToken)) {
                 String providerUserId = jwtUtil.getProviderUserId(accessToken);
-                Role role = jwtUtil.getRole(accessToken);
+                String role = jwtUtil.getRole(accessToken);
 
                 UserDto userDTO = new UserDto();
                 userDTO.setProviderUserId(providerUserId);
-                userDTO.setRole(role);
+                userDTO.setRole(role.equals("MEMBER") ? Role.MEMBER : Role.ADMIN);
 
                 CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
                 Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
