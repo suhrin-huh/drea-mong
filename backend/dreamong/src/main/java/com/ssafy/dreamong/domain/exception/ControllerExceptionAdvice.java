@@ -48,4 +48,9 @@ public class ControllerExceptionAdvice {
     public ResponseEntity<ApiResponse<?>> handleInvalidDreamException(InvalidDreamException e) {
         return new ResponseEntity<>(ApiResponse.error(), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(RoomNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleRoomNotFoundException(RoomNotFoundException e) {
+        return new ResponseEntity<>(ApiResponse.error("Room not found: " + e.getMessage()), HttpStatus.NOT_FOUND); // 404
+    }
 }

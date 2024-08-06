@@ -22,13 +22,14 @@ public class User extends BaseTimeEntity {
     private String name;
     private String providerUserId; // 외부 제공자와 관련된 고유 식별자
     private String nickname; // 사용자 인터페이스에 표시될 이름
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private Role role;
     private String refreshToken;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
-    private User(String email, String name, String providerUserId, String nickname, String role) {
+    private User(String email, String name, String providerUserId, String nickname, Role role) {
         this.email = email;
         this.name = name;
         this.providerUserId = providerUserId;
@@ -36,7 +37,7 @@ public class User extends BaseTimeEntity {
         this.role = role;
     }
 
-    public static User createUser(String email, String name, String providerUserId, String nickname, String role) {
+    public static User createUser(String email, String name, String providerUserId, String nickname, Role role) {
         return new User(email, name, providerUserId, nickname, role);
     }
 

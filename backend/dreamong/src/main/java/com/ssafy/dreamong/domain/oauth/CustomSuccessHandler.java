@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -25,6 +26,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JWTUtil jwtUtil;
     private final UserRepository userRepository;
+    @Value("${login.callback-url}")
+    private String callbackUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -53,12 +56,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         log.info("Cookie Set and Redirecting to callback.");
 
         // 리디렉션 경로 설정
-        response.sendRedirect("https://i11c106.p.ssafy.io/callback");
-
-//        response.sendRedirect("https://localhost:5173/oauth/callback");
-//        response.sendRedirect("https://i11c106.p.ssafy.io/oauth/callback");
-//        response.sendRedirect("http://localhost:3000/login-success");
-
+        response.sendRedirect(callbackUrl);
     }
 
     private Cookie createCookie(String key, String value) {
@@ -68,7 +66,6 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         cookie.setSecure(true); // HTTPS (SSL) 에서만 쿠키 사용가능하도록
         cookie.setPath("/");
         cookie.setHttpOnly(true); // 자바스크립트에서 쿠키값을 읽어가지 못하도록 설정
-
 
         log.info("cookie: {}", cookie);
 
