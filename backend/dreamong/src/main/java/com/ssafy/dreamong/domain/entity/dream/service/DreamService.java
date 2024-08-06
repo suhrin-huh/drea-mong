@@ -88,7 +88,7 @@ public class DreamService {
     // 메인 조회
     public List<DreamMainResponse> getDreamsByUserIdAndWriteTime(Integer userId, String writeTime) {
         // 날짜를 파싱하여 연도와 월을 추출합니다.
-        LocalDate date = LocalDate.parse(writeTime, DateTimeFormatter.ofPattern("yyyyMMdd"));
+        LocalDate date = LocalDate.parse(writeTime, DateTimeFormatter.ofPattern("yyyyMM"));
         String yearMonth = date.format(DateTimeFormatter.ofPattern("yyyyMM"));
 
         List<Dream> dreams = dreamRepository.findAllByUserIdAndWriteTimeLikeOrderByWriteTimeDesc(userId, yearMonth);

@@ -40,11 +40,6 @@ public class CategoryService {
         String startDate = yearMonth.atDay(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String endDate = yearMonth.atEndOfMonth().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        // 꿈 종류 데이터 (전체)
-        List<CommonResponseDto> dreamTypeDtos = categoryRepository.findDreamCategoriesByDateRange(startDate, endDate).stream()
-                .map(category -> new CommonResponseDto(category.getWord(), category.getType()))
-                .collect(Collectors.toList());
-
         // 기분 데이터
         List<CommonResponseDto> moodDtos = categoryRepository.findMoodCategoriesByDateRange(startDate, endDate).stream()
                 .map(category -> new CommonResponseDto(category.getWord(), category.getType()))
@@ -81,7 +76,7 @@ public class CategoryService {
                 .map(countDto -> new DreamTypeCountDto(countDto.getDreamType(), countDto.getCount()))
                 .collect(Collectors.toList());
 
-        return new CategoryResponseDto(dreamTypeDtos, moodDtos, characterDtos, locationDtos, objectDtos, dreamTypeCounts);
+        return new CategoryResponseDto(moodDtos, characterDtos, locationDtos, objectDtos, dreamTypeCounts);
     }
 
     private List<String> getHashTagsFromAI(String word) {
