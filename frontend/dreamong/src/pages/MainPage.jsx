@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { StatisticsIcon } from '../assets/icons';
 
 // Import Swiper React components
 // npm install swiper
@@ -242,16 +243,22 @@ const MainPage = () => {
     navigate(`/dream/${dreamId}`);
   };
 
+  const navigateToStatistics = () => {
+    navigate('/statistics');
+  };
   return (
     <div className="relative h-dvh">
+      <div className="absolute right-3 top-3" onClick={() => navigateToStatistics()}>
+        {StatisticsIcon}
+      </div>
       <header className="inline-flex h-1/4 w-full flex-col items-center justify-center gap-2.5 text-center text-white">
         <p className="text-2xl font-bold">안녕하세요, {dreams.username}님</p>
         <p className="text-sm">{dreams.totalCount}번째 꿈을 기록해주세요!!</p>
       </header>
       {/* 아랫부분부터 메인 내용 들어가는 페이지 */}
-      <div className="mx-auto h-3/4 w-full flex-col items-center gap-2 rounded-t-3xl bg-white px-4 py-3 text-center">
+      <div className="flex-col items-center w-full gap-2 px-4 py-3 mx-auto text-center bg-white h-3/4 rounded-t-3xl">
         {/* 날짜 선택 */}
-        <div className="h-1/5 w-full py-4 text-center">
+        <div className="w-full py-4 text-center h-1/5">
           {/* 연도 선택 */}
           <div className="flex items-center justify-center gap-12 p-2.5 text-xl">
             <button onClick={() => handleYear(-1)}>{'<'}</button>
@@ -259,7 +266,7 @@ const MainPage = () => {
             <button onClick={() => handleYear(1)}>{'>'}</button>
           </div>
           {/* 월 선택 */}
-          <div className="align-center my-2 flex items-center justify-center gap-1 text-base">
+          <div className="flex items-center justify-center gap-1 my-2 text-base align-center">
             <Swiper
               ref={swiperRef}
               slidesPerView={6}
@@ -269,7 +276,7 @@ const MainPage = () => {
               modules={[Pagination]}
               slideToClickedSlide={true}
               //Swiper 컴포넌트에서 슬라이드를 클릭하면 해당 슬라이드가 중심에 오도록 설정하려면, Swiper 컴포넌트의 slideToClickedSlide 속성을 사용해야 합니다. 이 속성은 클릭한 슬라이드로 자동으로 이동하게 합니다.
-              className="mySwiper h-full"
+              className="h-full mySwiper"
             >
               {/* 1월부터 12월까지 */}
               {Array.from({ length: 12 }).map((_, i) => (
@@ -294,13 +301,13 @@ const MainPage = () => {
 
         
         {/* 이부분에 일기 들어가기 */}
-        <div className="my-2 h-3/4 flex-col overflow-y-auto">
+        <div className="flex-col my-2 overflow-y-auto h-3/4">
           {dreams.dreams &&
             dreams.dreams.map((dream) => {
               return (
-                <div className="my-2 flex h-20 items-start justify-center gap-x-3">
+                <div className="flex items-start justify-center h-20 my-2 gap-x-3">
                   <div className="mt-2 h-[60px] w-1/6 flex-col items-center justify-start">
-                    <div className="text-center text-3xl font-bold">{dream.writeDate.slice(6, 8)}</div>
+                    <div className="text-3xl font-bold text-center">{dream.writeDate.slice(6, 8)}</div>
                     <div className="text-slate-500">{getWeekDay(dream.writeDate)}</div>
                   </div>
                   <div

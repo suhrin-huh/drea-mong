@@ -1,5 +1,426 @@
+// React 관련 패키지
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// 외부 라이브러리
+import Swal from 'sweetalert2/dist/sweetalert2.js';
+import 'sweetalert2/src/sweetalert2.scss';
+import axios from 'axios';
+
+// 앱 내부의 컴포넌트
+import Button from '../components/Button';
+
+// 앱 내부의 상태 관리와 관련된 파일
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { isListeningState } from '../recoil/atoms';
+
+// 앱 내부의 이미지 및 아이콘
+import { LargeLoadingSpinner, LargeRegeneratorIcon, SmallLoadingSpinner, SmallRegeneratorIcon } from '../assets/icons';
+
+// 더미데이터 생성
+import { mainDummy } from '../assets/dummy';
+import { userState } from '../recoil/atoms';
+
 const DreamRegisterPage = () => {
-  return <div></div>;
+  // box별로 같은 기본 클래스들 정리
+  const classList = 'my-2 p-3 bg-black bg-opacity-50 rounded-lg';
+
+  // 꿈 등록을 위해 필요한 데이터
+  const [content, setContent] = useState('');
+  const [image, setImage] = useState(null);
+  const [interpretation, setInterpretation] = useState(null);
+
+  /** 오류 처리 함수 */
+  const handleError = () => {
+    Swal.fire({
+      title: 'ERROR',
+      text: '오류가 발생했습니다.',
+      icon: 'error',
+      confirmButtonText: '돌아가기',
+    });
+  };
+
+  const navigate = useNavigate();
+  const navigateBack = () => {
+    navigate(-1);
+  };
+
+  /** 상단바, 이전페이지로 돌아가기, 임시저장기능을 담당 */
+  const UpperBar = () => {
+    const saveDraft = () => {
+      Swal.fire({
+        title: '임시저장하시겠습니까?',
+        text: '임시저장된 일기는 통계에 포함되지 않습니다.',
+        // icon:'warning',
+        confirmButtonText: '확인',
+      })
+        .then(async (result) => {
+          if (result.isConfirmed) {
+            const requestData = {
+              content: content,
+              image: image,
+              interpretation: interpretation,
+              userId: 1,
+              writetime: date.replace(/-/g, ''),
+            };
+            // const response = await axios.post('/dream/temporary', requestData);
+            const response = await axios.get(`${baseURLState}/test/`, requestData);
+            // navigate('/');
+            console.log(response.data);
+          }
+        })
+        .catch(() => {
+          console.log(date.replace('-', ''));
+          handleError();
+        });
+    };
+
+    return (
+      <div className="flex h-7 items-center justify-between">
+        <button onClick={() => navigateBack()}>
+          <svg width="9" height="14" viewBox="0 0 9 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7.5 13L1.5 7L7.5 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <button className="text-base" onClick={() => saveDraft()}>
+          임시저장
+        </button>
+      </div>
+    );
+  };
+
+  // 2) 날짜선택 컴포넌트
+  /** Date 타입의 변수를 넣으면 yyyy-mm-dd로 수정해주는 함수*/
+  const replaceDateType = (date) => {
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const [date, setDate] = useState(replaceDateType(new Date()));
+  /** 날짜선택 컴포넌트 */
+  const DateSelector = () => {
+    /** 미래의 날짜 선택시 오류 반환, 선택된 날짜는 Date 형식으로 변경 */
+    const handleDate = (event) => {
+      const current = replaceDateType(new Date());
+      const selected = event.target.value;
+      selected <= current
+        ? setDate(selected)
+        : Swal.fire({
+            title: 'ERROR',
+            text: '일기는 현재 또는 과거의 날짜에 대해서만 작성할 수 있습니다.',
+            icon: 'error',
+            confirmButtonText: '확인',
+          });
+    };
+
+    return (
+      <div className="my-1 flex justify-center rounded-lg">
+        <input
+          value={date}
+          type="date"
+          onChange={(e) => handleDate(e)}
+          className="bg-inherit text-center md:text-base lg:text-lg"
+        />
+      </div>
+    );
+  };
+
+  // 3) 꿈 일기 content 입력
+  const MIN_LENGTH = 25;
+  const MAX_LENGTH = 500;
+
+  // 3) 내용입력시 textarea에 반영
+  const contentRef = useRef(null);
+
+  const handleContent = (e) => {
+    setIsInterpVisible(false);
+    // setContent(e.target.value);
+    console.log(e.target.value.length);
+    if (e.target.value.length <= MAX_LENGTH) {
+      setContent(e.target.value);
+    }
+  };
+
+  // 음성인식 관련 함수들
+  const [isListening, setIsListening] = useRecoilState(isListeningState);
+  const recognition = new window.webkitSpeechRecognition();
+  recognition.lang = 'ko-KR';
+  recognition.interimResults = false; // 중간 결과 포함여부
+
+  useEffect(() => {
+    if (isListening) {
+      // 녹음이 시작하면
+      recognition.start();
+    } else {
+      recognition.stop();
+    }
+  }, [isListening]);
+
+  recognition.onstart = () => {
+    console.log('start!');
+  };
+
+  // 녹음이 끝나면
+  recognition.opspeechend = () => {
+    setIsListening(false);
+    console.log('isListening', isListening);
+    recognition.stop();
+  };
+
+  recognition.onresult = (event) => {
+    setIsListening(false);
+    const transcript = event.results[0][0].transcript;
+    console.table('transcript', transcript);
+    insertTextAtCursor(transcript);
+  };
+  recognition.onerror = () => {
+    handleError();
+  };
+  // console.log('STT start');
+
+  const insertTextAtCursor = (textToInsert) => {
+    // 현재 contentRef가 위치한 태그
+    if (contentRef.current) {
+      const contentArea = contentRef.current;
+      const startPoint = contentArea.selectionStart;
+      const endPoint = contentArea.selectionEnd;
+      const newContent = content.slice(0, startPoint) + textToInsert + content.slice(endPoint);
+      setContent(newContent);
+    } else {
+      setContent((prev) => prev + textToInsert);
+    }
+  };
+
+  // 꿈 해석 화면 표시 여부
+  const [isInterpVisible, setIsInterpVisible] = useState(false);
+
+  async function handleInterp() {
+    try {
+      if (content.length < MIN_LENGTH) {
+        Swal.fire({
+          text: `정확한 해석을 위해 꿈 내용을 ${MIN_LENGTH}자 이상 작성해주세요.`,
+          icon: 'warning',
+          confirmButtonText: '확인',
+        });
+        return 0;
+      }
+      setIsInterpVisible(true);
+      const requestData = {
+        content: content,
+      };
+      const response = await axios.post('/api/generate-Interpretation', requestData);
+      setInterpretation(response.date.interpretation);
+    } catch {
+      handleError();
+      // setInterpretation(
+      //   '뱀은 종종 두려움이나 걱정의 상징으로 여겨집니다. 몸을 감싸는 뱀은 현재 삶에서 느끼는 압박감이나 불안,두려움을 나타낼 수 있습니다. 이는 직장, 인간관계, 건강 등 다양한 영역에서 느끼는 스트레스를 반영할 수있습니다.',
+      // );
+    }
+  }
+
+  const closeInterp = () => {
+    setIsInterpVisible(false);
+  };
+
+  // 4) 로딩스피너
+  /** 로딩스피너, 꿈 해석용으로 작성되었음 */
+  const InterpLoadingSpinner = () => {
+    return (
+      <button className="flex w-full items-center justify-center rounded-lg bg-primary-500 py-3">
+        <SmallLoadingSpinner />
+        꿈을 해석하고 있습니다.
+      </button>
+    );
+  };
+
+  // 5) 이미지 생성 컴포넌트
+  const [options, setOptions] = useState([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedImg, setSelectedImg] = useState(null);
+
+  /** 이미지를 생성해주는 함수, 필요데이터 : content */
+  async function handleImgGenerator() {
+    try {
+      // 이미지 생성하려고 할때마다 다시 초기화하기!
+      setImage(null);
+      setIsGenerating(true);
+      console.log(image, options, isGenerating, selectedImg);
+
+      const requestData = {
+        content: content,
+      };
+      const response = await axios.post('/api/generate-image', requestData);
+      // response : 배열
+      setOptions(response.data);
+    } catch {
+      // handleError();
+      setTimeout(
+        setOptions([
+          '/src/assets/dreamImg/img1.png',
+          '/src/assets/dreamImg/img2.jpg',
+          '/src/assets/dreamImg/img3.jpg',
+          'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_0.png',
+        ]),
+        4000,
+      );
+    }
+  }
+
+  async function imgRegenerator() {
+    try {
+      setOptions([]);
+      setSelectedImg(null);
+      await handleImgGenerator();
+    } catch {
+      handleError();
+      setOptions([
+        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_0.png',
+        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_1.png',
+        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_2.png',
+        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_3.png',
+      ]);
+    }
+  }
+
+  const handleSelected = (img) => {
+    setSelectedImg(img);
+  };
+
+  const handleImage = (i) => {
+    setImage(options[i]);
+    setIsGenerating(false);
+  };
+
+  const saveDream = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      console.log(accessToken);
+      const requestData = {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        // params: {},
+      };
+      console.log(requestData);
+      const response = await axios.get(
+        `${baseURL}/${user.userId}/${year}${String(month).padStart(2, '0')}`,
+        {},
+        requestData,
+      );
+      // setDreams(response.data);
+      console.log(response.data);
+    } catch {
+      handleError();
+    }
+  };
+
+  return (
+    // 이 부분 최소 높이 class 수정 필요!!
+    <div className="flex flex-col px-4 py-3 text-white" style={{ minheight: '100vh' }}>
+      <UpperBar />
+      <DateSelector />
+      {/* 꿈내용 입력 - textarea */}
+      <div className="relative">
+        <textarea
+          ref={contentRef}
+          className={`${classList} h-40 w-full resize-none placeholder:text-slate-300`}
+          value={content}
+          onChange={(e) => {
+            handleContent(e);
+          }}
+          placeholder="꿈 내용을 입력해주세요."
+        ></textarea>
+        <p className="absolute bottom-5 right-2 text-slate-500">
+          {content.length}/{MAX_LENGTH}
+        </p>
+      </div>
+      {/* 꿈 해석공간 */}
+      <div>
+        {isInterpVisible ? (
+          interpretation == null ? (
+            <button className="flex w-full items-center justify-center rounded-lg bg-primary-500 py-3">
+              {SmallLoadingSpinner}
+              <span>꿈을 해석하고 있습니다.</span>
+            </button>
+          ) : (
+            <div
+              className={`${classList} flex-col justify-center ${interpretation ? '' : 'bg-primary-500 opacity-100'}`}
+            >
+              <div>
+                <p className="pb-3 text-center text-lg font-bold">꿈 해석</p>
+                {interpretation && <p>{interpretation}</p>}
+                <button className="mx-auto mt-4 block text-center text-slate-100" onClick={() => closeInterp()}>
+                  닫기
+                </button>
+              </div>
+            </div>
+          )
+        ) : (
+          <Button children="꿈 해석 보기" onClick={() => handleInterp()} variant={'primary'} fullWidth={true}></Button>
+        )}
+      </div>
+
+      {/* 이미지 생성 공간 */}
+      {image != null ? (
+        <div className={`${classList} relative`}>
+          <button onClick={() => imgRegenerator()} className="z-1 absolute right-6 top-6">
+            {SmallRegeneratorIcon}
+          </button>
+          <img src={image}></img>
+        </div>
+      ) : isGenerating == false ? (
+        <button
+          onClick={() => handleImgGenerator()}
+          className="my-2 w-full flex-row items-center justify-center rounded-lg bg-primary-500 p-4"
+        >
+          <img className="inline-block h-20 w-20" src="../src/assets/img_generator.png" alt="이미지 생성하기"></img>
+          <p className="py-2 font-bold">꿈 이미지 생성하기</p>
+        </button>
+      ) : options.length == 0 ? (
+        <button className={`${classList} h-40 flex-col items-center justify-center`}>{LargeLoadingSpinner}</button>
+      ) : (
+        (selectedImg == null || image == null) && (
+          <div className={`${classList}`}>
+            <div className="grid grid-cols-2">
+              {options.map((e, i) => (
+                <div
+                  key={i}
+                  className={`relative block h-full p-1 ${selectedImg == i ? 'rounded-lg border border-slate-100' : null}`}
+                >
+                  <img
+                    onClick={() => handleSelected(i)}
+                    className="block h-full w-full rounded-lg"
+                    src={e}
+                    key={i}
+                  ></img>
+                  {selectedImg == i ? (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black bg-opacity-50 text-white">
+                      <button
+                        className="rounded-xl bg-white px-2 py-1 text-black"
+                        onClick={() => {
+                          handleImage(i);
+                        }}
+                      >
+                        선택
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+            <div className="my-3 flex justify-around">
+              <button onClick={() => imgRegenerator()}>{LargeRegeneratorIcon}</button>
+            </div>
+          </div>
+        )
+      )}
+      <div className="flex justify-center">
+        <button onClick={() => saveDream()} className="my-5 h-10 w-32 rounded-full bg-primary-700 font-bold">
+          저장하기
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default DreamRegisterPage;

@@ -14,6 +14,7 @@ import StreamingList from './pages/StreamingPage/components/StreamingList';
 import StreamingRoom from './pages/StreamingPage/components/StreamingRoom';
 import SquarePage from './pages/SquarePage';
 import SquareDetailPage from './pages/SquareDetailPage';
+import StatisticsSkeletonPage from './pages/SkeletonPage/StatisticsSkeletonPage';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState();
@@ -25,7 +26,7 @@ function App() {
   return (
     <RecoilRoot>
       <Router>
-        <div className="flex min-h-screen justify-center bg-purple-100">
+        <div className="flex justify-center min-h-screen bg-purple-100">
           <div className="relative flex h-screen w-full max-w-[600px] flex-col bg-[url('/src/assets/background.svg')] bg-cover bg-center">
             <main className="flex-1 overflow-auto">
               <div className="min-h-full pb-[60px]">
@@ -43,7 +44,7 @@ function App() {
                     {/* <Route path="create" element={} /> */}
                     <Route path=":roomId" element={<StreamingRoom />} />
                   </Route>
-                  {/* <Route path="/statics" element={} /> */}
+                  <Route path="/statistics" element={<StatisticsSkeletonPage/>} />
                   <Route path="/settings" element={<SettingsPage />} />
                   <Route
                     path="/login"

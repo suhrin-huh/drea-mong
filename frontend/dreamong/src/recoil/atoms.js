@@ -9,3 +9,8 @@ export const userState = atom({
     role: 'ADMIN',
   },
 });
+
+export const isListeningState = atom({
+  key:'isListeningState',
+  default:false
+})
