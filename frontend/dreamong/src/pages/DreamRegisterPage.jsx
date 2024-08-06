@@ -1,15 +1,25 @@
-// 의존성 파일 설치 목록
-
-// 1) npm install sweetalert2
-import Swal, { swal } from 'sweetalert2/dist/sweetalert2.js';
-import 'sweetalert2/src/sweetalert2.scss';
-
-// ----------------------------------------------------
-import { useState, useEffect } from 'react';
+// React 관련 패키지
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+// 외부 라이브러리
+import Swal from 'sweetalert2/dist/sweetalert2.js';
+import 'sweetalert2/src/sweetalert2.scss';
 import axios from 'axios';
+
+// 앱 내부의 컴포넌트
 import Button from '../components/Button';
-import { baseURLState } from '../recoil/test';
+
+// 앱 내부의 상태 관리와 관련된 파일
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { isListeningState } from '../recoil/atoms';
+
+// 앱 내부의 이미지 및 아이콘
+import { LargeLoadingSpinner, LargeRegeneratorIcon, SmallLoadingSpinner, SmallRegeneratorIcon } from '../assets/icons';
+
+// 더미데이터 생성
+import { mainDummy } from '../assets/dummy';
+import { userState } from '../recoil/atoms';
 
 const DreamRegisterPage = () => {
   // box별로 같은 기본 클래스들 정리
@@ -34,6 +44,7 @@ const DreamRegisterPage = () => {
   const navigateBack = () => {
     navigate(-1);
   };
+
   /** 상단바, 이전페이지로 돌아가기, 임시저장기능을 담당 */
   const UpperBar = () => {
     const saveDraft = () => {
@@ -117,16 +128,68 @@ const DreamRegisterPage = () => {
   };
 
   // 3) 꿈 일기 content 입력
-  const MinContent = 25;
-  const MaxContent = 500;
+  const MIN_LENGTH = 25;
+  const MAX_LENGTH = 500;
 
   // 3) 내용입력시 textarea에 반영
+  const contentRef = useRef(null);
+
   const handleContent = (e) => {
     setIsInterpVisible(false);
     // setContent(e.target.value);
     console.log(e.target.value.length);
-    if (e.target.value.length <= MaxContent) {
+    if (e.target.value.length <= MAX_LENGTH) {
       setContent(e.target.value);
+    }
+  };
+
+  // 음성인식 관련 함수들
+  const [isListening, setIsListening] = useRecoilState(isListeningState);
+  const recognition = new window.webkitSpeechRecognition();
+  recognition.lang = 'ko-KR';
+  recognition.interimResults = false; // 중간 결과 포함여부
+
+  useEffect(() => {
+    if (isListening) {
+      // 녹음이 시작하면
+      recognition.start();
+    } else {
+      recognition.stop();
+    }
+  }, [isListening]);
+
+  recognition.onstart = () => {
+    console.log('start!');
+  };
+
+  // 녹음이 끝나면
+  recognition.opspeechend = () => {
+    setIsListening(false);
+    console.log('isListening', isListening);
+    recognition.stop();
+  };
+
+  recognition.onresult = (event) => {
+    setIsListening(false);
+    const transcript = event.results[0][0].transcript;
+    console.table('transcript', transcript);
+    insertTextAtCursor(transcript);
+  };
+  recognition.onerror = () => {
+    handleError();
+  };
+  // console.log('STT start');
+
+  const insertTextAtCursor = (textToInsert) => {
+    // 현재 contentRef가 위치한 태그
+    if (contentRef.current) {
+      const contentArea = contentRef.current;
+      const startPoint = contentArea.selectionStart;
+      const endPoint = contentArea.selectionEnd;
+      const newContent = content.slice(0, startPoint) + textToInsert + content.slice(endPoint);
+      setContent(newContent);
+    } else {
+      setContent((prev) => prev + textToInsert);
     }
   };
 
@@ -135,9 +198,9 @@ const DreamRegisterPage = () => {
 
   async function handleInterp() {
     try {
-      if (content.length < MinContent) {
+      if (content.length < MIN_LENGTH) {
         Swal.fire({
-          text: `정확한 해석을 위해 꿈 내용을 ${MinContent}자 이상 작성해주세요.`,
+          text: `정확한 해석을 위해 꿈 내용을 ${MIN_LENGTH}자 이상 작성해주세요.`,
           icon: 'warning',
           confirmButtonText: '확인',
         });
@@ -166,23 +229,7 @@ const DreamRegisterPage = () => {
   const InterpLoadingSpinner = () => {
     return (
       <button className="flex w-full items-center justify-center rounded-lg bg-primary-500 py-3">
-        <svg
-          className="mx-3 animate-spin"
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M20 10C20 15.5228 15.5228 20 10 20C4.47715 20 0 15.5228 0 10C0 4.47715 4.47715 0 10 0C15.5228 0 20 4.47715 20 10ZM3 10C3 13.866 6.13401 17 10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3C6.13401 3 3 6.13401 3 10Z"
-            fill="#AEAEAE"
-          />
-          <path
-            d="M10 0C11.7376 2.07208e-08 13.4452 0.452769 14.9546 1.31368C16.4639 2.1746 17.7229 3.41395 18.6074 4.90959C19.4919 6.40522 19.9715 8.10553 19.9988 9.84293C20.0261 11.5803 19.6002 13.2949 18.7631 14.8175L16.1341 13.3723C16.7201 12.3064 17.0182 11.1062 16.9991 9.89005C16.98 8.67387 16.6444 7.48366 16.0252 6.43671C15.406 5.38976 14.5248 4.52222 13.4682 3.91958C12.4117 3.31694 11.2163 3 10 3L10 0Z"
-            fill="white"
-          />
-        </svg>
+        <SmallLoadingSpinner />
         꿈을 해석하고 있습니다.
       </button>
     );
@@ -246,9 +293,26 @@ const DreamRegisterPage = () => {
     setIsGenerating(false);
   };
 
-  async function saveDream() {
-    handleError();
-  }
+  const saveDream = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      console.log(accessToken);
+      const requestData = {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        // params: {},
+      };
+      console.log(requestData);
+      const response = await axios.get(
+        `${baseURL}/${user.userId}/${year}${String(month).padStart(2, '0')}`,
+        {},
+        requestData,
+      );
+      // setDreams(response.data);
+      console.log(response.data);
+    } catch {
+      handleError();
+    }
+  };
 
   return (
     // 이 부분 최소 높이 class 수정 필요!!
@@ -258,6 +322,7 @@ const DreamRegisterPage = () => {
       {/* 꿈내용 입력 - textarea */}
       <div className="relative">
         <textarea
+          ref={contentRef}
           className={`${classList} h-40 w-full resize-none placeholder:text-slate-300`}
           value={content}
           onChange={(e) => {
@@ -266,14 +331,17 @@ const DreamRegisterPage = () => {
           placeholder="꿈 내용을 입력해주세요."
         ></textarea>
         <p className="absolute bottom-5 right-2 text-slate-500">
-          {content.length}/{MaxContent}
+          {content.length}/{MAX_LENGTH}
         </p>
       </div>
       {/* 꿈 해석공간 */}
       <div>
         {isInterpVisible ? (
           interpretation == null ? (
-            <InterpLoadingSpinner />
+            <button className="flex w-full items-center justify-center rounded-lg bg-primary-500 py-3">
+              {SmallLoadingSpinner}
+              <span>꿈을 해석하고 있습니다.</span>
+            </button>
           ) : (
             <div
               className={`${classList} flex-col justify-center ${interpretation ? '' : 'bg-primary-500 opacity-100'}`}
@@ -291,24 +359,12 @@ const DreamRegisterPage = () => {
           <Button children="꿈 해석 보기" onClick={() => handleInterp()} variant={'primary'} fullWidth={true}></Button>
         )}
       </div>
-      {/* 이미지 생성 공간 */}
 
+      {/* 이미지 생성 공간 */}
       {image != null ? (
         <div className={`${classList} relative`}>
           <button onClick={() => imgRegenerator()} className="z-1 absolute right-6 top-6">
-            <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g clip-path="url(#clip0_1188_2581)">
-                <path
-                  d="M15 0C18.9737 0.0138341 22.7805 1.59973 25.5888 4.41125L28.75 1.25V8.63625C28.7502 8.81539 28.715 8.9928 28.6465 9.15833C28.5781 9.32386 28.4776 9.47427 28.3509 9.60093C28.2243 9.7276 28.0739 9.82805 27.9083 9.89653C27.7428 9.965 27.5654 10.0002 27.3863 10H20L22.9413 7.05875C21.0997 5.22607 18.6797 4.08853 16.0936 3.8399C13.5074 3.59128 10.915 4.24694 8.75804 5.69522C6.60107 7.14349 5.01291 9.29478 4.26411 11.7826C3.5153 14.2705 3.65218 16.941 4.65142 19.3392C5.65066 21.7374 7.45044 23.7151 9.74419 24.9352C12.0379 26.1554 14.6838 26.5426 17.231 26.0308C19.7781 25.5191 22.0691 24.1401 23.7137 22.1287C25.3582 20.1174 26.2545 17.5981 26.25 15H30C30 17.9667 29.1203 20.8668 27.4721 23.3336C25.8238 25.8003 23.4812 27.7229 20.7403 28.8582C17.9994 29.9935 14.9834 30.2906 12.0737 29.7118C9.16394 29.133 6.49119 27.7044 4.39341 25.6066C2.29562 23.5088 0.867006 20.8361 0.288228 17.9264C-0.290551 15.0166 0.00649929 12.0006 1.14181 9.25975C2.27713 6.51886 4.19972 4.17618 6.66645 2.52796C9.13319 0.879735 12.0333 0 15 0V0Z"
-                  fill="black"
-                />
-              </g>
-              <defs>
-                <clipPath id="clip0_1188_2581">
-                  <rect width="30" height="30" fill="white" />
-                </clipPath>
-              </defs>
-            </svg>
+            {SmallRegeneratorIcon}
           </button>
           <img src={image}></img>
         </div>
@@ -321,25 +377,7 @@ const DreamRegisterPage = () => {
           <p className="py-2 font-bold">꿈 이미지 생성하기</p>
         </button>
       ) : options.length == 0 ? (
-        <button className={`${classList} h-40 flex-col items-center justify-center`}>
-          <svg
-            className="inline-block animate-spin"
-            width="100"
-            height="101"
-            viewBox="0 0 100 101"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M100 50.5C100 78.1142 77.6142 100.5 50 100.5C22.3858 100.5 0 78.1142 0 50.5C0 22.8858 22.3858 0.5 50 0.5C77.6142 0.5 100 22.8858 100 50.5ZM15 50.5C15 69.83 30.67 85.5 50 85.5C69.33 85.5 85 69.83 85 50.5C85 31.17 69.33 15.5 50 15.5C30.67 15.5 15 31.17 15 50.5Z"
-              fill="#AEAEAE"
-            />
-            <path
-              d="M50 0.5C58.6881 0.5 67.2262 2.76384 74.7729 7.06842C82.3197 11.373 88.6145 17.5697 93.0371 25.0479C97.4597 32.5261 99.8574 41.0276 99.9938 49.7146C100.13 58.4016 98.0008 66.9743 93.8153 74.5877L80.6707 67.3614C83.6006 62.032 85.0912 56.0311 84.9957 49.9502C84.9002 43.8693 83.2218 37.9183 80.126 32.6835C77.0302 27.4488 72.6238 23.1111 67.3411 20.0979C62.0583 17.0847 56.0816 15.5 50 15.5L50 0.5Z"
-              fill="white"
-            />
-          </svg>
-        </button>
+        <button className={`${classList} h-40 flex-col items-center justify-center`}>{LargeLoadingSpinner}</button>
       ) : (
         (selectedImg == null || image == null) && (
           <div className={`${classList}`}>
@@ -371,21 +409,7 @@ const DreamRegisterPage = () => {
               ))}
             </div>
             <div className="my-3 flex justify-around">
-              <button onClick={() => imgRegenerator()}>
-                <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <g clip-path="url(#clip0_1188_2581)">
-                    <path
-                      d="M15 0C18.9737 0.0138341 22.7805 1.59973 25.5888 4.41125L28.75 1.25V8.63625C28.7502 8.81539 28.715 8.9928 28.6465 9.15833C28.5781 9.32386 28.4776 9.47427 28.3509 9.60093C28.2243 9.7276 28.0739 9.82805 27.9083 9.89653C27.7428 9.965 27.5654 10.0002 27.3863 10H20L22.9413 7.05875C21.0997 5.22607 18.6797 4.08853 16.0936 3.8399C13.5074 3.59128 10.915 4.24694 8.75804 5.69522C6.60107 7.14349 5.01291 9.29478 4.26411 11.7826C3.5153 14.2705 3.65218 16.941 4.65142 19.3392C5.65066 21.7374 7.45044 23.7151 9.74419 24.9352C12.0379 26.1554 14.6838 26.5426 17.231 26.0308C19.7781 25.5191 22.0691 24.1401 23.7137 22.1287C25.3582 20.1174 26.2545 17.5981 26.25 15H30C30 17.9667 29.1203 20.8668 27.4721 23.3336C25.8238 25.8003 23.4812 27.7229 20.7403 28.8582C17.9994 29.9935 14.9834 30.2906 12.0737 29.7118C9.16394 29.133 6.49119 27.7044 4.39341 25.6066C2.29562 23.5088 0.867006 20.8361 0.288228 17.9264C-0.290551 15.0166 0.00649929 12.0006 1.14181 9.25975C2.27713 6.51886 4.19972 4.17618 6.66645 2.52796C9.13319 0.879735 12.0333 0 15 0V0Z"
-                      fill="white"
-                    />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_1188_2581">
-                      <rect width="30" height="30" fill="white" />
-                    </clipPath>
-                  </defs>
-                </svg>
-              </button>
+              <button onClick={() => imgRegenerator()}>{LargeRegeneratorIcon}</button>
             </div>
           </div>
         )
