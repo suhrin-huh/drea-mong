@@ -99,14 +99,16 @@ public class JWTFilter extends OncePerRequestFilter {
             }
 
             if (!jwtUtil.isExpired(accessToken)) {
+                Integer userId = jwtUtil.getUserId(accessToken);
                 String providerUserId = jwtUtil.getProviderUserId(accessToken);
                 String role = jwtUtil.getRole(accessToken);
+                UserDto userDto = new UserDto();
 
-                UserDto userDTO = new UserDto();
-                userDTO.setProviderUserId(providerUserId);
-                userDTO.setRole(role.equals("MEMBER") ? Role.MEMBER : Role.ADMIN);
+                userDto.setUserId(userId);
+                userDto.setProviderUserId(providerUserId);
+                userDto.setRole(role.equals("MEMBER") ? Role.MEMBER : Role.ADMIN);
 
-                CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
+                CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDto);
                 Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
