@@ -29,14 +29,20 @@ public class SquareService {
     private final CommentLikeRepository commentLikeRepository;
     private final UserRepository userRepository;
 
-    // 꿈 광장 조회
-    public Page<SquareGetResponseDto> getAllSharedDreams(int page, int size, String sort) {
-        String[] sortParams = sort.split(",");
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortParams[1]), sortParams[0]));
+    // 꿈 광장 조회 (커서 기반)
+    public List<SquareGetResponseDto> getAllSharedDreams(Integer cursorId, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+        List<Dream> sharedDreams;
 
-        Page<Dream> sharedDreams = dreamRepository.findByIsSharedTrue(pageable);
+        if (cursorId == null) {
+            sharedDreams = dreamRepository.findByIsSharedTrueOrderByIdDesc(pageable);
+        } else {
+            sharedDreams = dreamRepository.findByIsSharedTrueAndIdLessThanOrderByIdDesc(cursorId, pageable);
+        }
 
-        return sharedDreams.map(dream -> new SquareGetResponseDto(dream.getId(), dream.getUserId(), dream.getImage()));
+        return sharedDreams.stream()
+                .map(dream -> new SquareGetResponseDto(dream.getId(), dream.getUserId(), dream.getImage()))
+                .collect(Collectors.toList());
     }
 
     // 꿈 광장 상세 보기
