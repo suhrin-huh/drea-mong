@@ -11,6 +11,7 @@ public class DreamCreateRequest {
     private String image;
     private String interpretation;
     private Integer userId;
+    private boolean isShared;
     private String writeTime;
 }
 
