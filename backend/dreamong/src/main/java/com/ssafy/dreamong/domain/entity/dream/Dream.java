@@ -36,7 +36,7 @@ public class Dream extends BaseTimeEntity {
     @Column(name = "summary", nullable = false)
     private String summary;
 
-    @Column(name = "is_shared", columnDefinition = "BOOLEAN DEFAULT false")
+    @Column(name = "is_shared")
     private boolean isShared;
 
     @Column(name = "likes_count")
