@@ -4,12 +4,16 @@ import Modal from 'react-modal';
 import Button from '../components/Button';
 import axios from 'axios';
 
+import { useRecoilValue } from 'recoil';
+import { baseURLState } from '../recoil/atoms';
+
 import login from '../assets/login.svg';
 import logout from '../assets/logout.svg';
 import user from '../assets/user.svg';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
+  const baseURL = useRecoilValue(baseURLState);
 
   // useRef를 사용하여 토글 상태를 관리
   const darkModeRef = useRef(false);
@@ -61,9 +65,9 @@ const SettingsPage = () => {
   const handleLogout = () => {
     axios({
       method: 'post',
-      url: 'api/users/logout',
+      url: `${baseURL}/users/logout`,
       headers: {
-        Authorization: ``,
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
     })
       .then((response) => {
@@ -80,10 +84,10 @@ const SettingsPage = () => {
   // 닉네임 변경사항 저장
   const handleNicknameSave = () => {
     axios({
-      method: 'post',
-      url: 'api/',
+      method: '',
+      url: `${baseURL}/users/...`,
       headers: {
-        Authorization: ``,
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
     })
       .then((response) => {
@@ -120,8 +124,11 @@ const SettingsPage = () => {
     // 서버에 푸시 알림 설정 변경 요청
     axios({
       method: 'post',
-      url: '/api/settings/push',
+      url: `${baseURL}/settings/push`,
       data: { push: pushRef.current },
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
     })
       .then((response) => {
         console.log('푸시 알림 설정이 서버에 저장되었습니다.');
