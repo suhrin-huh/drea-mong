@@ -12,16 +12,14 @@ import Button from '../components/Button';
 
 // 앱 내부의 상태 관리와 관련된 파일
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { isListeningState } from '../recoil/atoms';
+import { baseURLState, isListeningState, userState } from '../recoil/atoms';
 
 // 앱 내부의 이미지 및 아이콘
 import { LargeLoadingSpinner, LargeRegeneratorIcon, SmallLoadingSpinner, SmallRegeneratorIcon } from '../assets/icons';
 
-// 더미데이터 생성
-import { mainDummy } from '../assets/dummy';
-import { userState } from '../recoil/atoms';
-
 const DreamRegisterPage = () => {
+  const user = useRecoilValue(userState);
+  const baseURL = useRecoilValue(baseURLState);
   // box별로 같은 기본 클래스들 정리
   const classList = 'my-2 p-3 bg-black bg-opacity-50 rounded-lg';
 
@@ -29,6 +27,7 @@ const DreamRegisterPage = () => {
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
   const [interpretation, setInterpretation] = useState(null);
+  const [isShared, setIsShared] = useState(false);
 
   /** 오류 처리 함수 */
   const handleError = () => {
@@ -47,32 +46,51 @@ const DreamRegisterPage = () => {
 
   /** 상단바, 이전페이지로 돌아가기, 임시저장기능을 담당 */
   const UpperBar = () => {
-    const saveDraft = () => {
-      Swal.fire({
+    const saveDraft = async () => {
+      const { value: confirmed } = await Swal.fire({
         title: '임시저장하시겠습니까?',
         text: '임시저장된 일기는 통계에 포함되지 않습니다.',
-        // icon:'warning',
+        icon: 'warning',
         confirmButtonText: '확인',
-      })
-        .then(async (result) => {
-          if (result.isConfirmed) {
+        showCancelButton: true, // 취소 버튼을 추가하여 사용자가 선택할 수 있게 함
+      });
+
+      if (confirmed) {
+        if (content.length !== 0) {
+          try {
+            const accessToken = localStorage.getItem('accessToken');
             const requestData = {
               content: content,
               image: image,
               interpretation: interpretation,
-              userId: 1,
-              writetime: date.replace(/-/g, ''),
+              userId: user.userId,
+              writeTime: date.replace(/-/g, ''),
             };
-            // const response = await axios.post('/dream/temporary', requestData);
-            const response = await axios.get(`${baseURLState}/test/`, requestData);
-            // navigate('/');
+            const response = await axios.post(`${baseURL}/dream/temporary`, requestData, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+            });
             console.log(response.data);
+            navigate('/'); // 주석 해제하면 저장 후 메인 페이지로 이동
+          } catch (error) {
+            console.log({
+              content: content,
+              image: image,
+              interpretation: interpretation,
+              userId: user.userId,
+              writeTime: date.replace(/-/g, ''),
+            });
+            console.error('임시 저장 중 오류 발생:', error);
+            handleError();
           }
-        })
-        .catch(() => {
-          console.log(date.replace('-', ''));
-          handleError();
-        });
+        } else {
+          Swal.fire({
+            title: 'ERROR',
+            text: '꿈을 1자 이상 입력해주세요.',
+            icon: 'error',
+            confirmButtonText: '확인',
+          });
+        }
+      }
     };
 
     return (
@@ -136,8 +154,7 @@ const DreamRegisterPage = () => {
 
   const handleContent = (e) => {
     setIsInterpVisible(false);
-    // setContent(e.target.value);
-    console.log(e.target.value.length);
+    setContent(e.target.value);
     if (e.target.value.length <= MAX_LENGTH) {
       setContent(e.target.value);
     }
@@ -208,15 +225,22 @@ const DreamRegisterPage = () => {
       }
       setIsInterpVisible(true);
       const requestData = {
-        content: content,
+        message: content,
       };
-      const response = await axios.post('/api/generate-Interpretation', requestData);
-      setInterpretation(response.date.interpretation);
-    } catch {
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await axios.post(`${baseURL}/api/generate-interpretation`, requestData, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      // const output = response.data.data;
+      // if (typeof output == 'string') {
+      //   setInterpretation(output);
+      // } else {
+      //   throw new Error('Unexpected response format');
+      // }
+      setInterpretation(response.data.data);
+    } catch (err) {
+      console.log(err);
       handleError();
-      // setInterpretation(
-      //   '뱀은 종종 두려움이나 걱정의 상징으로 여겨집니다. 몸을 감싸는 뱀은 현재 삶에서 느끼는 압박감이나 불안,두려움을 나타낼 수 있습니다. 이는 직장, 인간관계, 건강 등 다양한 영역에서 느끼는 스트레스를 반영할 수있습니다.',
-      // );
     }
   }
 
@@ -243,17 +267,27 @@ const DreamRegisterPage = () => {
   /** 이미지를 생성해주는 함수, 필요데이터 : content */
   async function handleImgGenerator() {
     try {
+      if (content.length < MIN_LENGTH) {
+        Swal.fire({
+          text: `정확한 이미지 생성을 위해 꿈 내용을 ${MIN_LENGTH}자 이상 작성해주세요.`,
+          icon: 'warning',
+          confirmButtonText: '확인',
+        });
+        return 0;
+      }
       // 이미지 생성하려고 할때마다 다시 초기화하기!
       setImage(null);
       setIsGenerating(true);
-      console.log(image, options, isGenerating, selectedImg);
 
       const requestData = {
-        content: content,
+        prompt: content,
       };
-      const response = await axios.post('/api/generate-image', requestData);
-      // response : 배열
-      setOptions(response.data);
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await axios.post(`${baseURL}/api/generate-image`, requestData, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      console.log(response.data.data);
+      setOptions(response.data.data);
     } catch {
       // handleError();
       setTimeout(
@@ -295,28 +329,52 @@ const DreamRegisterPage = () => {
 
   const saveDream = async () => {
     try {
+      if (content.replace(/ /g, '') == '') {
+        Swal.fire({
+          title: 'ERROR',
+          icon: 'error',
+          text: '공백은 저장이 불가능합니다.',
+        });
+        return;
+      }
       const accessToken = localStorage.getItem('accessToken');
-      console.log(accessToken);
-      const requestData = {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        // params: {},
-      };
-      console.log(requestData);
-      const response = await axios.get(
-        `${baseURL}/${user.userId}/${year}${String(month).padStart(2, '0')}`,
-        {},
-        requestData,
+
+      const response = await axios.post(
+        `${baseURL}/dream/create`,
+        {
+          content: content,
+          image: image,
+          interpretation: interpretation.slice(0, 30),
+          userId: user.userId,
+          isShared: isShared,
+          writeTime: date.replace(/-/g, ''),
+        },
+        {
+          headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
+        },
       );
-      // setDreams(response.data);
       console.log(response.data);
-    } catch {
+      navigate('/');
+    } catch (err) {
+      console.log(err);
       handleError();
     }
   };
 
+  const toggle = () => {
+    if (image == null || interpretation == null) {
+      Swal.fire({
+        title: 'ERROR',
+        text: '꿈을 공유하기 위해 해석과 이미지를 생성해주세요.',
+      });
+      return;
+    }
+    setIsShared(!isShared);
+  };
+
   return (
     // 이 부분 최소 높이 class 수정 필요!!
-    <div className="flex flex-col px-4 py-3 text-white" style={{ minheight: '100vh' }}>
+    <div className="flex flex-col px-6 py-3 text-white" style={{ minheight: '100vh' }}>
       <UpperBar />
       <DateSelector />
       {/* 꿈내용 입력 - textarea */}
@@ -414,6 +472,26 @@ const DreamRegisterPage = () => {
           </div>
         )
       )}
+
+      <div className="mx-2 flex justify-between">
+        <div>꿈 공유하기</div>
+        {/* <input type="checkbox" className="peer sr-only" /> */}
+        <div className="flex items-center">
+          <div
+            id="toggleButton"
+            className={`relative inline-flex cursor-pointer items-center rounded-xl ${isShared ? 'bg-blue-500' : 'bg-gray-300'}`}
+            onClick={toggle}
+          >
+            <div className="h-5 w-10 rounded-full"></div>
+            <div
+              className={`absolute h-6 w-6 rounded-full border-2 bg-white transition-transform ${
+                isShared ? 'translate-x-5 border-blue-500' : 'border-gray-300'
+              }`}
+              id="toggleSwitch"
+            ></div>
+          </div>
+        </div>
+      </div>
       <div className="flex justify-center">
         <button onClick={() => saveDream()} className="my-5 h-10 w-32 rounded-full bg-primary-700 font-bold">
           저장하기
