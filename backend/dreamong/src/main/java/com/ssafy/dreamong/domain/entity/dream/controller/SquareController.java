@@ -5,10 +5,11 @@ import com.ssafy.dreamong.domain.entity.dream.dto.SquareDetailResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareGetResponseDto;
 import com.ssafy.dreamong.domain.entity.dream.service.SquareService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/square")
@@ -17,14 +18,13 @@ public class SquareController {
 
     private final SquareService squareService;
 
-    //꿈 광장 조회
+    //꿈 광장 조회 (커서 기반)
     @GetMapping(value = "/dreams", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<?>> getAllSharedDreams(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "createdDate,desc") String sort) {
+            @RequestParam(required = false) Integer cursorId,
+            @RequestParam(defaultValue = "10") int size) {
 
-        Page<SquareGetResponseDto> sharedDreams = squareService.getAllSharedDreams(page, size, sort);
+        List<SquareGetResponseDto> sharedDreams = squareService.getAllSharedDreams(cursorId, size);
 
         return ResponseEntity.ok(ApiResponse.success(sharedDreams));
     }

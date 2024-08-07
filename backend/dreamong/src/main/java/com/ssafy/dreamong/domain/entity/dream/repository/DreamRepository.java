@@ -15,5 +15,9 @@ public interface DreamRepository extends JpaRepository<Dream, Integer> {
 
     long countByUserId(Integer userId);
 
-    Page<Dream> findByIsSharedTrue(Pageable pageable);
+    // 커서를 사용한 페이징 메서드
+    List<Dream> findByIsSharedTrueAndIdLessThanOrderByIdDesc(Integer cursorId, Pageable pageable);
+
+    // 처음 요청 시 사용할 메서드
+    List<Dream> findByIsSharedTrueOrderByIdDesc(Pageable pageable);
 }
