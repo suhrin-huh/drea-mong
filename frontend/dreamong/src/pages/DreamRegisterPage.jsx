@@ -230,15 +230,17 @@ const DreamRegisterPage = () => {
       const accessToken = localStorage.getItem('accessToken');
       const response = await axios.post(`${baseURL}/api/generate-interpretation`, requestData, {
         headers: { Authorization: `Bearer ${accessToken}` },
-        // params: {},
       });
-      // setInterpretation(response.date.interpretation);
-      setInterpretation(response.data);
-    } catch {
+      // const output = response.data.data;
+      // if (typeof output == 'string') {
+      //   setInterpretation(output);
+      // } else {
+      //   throw new Error('Unexpected response format');
+      // }
+      setInterpretation(response.data.data);
+    } catch (err) {
+      console.log(err);
       handleError();
-      // setInterpretation(
-      //   '뱀은 종종 두려움이나 걱정의 상징으로 여겨집니다. 몸을 감싸는 뱀은 현재 삶에서 느끼는 압박감이나 불안,두려움을 나타낼 수 있습니다. 이는 직장, 인간관계, 건강 등 다양한 영역에서 느끼는 스트레스를 반영할 수있습니다.',
-      // );
     }
   }
 
@@ -342,8 +344,9 @@ const DreamRegisterPage = () => {
         {
           content: content,
           image: image,
-          interpretation: interpretation,
+          interpretation: interpretation.slice(0, 30),
           userId: user.userId,
+          isShared: isShared,
           writeTime: date.replace(/-/g, ''),
         },
         {
@@ -351,9 +354,9 @@ const DreamRegisterPage = () => {
         },
       );
       console.log(response.data);
-      console.log(response.data);
       navigate('/');
-    } catch {
+    } catch (err) {
+      console.log(err);
       handleError();
     }
   };
@@ -371,7 +374,7 @@ const DreamRegisterPage = () => {
 
   return (
     // 이 부분 최소 높이 class 수정 필요!!
-    <div className="flex flex-col px-4 py-3 text-white" style={{ minheight: '100vh' }}>
+    <div className="flex flex-col px-6 py-3 text-white" style={{ minheight: '100vh' }}>
       <UpperBar />
       <DateSelector />
       {/* 꿈내용 입력 - textarea */}
@@ -403,7 +406,7 @@ const DreamRegisterPage = () => {
             >
               <div>
                 <p className="pb-3 text-center text-lg font-bold">꿈 해석</p>
-                {interpretation && <p>{interpretation.interpretation}</p>}
+                {interpretation && <p>{interpretation}</p>}
                 <button className="mx-auto mt-4 block text-center text-slate-100" onClick={() => closeInterp()}>
                   닫기
                 </button>
