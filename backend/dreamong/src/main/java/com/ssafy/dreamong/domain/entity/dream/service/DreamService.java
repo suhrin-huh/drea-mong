@@ -93,7 +93,7 @@ public class DreamService {
         List<Dream> dreams = dreamRepository.findAllByUserIdAndWriteTimeLikeOrderByWriteTimeDesc(userId, yearMonth);
 
         List<DreamMainResponse> dreamMainResponseList = dreams.stream()
-                .map(dream -> new DreamMainResponse(dream.getContent(), dream.getImage(), dream.getWriteTime()))
+                .map(dream -> new DreamMainResponse(dream.getId(), dream.getContent(), dream.getImage(), dream.getWriteTime()))
                 .collect(Collectors.toList());
 
         long totalCount = dreamRepository.countByUserId(userId);
@@ -174,7 +174,7 @@ public class DreamService {
     private String SingleLineInterpretation(String message) {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
-                "이 꿈을 한 줄로 간단하게 해석해주세요.";
+                "이 꿈의 주요 상징과 의미를 한 줄로 간단하게 해석해주세요.";
         return chatModel.call(prompt);
     }
 
@@ -183,11 +183,11 @@ public class DreamService {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
                 "이 꿈을 다음의 카테고리로 분류하고 각 카테고리별로 주요 단어를 JSON 형식으로 추출해주세요:\n" +
-                "1. 꿈 종류 (dreamType): 이 꿈의 종류는 무엇입니까? (예: 일반 / 루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈) 예시에 있는 종류로만 구분 해주세요 (루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈)여기에 해당하지 않는 꿈은 일반으로 해주세요\n" +
-                "2. 인물 (character): 꿈에 등장한 주요 인물은 누구입니까?\n" +
+                "1. 꿈 종류 (dreamType): 이 꿈의 종류는 무엇입니까? (예: 일반 / 루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈) 예시에 있는 종류로만 구분해주세요. (루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈) 여기에 해당하지 않는 꿈은 일반으로 해주세요.\n" +
+                "2. 인물 (character): 꿈에 등장한 주요 인물은 누구입니까? 인물의 역할과 관계를 포함해주세요. (예: 가족, 친구, 낯선 사람 등)\n" +
                 "3. 기분 (mood): 이 꿈을 꿀 때 느낀 기분은 어떠했습니까? (예: 두려움, 기쁨, 슬픔 등)\n" +
-                "4. 장소 (location): 꿈에서 나타난 주요 장소는 어디입니까?\n" +
-                "5. 사물 또는 동물 (objects): 꿈에 등장한 주요 사물이나 동물은 무엇입니까? \n" +
+                "4. 장소 (location): 꿈에서 나타난 주요 장소는 어디입니까? 가능한 자세하게 설명해주세요. (예: 집, 학교, 공원 등)\n" +
+                "5. 사물 또는 동물 (objects): 꿈에 등장한 주요 사물이나 동물은 무엇입니까? 가능한 구체적으로 설명해주세요. (예: 자동차, 고양이, 책 등)\n" +
                 "응답은 JSON 형식으로 해주세요.";
         return prompt;
     }
