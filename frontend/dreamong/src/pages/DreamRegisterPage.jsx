@@ -336,15 +336,7 @@ const DreamRegisterPage = () => {
         return;
       }
       const accessToken = localStorage.getItem('accessToken');
-      const requestData = {
-        params: {
-          content: content,
-          image: image,
-          interpretation: interpretation,
-          userId: user.userId,
-          writeTime: date.replace(/-/g, ''),
-        },
-      };
+
       const response = await axios.post(
         `${baseURL}/dream/create`,
         {
@@ -355,7 +347,7 @@ const DreamRegisterPage = () => {
           writeTime: date.replace(/-/g, ''),
         },
         {
-          headers: { Authorization: `Bearer ${accessToken}` },
+          headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
         },
       );
       console.log(response.data);
