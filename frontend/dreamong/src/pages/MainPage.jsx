@@ -64,7 +64,6 @@ const MainPage = () => {
     } catch (err) {
       console.log(err);
       handleError();
-      s;
     }
   };
 

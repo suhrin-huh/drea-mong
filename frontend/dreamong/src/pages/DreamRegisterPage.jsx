@@ -229,7 +229,7 @@ const DreamRegisterPage = () => {
       };
       const accessToken = localStorage.getItem('accessToken');
       const response = await axios.post(`${baseURL}/api/generate-interpretation`, requestData, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
       });
       // const output = response.data.data;
       // if (typeof output == 'string') {
@@ -284,21 +284,11 @@ const DreamRegisterPage = () => {
       };
       const accessToken = localStorage.getItem('accessToken');
       const response = await axios.post(`${baseURL}/api/generate-image`, requestData, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
       });
-      console.log(response.data.data);
       setOptions(response.data.data);
     } catch {
-      // handleError();
-      setTimeout(
-        setOptions([
-          '/src/assets/dreamImg/img1.png',
-          '/src/assets/dreamImg/img2.jpg',
-          '/src/assets/dreamImg/img3.jpg',
-          'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_0.png',
-        ]),
-        4000,
-      );
+      handleError();
     }
   }
 
@@ -309,12 +299,7 @@ const DreamRegisterPage = () => {
       await handleImgGenerator();
     } catch {
       handleError();
-      setOptions([
-        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_0.png',
-        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_1.png',
-        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_2.png',
-        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_3.png',
-      ]);
+
     }
   }
 
