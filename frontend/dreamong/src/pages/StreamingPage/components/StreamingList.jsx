@@ -105,6 +105,7 @@ const StreamingList = () => {
 
   const handleDeleteRoom = (event, selectedRoomId) => {
     event.preventDefault();
+    event.stopPropagation();
     axios({
       method: 'delete',
       url: `${baseURL}/rooms/${selectedRoomId}`,
@@ -193,27 +194,34 @@ const StreamingList = () => {
         </Button>
       )}
 
-      {rooms &&
+      {rooms && rooms.length > 0 ? (
         rooms.map((room) => (
-          <button
-            key={room.roomId}
-            onClick={() => handleNavigate(room.roomId)}
-            className="mb-4 flex h-full w-full flex-col rounded-lg bg-black bg-opacity-50 bg-clip-padding p-4 backdrop-blur-sm backdrop-filter"
-          >
-            <img src={room.thumbnail} alt={room.title} className="mb-3 h-48 w-full rounded-md object-cover" />
-            <div className="mb-3 flex w-full justify-between">
-              <p className="max-w-[60%] truncate">{room.title}</p>
-              <p>{room.participantCount}명 시청중</p>
-            </div>
+          <div key={room.roomId} className="flex flex-col">
+            <button
+              onClick={() => handleNavigate(room.roomId)}
+              className="mb-4 flex h-full w-full flex-col rounded-lg bg-black bg-opacity-50 bg-clip-padding p-4 backdrop-blur-sm backdrop-filter"
+            >
+              <img src={room.thumbnail} alt={room.title} className="mb-3 h-48 w-full rounded-md object-cover" />
+              <div className="mb-3 flex w-full justify-between">
+                <p className="max-w-[60%] truncate">{room.title}</p>
+                <p>{room.participantCount}명 시청중</p>
+              </div>
+            </button>
             {isAdmin && (
-              <div className="flex justify-end">
-                <Button variant="danger" onClick={() => handleDeleteRoom(room.roomId)}>
+              <div className="mb-3 flex justify-end">
+                <Button variant="danger" onClick={(event) => handleDeleteRoom(event, room.roomId)}>
                   방 삭제하기
                 </Button>
               </div>
             )}
-          </button>
-        ))}
+          </div>
+        ))
+      ) : (
+        <div className="mb-4 flex h-full w-full flex-col rounded-lg bg-black bg-opacity-50 bg-clip-padding p-4 backdrop-blur-sm backdrop-filter">
+          <p>아직 방이 생성되지 않았습니다.</p>
+          <p>관리자에게 문의해 주세요!</p>
+        </div>
+      )}
     </section>
   );
 };
