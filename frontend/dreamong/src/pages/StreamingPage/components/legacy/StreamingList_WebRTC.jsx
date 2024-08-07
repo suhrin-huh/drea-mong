@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
 import axios from 'axios';
-import Button from '../../../components/Button';
+import Button from '../../../../components/Button';
 
 Modal.setAppElement('#root');
 

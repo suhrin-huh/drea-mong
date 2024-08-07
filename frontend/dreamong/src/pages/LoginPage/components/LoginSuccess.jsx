@@ -25,12 +25,12 @@ const LoginSuccess = () => {
       .then((response) => {
         axios({
           method: 'get',
-          url: `${baseURL}/api/users/info`,
+          url: `${baseURL}/users/info`,
           headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           },
         }).then((res) => {
-          setUserState(res.data);
+          setUserState(res.data.data);
           navigate('/');
         });
       });

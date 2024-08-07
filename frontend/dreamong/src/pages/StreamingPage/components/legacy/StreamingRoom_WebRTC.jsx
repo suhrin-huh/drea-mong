@@ -5,7 +5,7 @@ import YouTube from 'react-youtube';
 import axios from 'axios';
 
 import { useRecoilValue } from 'recoil';
-import { getStreamingRoomById } from '../../../recoil/selectors';
+import { getStreamingRoomById } from '../../../../recoil/selectors';
 
 const StreamingRoom = () => {
   const { roomId } = useParams();
