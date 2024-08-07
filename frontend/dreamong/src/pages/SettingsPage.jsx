@@ -4,8 +4,10 @@ import Modal from 'react-modal';
 import Button from '../components/Button';
 import axios from 'axios';
 
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useRecoilState } from 'recoil';
 import { userState, baseURLState } from '../recoil/atoms';
+
+import { getFCMToken, onMessageListener } from '../utils/firebase';
 
 import login from '../assets/login.svg';
 import logout from '../assets/logout.svg';
@@ -14,7 +16,7 @@ import user from '../assets/user.svg';
 const SettingsPage = () => {
   const navigate = useNavigate();
   const baseURL = useRecoilValue(baseURLState);
-  const userInfo = useRecoilValue(userState);
+  const [userInfo, setUserInfo] = useRecoilState(userState);
 
   // useRef를 사용하여 토글 상태를 관리
   const darkModeRef = useRef(false);
@@ -23,6 +25,7 @@ const SettingsPage = () => {
   // 상태 업데이트를 위한 useState
   const [darkMode, setDarkMode] = useState(darkModeRef.current);
   const [push, setPush] = useState(pushRef.current);
+  const [isTokenFound, setTokenFound] = useState(false);
 
   // 사용자 로그인 상태 확인 코드 작성 예정 (일단은 임시로)
   const [isLogin, setIsLogin] = useState(localStorage.getItem('accessToken') ? true : false);
@@ -60,7 +63,44 @@ const SettingsPage = () => {
       pushRef.current = JSON.parse(savedPush);
       setPush(pushRef.current);
     }
+
+    // FCM 토큰 가져오기 및 서버로 전송
+    getFCMToken(setTokenFound);
+
+    // 푸시 알림 구독 상태 확인
+    checkSubscriptionStatus();
+
+    // 포그라운드 메시지 수신 리스너 설정
+    const unsubscribe = onMessageListener()
+      .then((payload) => {
+        console.log('Received foreground message ', payload);
+        // 여기에 포그라운드 메시지 처리 로직 추가
+      })
+      .catch((err) => console.log('Failed to receive message: ', err));
+
+    // 컴포넌트 언마운트 시 리스너 해제
+    return () => {
+      unsubscribe.then((f) => f()).catch((err) => console.log('Error unsubscribing: ', err));
+    };
   }, []);
+
+  // 푸시 알림 구독 상태 확인 함수
+  const checkSubscriptionStatus = () => {
+    axios({
+      method: 'get',
+      url: `${baseURL}/push-notifications/status`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    })
+      .then((response) => {
+        pushRef.current = response.data.isSubscribed;
+        setPush(pushRef.current);
+      })
+      .catch((error) => {
+        console.error('구독 상태 확인 실패:', error);
+      });
+  };
 
   // 로그아웃 핸들러 (api URL 확인 후 수정 필요)
   const handleLogout = (event) => {
@@ -101,6 +141,8 @@ const SettingsPage = () => {
         setTimeout(() => setModalIsOpen(false), 300);
         alert('닉네임 변경이 왼료되었습니다!');
         // 닉네임 변경에 따른 recoil atom 업데이트 로직
+        setUserInfo((prevUserInfo) => ({ ...prevUserInfo, nickname: newNickname }));
+        setNewNickname('');
       })
       .catch((error) => {
         console.error('닉네임 변경 오류!', error);
@@ -124,15 +166,20 @@ const SettingsPage = () => {
 
   // 푸시 알림 토글 핸들러
   const handlePushToggle = () => {
-    pushRef.current = !pushRef.current;
-    setPush(pushRef.current);
-    localStorage.setItem('push', JSON.stringify(pushRef.current));
+    const newPushState = !pushRef.current;
+    pushRef.current = newPushState;
+    setPush(newPushState);
+    localStorage.setItem('push', JSON.stringify(newPushState));
 
-    // 서버에 푸시 알림 설정 변경 요청
+    const fcmToken = localStorage.getItem('fcmToken');
+
     axios({
       method: 'post',
-      url: `${baseURL}/settings/push`,
-      data: { push: pushRef.current },
+      url: `${baseURL}/push-notifications/toggle`,
+      data: {
+        subscribing: newPushState,
+        token: fcmToken,
+      },
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
@@ -142,6 +189,10 @@ const SettingsPage = () => {
       })
       .catch((error) => {
         console.error('푸시 알림 설정 저장 중 오류 발생:', error);
+        // 실패 시 상태를 원래대로 되돌림
+        pushRef.current = !newPushState;
+        setPush(!newPushState);
+        localStorage.setItem('push', JSON.stringify(!newPushState));
       });
   };
 

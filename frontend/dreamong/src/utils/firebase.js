@@ -1,16 +1,17 @@
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import axios from 'axios';
 
-// Firebase 설정
-// 주의: 실제 값들은 환경 변수나 설정 파일에서 가져와야 합니다.
+const baseURL = 'http://localhost:8080';
+
 const firebaseConfig = {
-  apiKey: 'AIzaSyAPkkOxw23lySY4LsWLbf4nHxHleJ4PewU',
-  authDomain: 'pushtest-55dcd.firebaseapp.com',
-  projectId: 'pushtest-55dcd',
-  storageBucket: 'pushtest-55dcd.appspot.com',
-  messagingSenderId: '388920662007',
-  appId: '1:388920662007:web:1f49d85f88eb59e8b0c0f2',
-  measurementId: 'G-GCKR1QM8EL',
+  apiKey: import.meta.env.VITE_FB_API_KEY,
+  authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FB_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FB_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FB_APP_ID,
+  measurementId: import.meta.env.VITE_MEASUREMENT_ID,
 };
 
 // Firebase 앱 초기화
@@ -19,34 +20,67 @@ const messaging = getMessaging(app);
 
 /**
  * FCM 토큰을 가져오고 서버로 전송하는 함수
- * @returns {Promise<string>} FCM 토큰
+ * @param {Function} setTokenFound - 토큰 상태를 업데이트하는 함수
  */
-export const getFCMToken = () => {
-  return getToken(messaging, { vapidKey: 'YOUR_VAPID_KEY' })
+export const getFCMToken = (setTokenFound) => {
+  return getToken(messaging, {
+    vapidKey: import.meta.env.VITE_FB_VIPID_ID,
+  })
     .then((currentToken) => {
       if (currentToken) {
-        // 토큰을 서버로 전송하는 로직
-        // TODO: API 호출로 변경 필요
-        console.log('FCM 토큰:', currentToken);
-        return currentToken;
+        setTokenFound(true);
+        console.log('Token: ', currentToken);
+
+        const storedToken = localStorage.getItem('fcmToken');
+
+        if (storedToken !== currentToken) {
+          axios({
+            method: 'post',
+            url: `${baseURL}/fcm/token`,
+            data: { token: currentToken },
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+            .then((response) => {
+              if (response.status === 200) {
+                console.log('Token sent to server successfully.');
+                localStorage.setItem('fcmToken', currentToken);
+              } else {
+                console.error('Failed to send token to server.');
+              }
+            })
+            .catch((error) => {
+              console.error('Error sending token to server: ', error);
+            });
+        } else {
+          console.log('Token already sent to server.');
+        }
       } else {
-        console.log('FCM 토큰을 가져올 수 없습니다.');
-        return null;
+        console.log('No registration token available. Request permission to generate one.');
+        setTokenFound(false);
       }
     })
     .catch((err) => {
-      console.error('FCM 토큰 가져오기 오류:', err);
-      return null;
+      console.error('An error occurred while retrieving token: ', err);
+
+      if (err.code === 'messaging/permission-blocked') {
+        console.error('Notification permission was blocked.');
+      } else {
+        console.error('An error occurred while retrieving token: ', err);
+      }
+
+      setTokenFound(false);
     });
 };
 
 /**
- * 푸시 메시지 수신 리스너 설정
- * @param {Function} callback 메시지 수신 시 실행할 콜백 함수
+ * FCM 메시지 수신 리스너 설정
+ * @returns {Promise} 메시지 수신 프라미스
  */
-export const onMessageListener = (callback) => {
-  return onMessage(messaging, (payload) => {
-    console.log('메시지 수신:', payload);
-    callback(payload);
+export const onMessageListener = () =>
+  new Promise((resolve) => {
+    onMessage(messaging, (payload) => {
+      resolve(payload);
+    });
   });
-};

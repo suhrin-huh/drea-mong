@@ -1,17 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-// import mkcert from 'vite-plugin-mkcert';
+import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig({
   plugins: [
     react(),
-    // mkcert(),
+    mkcert(),
     VitePWA({
       // PWA 플러그인 설정
       strategies: 'injectManifest', // 서비스 워커 전략: 사용자 정의 서비스 워커 사용
       srcDir: 'public', // 서비스 워커 파일 위치
-      filename: 'service-worker.js', // 서비스 워커 파일명
+      filename: './firebase-message-sw.js', // 서비스 워커 파일명
       registerType: 'autoUpdate', // 서비스 워커 자동 업데이트 설정
       devOptions: {
         // 개발 환경 옵션
@@ -46,6 +46,11 @@ export default defineConfig({
             size: '180x180',
           },
         ],
+      },
+      server: {
+        headers: {
+          'Service-Worker-Allowed': '/',
+        },
       },
     }),
   ],
