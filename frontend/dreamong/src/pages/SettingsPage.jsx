@@ -5,7 +5,7 @@ import Button from '../components/Button';
 import axios from 'axios';
 
 import { useRecoilValue } from 'recoil';
-import { baseURLState } from '../recoil/atoms';
+import { userState, baseURLState } from '../recoil/atoms';
 
 import login from '../assets/login.svg';
 import logout from '../assets/logout.svg';
@@ -14,6 +14,7 @@ import user from '../assets/user.svg';
 const SettingsPage = () => {
   const navigate = useNavigate();
   const baseURL = useRecoilValue(baseURLState);
+  const userInfo = useRecoilValue(userState);
 
   // useRef를 사용하여 토글 상태를 관리
   const darkModeRef = useRef(false);
@@ -75,7 +76,7 @@ const SettingsPage = () => {
         console.log(response);
         // 로그아웃 처리 후 로직 추가 예정
         localStorage.removeItem('accessToken');
-        navigate('/');
+        navigate('/login');
       })
       .catch((error) => {
         console.error(error);
@@ -91,11 +92,15 @@ const SettingsPage = () => {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
+      data: {
+        nickname: newNickname,
+      },
     })
       .then((response) => {
         setModalContentVisible(false);
         setTimeout(() => setModalIsOpen(false), 300);
         alert('닉네임 변경이 왼료되었습니다!');
+        // 닉네임 변경에 따른 recoil atom 업데이트 로직
       })
       .catch((error) => {
         console.error('닉네임 변경 오류!', error);
@@ -163,7 +168,7 @@ const SettingsPage = () => {
           <input
             type="text"
             name="nickname"
-            defaultValue={'임시 닉네임'}
+            defaultValue={userInfo.nickname}
             onChange={handleInputChange}
             className="focus:border-primary-300 mb-3 mt-1 block w-full rounded-md border-[1px] border-gray-200 p-2 text-center text-lg text-black shadow-sm"
           />

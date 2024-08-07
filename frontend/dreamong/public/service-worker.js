@@ -20,11 +20,13 @@ self.addEventListener('install', (event) => {
       // Firebase 초기화
       // - 주의: 실제 프로젝트 설정 값으로 교체 필요
       firebase.initializeApp({
-        apiKey: 'YOUR_API_KEY',
-        authDomain: 'YOUR_AUTH_DOMAIN',
-        projectId: 'YOUR_PROJECT_ID',
-        messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-        appId: 'YOUR_APP_ID',
+        apiKey: 'AIzaSyAPkkOxw23lySY4LsWLbf4nHxHleJ4PewU',
+        authDomain: 'pushtest-55dcd.firebaseapp.com',
+        projectId: 'pushtest-55dcd',
+        storageBucket: 'pushtest-55dcd.appspot.com',
+        messagingSenderId: '388920662007',
+        appId: '1:388920662007:web:1f49d85f88eb59e8b0c0f2',
+        measurementId: 'G-GCKR1QM8EL',
       });
 
       // Firebase 메시징 인스턴스 생성
