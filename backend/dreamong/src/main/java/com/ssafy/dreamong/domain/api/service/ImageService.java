@@ -15,8 +15,10 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayOutputStream;
@@ -90,8 +92,6 @@ public class ImageService {
                 }
 
                 String responseBody = response.body().string();
-                // 응답을 로깅합니다.
-                System.out.println("CLOVA GreenEye API 응답: " + responseBody);
 
                 JSONObject responseJson = new JSONObject(responseBody);
                 JSONArray responseImages = responseJson.getJSONArray("images");
@@ -133,10 +133,23 @@ public class ImageService {
         }
     }
 
-    public String generateInterpretation(String message) {
-        String prompt = createInterpretationPrompt(message);
-        return chatModel.call(prompt);
+    public String generateInterpretation(String prompt) {
+        String message = createDreamInterpretationAndImagePrompt(prompt);
+        try {
+            String result = chatModel.call(message);
+            return result.replaceAll("\\n\\n", " ").replaceAll("\\n", " ");
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.UNAUTHORIZED || e.getStatusCode() == HttpStatus.FORBIDDEN) {
+                return "API 키가 만료되었거나 권한이 없습니다.";
+            }
+            throw e;
+        } catch (ResourceAccessException e) {
+            return "네트워크 문제로 요청을 처리할 수 없습니다.";
+        } catch (Exception e) {
+            return "예기치 않은 오류가 발생했습니다.";
+        }
     }
+
 
     public String translateText(String text) {
         TranslationRequest request = new TranslationRequest(Collections.singletonList(text), "EN");
@@ -158,8 +171,6 @@ public class ImageService {
 
             return "Translation failed: No response from DeepL";
         } catch (HttpClientErrorException e) {
-            System.err.println("HTTP Status Code: " + e.getStatusCode());
-            System.err.println("Response Body: " + e.getResponseBodyAsString());
             e.printStackTrace();
             return "Translation failed: " + e.getMessage();
         } catch (Exception e) {
@@ -168,12 +179,8 @@ public class ImageService {
         }
     }
 
-    private String createInterpretationPrompt(String message) {
+    public String createDreamInterpretationAndImagePrompt(String message) {
         return "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
-                "이 꿈을 명확하고 자세하게 해석해주세요. 꿈의 주요 상징과 의미, " +
-                "꿈에서 나타난 주요 요소들의 분석, 꿈을 꾼 사람의 현재 상황이나 감정 상태와의 연관성, " +
-                "꿈에서 나타난 이미지, 사람들, 장소들의 구체적인 의미, " +
-                "그리고 꿈의 전체적인 해석과 조언을 포함하여 해석해주시기 바랍니다. " +
-                "상세하고 체계적인 해석을 부탁드립니다.";
+                "이 꿈의 전반적인 해몽 결과를 알려주세요.";
     }
 }
