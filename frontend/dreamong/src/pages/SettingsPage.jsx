@@ -62,7 +62,8 @@ const SettingsPage = () => {
   }, []);
 
   // 로그아웃 핸들러 (api URL 확인 후 수정 필요)
-  const handleLogout = () => {
+  const handleLogout = (event) => {
+    event.preventDefault();
     axios({
       method: 'post',
       url: `${baseURL}/users/logout`,
@@ -82,10 +83,11 @@ const SettingsPage = () => {
   };
 
   // 닉네임 변경사항 저장
-  const handleNicknameSave = () => {
+  const handleNicknameSave = (event) => {
+    event.preventDefault();
     axios({
-      method: '',
-      url: `${baseURL}/users/...`,
+      method: 'patch',
+      url: `${baseURL}/users/nickname`,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
