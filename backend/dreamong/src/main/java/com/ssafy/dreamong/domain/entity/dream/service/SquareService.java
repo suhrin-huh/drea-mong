@@ -8,7 +8,6 @@ import com.ssafy.dreamong.domain.entity.dream.dto.SquareGetResponseDto;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import com.ssafy.dreamong.domain.exception.InvalidDreamException;
-import com.ssafy.dreamong.domain.exception.InvalidUserException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -57,11 +56,6 @@ public class SquareService {
                         comment.getUser().getNickname())) // 닉네임 포함
                 .collect(Collectors.toList());
 
-        boolean likeByUser = dream.getComments().stream().anyMatch(comment ->
-                commentLikeRepository.existsByCommentAndUser(comment, userRepository.findById(userId)
-                        .orElseThrow(() -> new InvalidUserException("Invalid user Id")))
-        );
-
-        return new SquareDetailResponse(dream.getSummary(), dream.getContent(), dream.getImage(), comments, likeByUser);
+        return new SquareDetailResponse(dream.getSummary(), dream.getContent(), dream.getImage(), comments);
     }
 }
