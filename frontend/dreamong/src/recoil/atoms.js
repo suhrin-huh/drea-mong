@@ -17,10 +17,10 @@ export const isListeningState = atom({
 
 export const baseURLState = atom({
   key: 'baseURLState',
-  default: 'https://localhost:8080',
+  default: 'http://localhost:8080',
 });
 
 export const socketURLState = atom({
   key: 'socketURLState',
-  default: 'https://localhost:9093',
+  default: 'http://localhost:9093',
 });
