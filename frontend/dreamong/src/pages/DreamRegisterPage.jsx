@@ -315,7 +315,7 @@ const DreamRegisterPage = () => {
       });
       return;
     }
-    setSelectedImg(img);
+    setSelectedImg(i);
   };
 
   const handleImage = (i) => {
