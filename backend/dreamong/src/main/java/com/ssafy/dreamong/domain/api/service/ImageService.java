@@ -134,7 +134,7 @@ public class ImageService {
     }
 
     public String generateInterpretation(String prompt) {
-        String message = createDreamInterpretationAndImagePrompt(prompt);
+        String message = createDreamInterpretationPrompt(prompt);
         try {
             String result = chatModel.call(message);
             return result.replaceAll("\\n\\n", " ").replaceAll("\\n", " ");
@@ -179,8 +179,10 @@ public class ImageService {
         }
     }
 
-    public String createDreamInterpretationAndImagePrompt(String message) {
-        return "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
-                "이 꿈의 전반적인 해몽 결과를 알려주세요.";
+    private String createDreamInterpretationPrompt(String message) {
+        return "사용자가 제공한 꿈의 내용은 이것 입니다.\"" + message +
+                "\" 이 꿈 내용을 바탕으로 해몽 결과를 작성해 주세요." +
+                "해몽 결과만 한 문단으로 작성해 주세요. " +
+                "선정적이거나 폭력적, 혐오적인 단어는 피해주세요.";
     }
 }
