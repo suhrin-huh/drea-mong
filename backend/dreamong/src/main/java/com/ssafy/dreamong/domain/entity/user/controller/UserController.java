@@ -7,6 +7,8 @@ import com.ssafy.dreamong.domain.entity.user.dto.UserInfoResponse;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import com.ssafy.dreamong.domain.entity.user.service.UserService;
 import com.ssafy.dreamong.domain.oauth.dto.CustomOAuth2User;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,10 +23,12 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("users/")
 @Slf4j
+@Tag(name = "User", description = "사용자 API")
 public class UserController {
     private final UserService userService;
     private final UserRepository userRepository;
 
+    @Operation(summary = "사용자 정보 조회", description = "현재 로그인된 사용자의 정보를 조회합니다.")
     @GetMapping("/info")
     public ResponseEntity<ApiResponse<UserInfoResponse>> getUserInfo(@AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         log.info("사용자 pk: {}: ", oAuth2User.getUserId());
@@ -34,13 +38,7 @@ public class UserController {
         return new ResponseEntity<>(ApiResponse.success(userInfoResponse), HttpStatus.OK);
     }
 
-
-    /**
-     * @param oAuth2User
-     * @param response
-     * @param request
-     * @return
-     */
+    @Operation(summary = "로그아웃", description = "현재 로그인된 사용자를 로그아웃합니다.")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@AuthenticationPrincipal CustomOAuth2User oAuth2User, HttpServletResponse response
             , HttpServletRequest request) {
@@ -64,6 +62,7 @@ public class UserController {
         return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
     }
 
+    @Operation(summary = "닉네임 변경", description = "사용자의 닉네임을 변경합니다.")
     @PatchMapping("/nickname")
     public ResponseEntity<ApiResponse<Void>> updateNickname(@AuthenticationPrincipal CustomOAuth2User oAuth2User,
                                                             @RequestBody UpdateNicknameRequest updateNicknameRequest) {
@@ -75,5 +74,4 @@ public class UserController {
         userRepository.save(user);
         return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
     }
-
 }
