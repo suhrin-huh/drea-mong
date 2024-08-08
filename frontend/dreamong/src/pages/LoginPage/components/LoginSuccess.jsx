@@ -15,24 +15,34 @@ const LoginSuccess = () => {
     axios
       .post(`${baseURL}/auth/refresh`, {}, { withCredentials: true })
       .then((response) => {
-        const accessToken = response.headers['authorization'].split(' ')[1];
+        const accessToken = response.headers['authorization']?.split(' ')[1];
+        if (!accessToken) {
+          throw new Error('No access token in response');
+        }
         localStorage.setItem('accessToken', accessToken);
+        return accessToken;
       })
-      .catch((error) => {
-        console.log(error);
-        alert('Failed to refresh access token');
-      })
-      .then((response) => {
-        axios({
+      .then((accessToken) => {
+        return axios({
           method: 'get',
           url: `${baseURL}/users/info`,
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            Authorization: `Bearer ${accessToken}`,
           },
-        }).then((res) => {
-          setUserState(res.data.data);
-          navigate('/');
         });
+      })
+      .then((res) => {
+        setUserState(res.data.data);
+        navigate('/');
+      })
+      .catch((error) => {
+        console.error('Error in authentication flow:', error);
+        if (error.response) {
+          console.error('Response data:', error.response.data);
+          console.error('Response status:', error.response.status);
+        }
+        alert('Authentication failed. Please try logging in again.');
+        // 로그인 페이지로 리다이렉트 또는 다른 에러 처리 로직
       });
   }, []);
 
