@@ -27,12 +27,11 @@ public class NovitaAiService {
 
     public List<String> generateImages(String prompt) throws IOException {
         String url = "https://api.novita.ai/v3/lcm-txt2img";
-        String upDatePrompt = createDreamImagePrompt(prompt);
 
         // 요청 JSON 데이터 생성
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("model_name", "dreamshaper_8_93211.safetensors");
-        jsonObject.put("prompt", upDatePrompt);
+        jsonObject.put("prompt", prompt);
         jsonObject.put("negative_prompt", "");
         jsonObject.put("height", 1024);
         jsonObject.put("width", 1024);
@@ -84,13 +83,5 @@ public class NovitaAiService {
 
             return imageUrls;
         }
-    }
-
-    private String createDreamImagePrompt(String message) {
-        return "사용자가 제공한 꿈의 내용은 이것 입니다.\"" + message +
-                "\" 선정적이거나 폭력적, 혐오적인 단어는 피해주세요. " +
-                "최대한 배경이랑 사물들이 주가 될 수 있도록 만들어 주세요. " +
-                "인물이 주가 되지 않도록 이미지를 생성해 주세요. " +
-                "사물들(동물)끼리 합성이 안되도록 해주세요.";
     }
 }
