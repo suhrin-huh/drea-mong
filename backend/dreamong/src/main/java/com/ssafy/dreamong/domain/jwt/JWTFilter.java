@@ -1,9 +1,10 @@
 package com.ssafy.dreamong.domain.jwt;
 
+import com.ssafy.dreamong.domain.entity.user.Role;
 import com.ssafy.dreamong.domain.entity.user.User;
-import com.ssafy.dreamong.domain.oauth.dto.CustomOAuth2User;
 import com.ssafy.dreamong.domain.entity.user.dto.UserDto;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
+import com.ssafy.dreamong.domain.oauth.dto.CustomOAuth2User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -78,7 +79,7 @@ public class JWTFilter extends OncePerRequestFilter {
                         String providerUserId = jwtUtil.getProviderUserId(refreshToken);
                         User findUser = userRepository.findByProviderUserId(providerUserId);
                         if (findUser != null && refreshToken.equals(findUser.getRefreshToken())) {
-                            String newAccessToken = jwtUtil.createAccessToken(providerUserId, findUser.getRole(), 60 * 60 * 1000L);
+                            String newAccessToken = jwtUtil.createAccessToken(findUser.getId(), providerUserId, findUser.getRole(), 60 * 60 * 1000L);
                             response.setHeader("Authorization", "Bearer " + newAccessToken);
                             log.info("New access token created: {}", newAccessToken);
                             accessToken = newAccessToken;
@@ -98,14 +99,16 @@ public class JWTFilter extends OncePerRequestFilter {
             }
 
             if (!jwtUtil.isExpired(accessToken)) {
+                Integer userId = jwtUtil.getUserId(accessToken);
                 String providerUserId = jwtUtil.getProviderUserId(accessToken);
                 String role = jwtUtil.getRole(accessToken);
+                UserDto userDto = new UserDto();
 
-                UserDto userDTO = new UserDto();
-                userDTO.setProviderUserId(providerUserId);
-                userDTO.setRole(role);
+                userDto.setUserId(userId);
+                userDto.setProviderUserId(providerUserId);
+                userDto.setRole(role.equals("MEMBER") ? Role.MEMBER : Role.ADMIN);
 
-                CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDTO);
+                CustomOAuth2User customOAuth2User = new CustomOAuth2User(userDto);
                 Authentication authToken = new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }

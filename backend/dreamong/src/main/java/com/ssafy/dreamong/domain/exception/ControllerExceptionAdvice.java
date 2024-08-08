@@ -9,43 +9,48 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class ControllerExceptionAdvice {
 
-    @ExceptionHandler
+    @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<?>> handleException(Exception e) {
-        return new ResponseEntity<>(ApiResponse.error("Server Error: " + e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR); // 500
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiResponse<?>> handleBadRequestException(BadRequestException e) {
-        return new ResponseEntity<>(ApiResponse.error("Bad Request: " + e.getMessage()), HttpStatus.BAD_REQUEST); // 400
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UnauthenticatedException.class)
     public ResponseEntity<ApiResponse<?>> handleUnauthenticatedException(UnauthenticatedException e) {
-        return new ResponseEntity<>(ApiResponse.error("Unauthenticated: " + e.getMessage()), HttpStatus.UNAUTHORIZED); // 401
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ApiResponse<?>> handleForbiddenException(ForbiddenException e) {
-        return new ResponseEntity<>(ApiResponse.error("Forbidden: " + e.getMessage()), HttpStatus.FORBIDDEN); // 403
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiResponse<?>> handleNotFoundException(NotFoundException e) {
-        return new ResponseEntity<>(ApiResponse.error("Not Found: " + e.getMessage()), HttpStatus.NOT_FOUND); // 404
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(InvalidCommentException.class)
     public ResponseEntity<ApiResponse<?>> handleInvalidCommentException(InvalidCommentException e) {
-        return new ResponseEntity<>(ApiResponse.error("Invalid Comment: " + e.getMessage()), HttpStatus.BAD_REQUEST); // 400
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidUserException.class)
     public ResponseEntity<ApiResponse<?>> handleInvalidUserException(InvalidUserException e) {
-        return new ResponseEntity<>(ApiResponse.error("Invalid User: " + e.getMessage()), HttpStatus.BAD_REQUEST); // 400
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidDreamException.class)
     public ResponseEntity<ApiResponse<?>> handleInvalidDreamException(InvalidDreamException e) {
-        return new ResponseEntity<>(ApiResponse.error("Invalid Dream: " + e.getMessage()), HttpStatus.BAD_REQUEST); // 400
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(RoomNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleRoomNotFoundException(RoomNotFoundException e) {
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.NOT_FOUND); // 404
     }
 }

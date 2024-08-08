@@ -8,8 +8,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 @Entity
 @Getter
 @Table(name = "dream_category")
@@ -29,15 +27,15 @@ public class DreamCategory {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @Builder
     public DreamCategory(Dream dream, Category category) {
         this.dream = dream;
         this.category = category;
         dream.getDreamCategories().add(this); // Dream에 추가
         category.getDreamCategories().add(this); // Category에 추가
     }
+
+    public String getDreamType() {
+        return this.category.getType().toString();
+    }
 }
-
-
-
-
-

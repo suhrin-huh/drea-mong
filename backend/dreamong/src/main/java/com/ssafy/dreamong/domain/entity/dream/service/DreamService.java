@@ -48,7 +48,7 @@ public class DreamService {
                 .image(dreamRequest.getImage())
                 .interpretation(dreamRequest.getInterpretation())
                 .summary(newSummary)
-                .isShared(false)
+                .isShared(dreamRequest.isShared())
                 .likesCount(0)
                 .userId(dreamRequest.getUserId())
                 .writeTime(dreamRequest.getWriteTime())
@@ -86,27 +86,19 @@ public class DreamService {
     }
 
     // 메인 조회
-    public List<DreamMainResponse> getDreamsByUserIdAndWriteTime(Integer userId, String writeTime) {
-        // 날짜를 파싱하여 연도와 월을 추출합니다.
+    public DreamMainResponseWithCount getDreamsByUserIdAndWriteTime(Integer userId, String writeTime) {
         LocalDate date = LocalDate.parse(writeTime, DateTimeFormatter.ofPattern("yyyyMMdd"));
         String yearMonth = date.format(DateTimeFormatter.ofPattern("yyyyMM"));
 
         List<Dream> dreams = dreamRepository.findAllByUserIdAndWriteTimeLikeOrderByWriteTimeDesc(userId, yearMonth);
 
-        if (dreams.isEmpty()) {
-            return new ArrayList<>();
-        }
+        List<DreamMainResponse> dreamMainResponseList = dreams.stream()
+                .map(dream -> new DreamMainResponse(dream.getId(), dream.getContent(), dream.getImage(), dream.getWriteTime()))
+                .collect(Collectors.toList());
 
-        List<DreamMainResponse> dreamMainResponseList = new ArrayList<>();
-        for (Dream dream : dreams) {
-            DreamMainResponse response = new DreamMainResponse(
-                    dream.getContent(),
-                    dream.getImage(),
-                    dream.getWriteTime()
-            );
-            dreamMainResponseList.add(response);
-        }
-        return dreamMainResponseList;
+        long totalCount = dreamRepository.countByUserId(userId);
+
+        return new DreamMainResponseWithCount(dreamMainResponseList, totalCount);
     }
 
     // 꿈 수정
@@ -167,7 +159,7 @@ public class DreamService {
                 .image(dreamCreateRequest.getImage())
                 .interpretation(dreamCreateRequest.getInterpretation())
                 .summary("")
-                .isShared(false)
+                .isShared(dreamCreateRequest.isShared())
                 .likesCount(0)
                 .userId(dreamCreateRequest.getUserId())
                 .writeTime(dreamCreateRequest.getWriteTime())
@@ -182,7 +174,7 @@ public class DreamService {
     private String SingleLineInterpretation(String message) {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
-                "이 꿈을 한 줄로 간단하게 해석해주세요.";
+                "이 꿈의 주요 상징과 의미를 한 줄로 간단하게 해석해주세요.";
         return chatModel.call(prompt);
     }
 
@@ -190,12 +182,12 @@ public class DreamService {
     private String DetailedPrompt(String message) {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
-                "이 꿈을 다음의 카테고리로 분류하고 각 카테고리별로 주요 단어를 JSON 형식으로 추출해주세요:\n" +
-                "1. 꿈 종류 (dreamType): 이 꿈의 종류는 무엇입니까? (예: 악몽, 행복한 꿈, 예지몽 등)\n" +
-                "2. 인물 (character): 꿈에 등장한 주요 인물은 누구입니까?\n" +
+                "이 꿈을 다음의 카테고리로 분류하고 각 카테고리별로 주요 단어를 한 단어로 (예: 하늘 높이 솟아 오른 나무들 => 나무) JSON 형식으로 추출해주세요:\n" +
+                "1. 꿈 종류 (dreamType): 이 꿈의 종류는 무엇입니까? (예: 일반 / 루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈) 예시에 있는 종류로만 구분해주세요. (루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈) 여기에 해당하지 않는 꿈은 일반으로 해주세요.\n" +
+                "2. 인물 (character): 꿈에 등장한 주요 인물은 누구입니까? 인물의 역할과 관계를 포함해주세요. (예: 가족, 친구, 낯선 사람 등) 나, 자신, 사용자 등 자신을 포함하는 단어는 빼주세요.\n" +
                 "3. 기분 (mood): 이 꿈을 꿀 때 느낀 기분은 어떠했습니까? (예: 두려움, 기쁨, 슬픔 등)\n" +
-                "4. 장소 (location): 꿈에서 나타난 주요 장소는 어디입니까?\n" +
-                "5. 사물 또는 동물 (objects): 꿈에 등장한 주요 사물이나 동물은 무엇입니까? \n" +
+                "4. 장소 (location): 꿈에서 나타난 주요 장소는 어디입니까? 가능한 자세하게 설명해주세요. (예: 집, 학교, 공원 등)\n" +
+                "5. 사물 또는 동물 (objects): 꿈에 등장한 주요 사물이나 동물은 무엇입니까? 가능한 구체적으로 설명해주세요. (예: 자동차, 고양이, 책 등)\n" +
                 "응답은 JSON 형식으로 해주세요.";
         return prompt;
     }

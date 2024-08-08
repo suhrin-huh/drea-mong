@@ -1,19 +1,16 @@
 package com.ssafy.dreamong.domain.entity.dream.service;
 
+import com.ssafy.dreamong.domain.entity.comment.dto.CommentResponse;
 import com.ssafy.dreamong.domain.entity.commentlike.repository.CommentLikeRepository;
 import com.ssafy.dreamong.domain.entity.dream.Dream;
-import com.ssafy.dreamong.domain.entity.comment.dto.CommentResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareDetailResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareGetResponseDto;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import com.ssafy.dreamong.domain.exception.InvalidDreamException;
-import com.ssafy.dreamong.domain.exception.InvalidUserException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,14 +26,20 @@ public class SquareService {
     private final CommentLikeRepository commentLikeRepository;
     private final UserRepository userRepository;
 
-    // 꿈 광장 조회
-    public Page<SquareGetResponseDto> getAllSharedDreams(int page, int size, String sort) {
-        String[] sortParams = sort.split(",");
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortParams[1]), sortParams[0]));
+    // 꿈 광장 조회 (커서 기반)
+    public List<SquareGetResponseDto> getAllSharedDreams(Integer cursorId, int size) {
+        Pageable pageable = PageRequest.of(0, size);
+        List<Dream> sharedDreams;
 
-        Page<Dream> sharedDreams = dreamRepository.findByIsSharedTrue(pageable);
+        if (cursorId == null) {
+            sharedDreams = dreamRepository.findByIsSharedTrueOrderByIdDesc(pageable);
+        } else {
+            sharedDreams = dreamRepository.findByIsSharedTrueAndIdLessThanOrderByIdDesc(cursorId, pageable);
+        }
 
-        return sharedDreams.map(dream -> new SquareGetResponseDto(dream.getId(), dream.getUserId(), dream.getImage()));
+        return sharedDreams.stream()
+                .map(dream -> new SquareGetResponseDto(dream.getId(), dream.getUserId(), dream.getImage()))
+                .collect(Collectors.toList());
     }
 
     // 꿈 광장 상세 보기
@@ -53,11 +56,6 @@ public class SquareService {
                         comment.getUser().getNickname())) // 닉네임 포함
                 .collect(Collectors.toList());
 
-        boolean likeByUser = dream.getComments().stream().anyMatch(comment ->
-                commentLikeRepository.existsByCommentAndUser(comment, userRepository.findById(userId)
-                        .orElseThrow(() -> new InvalidUserException("Invalid user Id")))
-        );
-
-        return new SquareDetailResponse(dream.getSummary(), dream.getContent(), comments, likeByUser);
+        return new SquareDetailResponse(dream.getSummary(), dream.getContent(), dream.getImage(), comments);
     }
 }

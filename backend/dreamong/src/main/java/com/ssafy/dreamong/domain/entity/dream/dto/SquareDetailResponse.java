@@ -11,6 +11,6 @@ import java.util.List;
 public class SquareDetailResponse {
     private String summary;
     private String content;
+    private String image;
     private List<CommentResponse> comments;
-    private boolean likedByUser;
 }

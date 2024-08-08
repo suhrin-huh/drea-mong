@@ -12,8 +12,6 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 @Entity
 @Getter
 @Table(name = "dream")
@@ -38,7 +36,7 @@ public class Dream extends BaseTimeEntity {
     @Column(name = "summary", nullable = false)
     private String summary;
 
-    @Column(name = "is_shared", columnDefinition = "BOOLEAN DEFAULT false")
+    @Column(name = "is_shared")
     private boolean isShared;
 
     @Column(name = "likes_count")
@@ -99,7 +97,3 @@ public class Dream extends BaseTimeEntity {
         this.likesCount = likesCount;
     }
 }
-
-
-
-

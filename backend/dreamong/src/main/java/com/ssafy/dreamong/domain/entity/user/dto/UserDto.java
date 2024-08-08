@@ -1,5 +1,6 @@
 package com.ssafy.dreamong.domain.entity.user.dto;
 
+import com.ssafy.dreamong.domain.entity.user.Role;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,7 +8,8 @@ import lombok.Setter;
 @Setter
 public class UserDto {
 
-    private String role;
+    private Integer userId;
+    private Role role;
     private String name;
     private String providerUserId;
     private String nickname;

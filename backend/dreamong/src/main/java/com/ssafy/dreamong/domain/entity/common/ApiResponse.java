@@ -9,28 +9,24 @@ import lombok.Setter;
 @Builder
 public class ApiResponse<T> {
     private String status;
-    private String message;
     private T data;
 
-    public static <T> ApiResponse<T> success(T data, String message) {
+    public static <T> ApiResponse<T> success(T data) {
         return ApiResponse.<T>builder()
-                .status("sucess")
-                .message(message)
+                .status("success")
                 .data(data)
                 .build();
     }
 
-    public static <T> ApiResponse<T> success(String message) {
+    public static <T> ApiResponse<T> success() {
         return ApiResponse.<T>builder()
-                .status("sucess")
-                .message(message)
+                .status("success")
                 .build();
     }
 
-    public static <T> ApiResponse<T> error(String message) {
+    public static <T> ApiResponse<T> error() {
         return ApiResponse.<T>builder()
                 .status("error")
-                .message(message)
                 .build();
     }
 }

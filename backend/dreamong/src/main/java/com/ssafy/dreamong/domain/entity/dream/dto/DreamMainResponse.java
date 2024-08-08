@@ -7,6 +7,8 @@ import lombok.Data;
 @AllArgsConstructor
 public class DreamMainResponse {
 
+    private Integer dreamId;
+
     private String content;
 
     private String image;

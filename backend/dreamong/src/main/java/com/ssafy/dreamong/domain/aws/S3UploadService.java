@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 @Service
@@ -32,6 +33,16 @@ public class S3UploadService {
         return amazonS3.getUrl(bucket, originalFilename).toString();
     }
 
+    public String uploadImageToS3(byte[] imageBytes, String filename) {
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(imageBytes.length);
+        metadata.setContentType("image/png");
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(imageBytes);
+
+        amazonS3.putObject(bucket, filename, inputStream, metadata);
+        return amazonS3.getUrl(bucket, filename).toString();
+    }
 
     public ResponseEntity<UrlResource> downloadImage(String originalFilename) {
         UrlResource urlResource = new UrlResource(amazonS3.getUrl(bucket, originalFilename));
@@ -48,7 +59,6 @@ public class S3UploadService {
     public void deleteImage(String originalFilename) {
         amazonS3.deleteObject(bucket, originalFilename);
     }
-
 
     public String getFileUrl(String filename) {
         return amazonS3.getUrl(bucket, filename).toString();
