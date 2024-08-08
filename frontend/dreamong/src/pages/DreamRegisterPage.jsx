@@ -47,6 +47,14 @@ const DreamRegisterPage = () => {
   /** 상단바, 이전페이지로 돌아가기, 임시저장기능을 담당 */
   const UpperBar = () => {
     const saveDraft = async () => {
+      if (content.replace(/ /g, '') == '') {
+        Swal.fire({
+          title: 'ERROR',
+          icon: 'error',
+          text: '공백은 저장이 불가능합니다.',
+        });
+        return;
+      }
       const { value: confirmed } = await Swal.fire({
         title: '임시저장하시겠습니까?',
         text: '임시저장된 일기는 통계에 포함되지 않습니다.',
@@ -69,17 +77,8 @@ const DreamRegisterPage = () => {
             const response = await axios.post(`${baseURL}/dream/temporary`, requestData, {
               headers: { Authorization: `Bearer ${accessToken}` },
             });
-            console.log(response.data);
             navigate('/'); // 주석 해제하면 저장 후 메인 페이지로 이동
           } catch (error) {
-            console.log({
-              content: content,
-              image: image,
-              interpretation: interpretation,
-              userId: user.userId,
-              writeTime: date.replace(/-/g, ''),
-            });
-            console.error('임시 저장 중 오류 발생:', error);
             handleError();
           }
         } else {
@@ -182,7 +181,6 @@ const DreamRegisterPage = () => {
   // 녹음이 끝나면
   recognition.opspeechend = () => {
     setIsListening(false);
-    console.log('isListening', isListening);
     recognition.stop();
   };
 
@@ -195,7 +193,6 @@ const DreamRegisterPage = () => {
   recognition.onerror = () => {
     handleError();
   };
-  // console.log('STT start');
 
   const insertTextAtCursor = (textToInsert) => {
     // 현재 contentRef가 위치한 태그
@@ -215,13 +212,21 @@ const DreamRegisterPage = () => {
 
   async function handleInterp() {
     try {
+      if (content.replace(/ /g, '') == '') {
+        Swal.fire({
+          title: 'ERROR',
+          icon: 'error',
+          text: '공백은 해석이 불가능합니다.',
+        });
+        return;
+      }
       if (content.length < MIN_LENGTH) {
         Swal.fire({
           text: `정확한 해석을 위해 꿈 내용을 ${MIN_LENGTH}자 이상 작성해주세요.`,
           icon: 'warning',
           confirmButtonText: '확인',
         });
-        return 0;
+        return;
       }
       setIsInterpVisible(true);
       const requestData = {
@@ -229,18 +234,12 @@ const DreamRegisterPage = () => {
       };
       const accessToken = localStorage.getItem('accessToken');
       const response = await axios.post(`${baseURL}/api/generate-interpretation`, requestData, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
       });
-      // const output = response.data.data;
-      // if (typeof output == 'string') {
-      //   setInterpretation(output);
-      // } else {
-      //   throw new Error('Unexpected response format');
-      // }
       setInterpretation(response.data.data);
     } catch (err) {
-      console.log(err);
       handleError();
+      setIsInterpVisible(false);
     }
   }
 
@@ -265,6 +264,7 @@ const DreamRegisterPage = () => {
   const [selectedImg, setSelectedImg] = useState(null);
 
   /** 이미지를 생성해주는 함수, 필요데이터 : content */
+  const censoredImageUrl = '/src/assets/MainpageTest.jpg'; // 검열된 이미지의 URL
   async function handleImgGenerator() {
     try {
       if (content.length < MIN_LENGTH) {
@@ -284,21 +284,15 @@ const DreamRegisterPage = () => {
       };
       const accessToken = localStorage.getItem('accessToken');
       const response = await axios.post(`${baseURL}/api/generate-image`, requestData, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
       });
-      console.log(response.data.data);
-      setOptions(response.data.data);
+      const censoredOptions = response.data.data;
+      while (censoredOptions.length < 4) {
+        censoredOptions.push(censoredImageUrl);
+      }
+      setOptions(censoredOptions);
     } catch {
-      // handleError();
-      setTimeout(
-        setOptions([
-          '/src/assets/dreamImg/img1.png',
-          '/src/assets/dreamImg/img2.jpg',
-          '/src/assets/dreamImg/img3.jpg',
-          'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_0.png',
-        ]),
-        4000,
-      );
+      handleError();
     }
   }
 
@@ -309,16 +303,18 @@ const DreamRegisterPage = () => {
       await handleImgGenerator();
     } catch {
       handleError();
-      setOptions([
-        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_0.png',
-        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_1.png',
-        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_2.png',
-        'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_3.png',
-      ]);
     }
   }
 
-  const handleSelected = (img) => {
+  const handleSelected = (i) => {
+    if (options[i] == censoredImageUrl) {
+      Swal.fire({
+        icon: 'warning',
+        text: '검열된 이미지는 선택할 수 없습니다.',
+        confirmButtonText: '확인',
+      });
+      return;
+    }
     setSelectedImg(img);
   };
 
@@ -326,6 +322,11 @@ const DreamRegisterPage = () => {
     setImage(options[i]);
     setIsGenerating(false);
   };
+
+  // 저장시에 응답이 올때까지 대체화면 표시
+  const [isSaving, setIsSaving] = useState(false);
+
+  const Loadingbar = <div className="absolute left-0 right-0 top-1/3 z-30 h-1/3 w-full bg-black"></div>;
 
   const saveDream = async () => {
     try {
@@ -337,14 +338,23 @@ const DreamRegisterPage = () => {
         });
         return;
       }
-      const accessToken = localStorage.getItem('accessToken');
+      if (content.length < MIN_LENGTH) {
+        Swal.fire({
+          text: `정확한 해석을 위해 꿈 내용을 ${MIN_LENGTH}자 이상 작성해주세요.`,
+          icon: 'warning',
+          confirmButtonText: '확인',
+        });
+        return 0;
+      }
+      setIsSaving(true);
 
+      const accessToken = localStorage.getItem('accessToken');
       const response = await axios.post(
         `${baseURL}/dream/create`,
         {
           content: content,
           image: image,
-          interpretation: interpretation.slice(0, 30),
+          interpretation: interpretation,
           userId: user.userId,
           isShared: isShared,
           writeTime: date.replace(/-/g, ''),
@@ -356,8 +366,9 @@ const DreamRegisterPage = () => {
       console.log(response.data);
       navigate('/');
     } catch (err) {
-      console.log(err);
+      setIsSaving(false);
       handleError();
+      navigate('/');
     }
   };
 
@@ -374,7 +385,8 @@ const DreamRegisterPage = () => {
 
   return (
     // 이 부분 최소 높이 class 수정 필요!!
-    <div className="flex flex-col px-6 py-3 text-white" style={{ minheight: '100vh' }}>
+    <div className="relative flex flex-col px-6 py-3 text-white" style={{ minheight: '100vh' }}>
+      {isSaving ? Loadingbar : null}
       <UpperBar />
       <DateSelector />
       {/* 꿈내용 입력 - textarea */}
@@ -422,7 +434,7 @@ const DreamRegisterPage = () => {
       {image != null ? (
         <div className={`${classList} relative`}>
           <button onClick={() => imgRegenerator()} className="z-1 absolute right-6 top-6">
-            {SmallRegeneratorIcon}
+            {LargeRegeneratorIcon}
           </button>
           <img src={image}></img>
         </div>
@@ -493,7 +505,7 @@ const DreamRegisterPage = () => {
         </div>
       </div>
       <div className="flex justify-center">
-        <button onClick={() => saveDream()} className="my-5 h-10 w-32 rounded-full bg-primary-700 font-bold">
+        <button onClick={() => saveDream()} className="my-5 h-10 w-32 rounded-full border bg-primary-500 font-bold">
           저장하기
         </button>
       </div>
