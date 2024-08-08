@@ -28,49 +28,49 @@ function handleBackgroundMessage(payload) {
 }
 
 // Workbox 초기화 및 설정 함수
-function initializeWorkbox() {
-  if (typeof workbox !== 'undefined') {
-    workbox.precaching.precacheAndRoute([{ url: '/index.html', revision: null }, ...self.__WB_MANIFEST]);
+// function initializeWorkbox() {
+//   if (typeof workbox !== 'undefined') {
+//     workbox.precaching.precacheAndRoute([{ url: '/index.html', revision: null }, ...self.__WB_MANIFEST]);
 
-    const handler = workbox.precaching.createHandlerBoundToURL('index.html');
-    const navigationRoute = new workbox.routing.NavigationRoute(handler, {
-      denylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
-    });
-    workbox.routing.registerRoute(navigationRoute);
+//     const handler = workbox.precaching.createHandlerBoundToURL('index.html');
+//     const navigationRoute = new workbox.routing.NavigationRoute(handler, {
+//       denylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+//     });
+//     workbox.routing.registerRoute(navigationRoute);
 
-    workbox.routing.registerRoute(
-      ({ request }) => ['style', 'script', 'worker'].includes(request.destination),
-      new workbox.strategies.StaleWhileRevalidate({
-        cacheName: 'assets',
-        plugins: [new workbox.cacheableResponse.CacheableResponsePlugin({ statuses: [0, 200] })],
-      }),
-    );
+//     workbox.routing.registerRoute(
+//       ({ request }) => ['style', 'script', 'worker'].includes(request.destination),
+//       new workbox.strategies.StaleWhileRevalidate({
+//         cacheName: 'assets',
+//         plugins: [new workbox.cacheableResponse.CacheableResponsePlugin({ statuses: [0, 200] })],
+//       }),
+//     );
 
-    workbox.routing.registerRoute(
-      ({ request }) => request.destination === 'image',
-      new workbox.strategies.CacheFirst({
-        cacheName: 'images',
-        plugins: [
-          new workbox.cacheableResponse.CacheableResponsePlugin({ statuses: [0, 200] }),
-          new workbox.expiration.ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 }),
-        ],
-      }),
-    );
+//     workbox.routing.registerRoute(
+//       ({ request }) => request.destination === 'image',
+//       new workbox.strategies.CacheFirst({
+//         cacheName: 'images',
+//         plugins: [
+//           new workbox.cacheableResponse.CacheableResponsePlugin({ statuses: [0, 200] }),
+//           new workbox.expiration.ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 }),
+//         ],
+//       }),
+//     );
 
-    workbox.routing.registerRoute(
-      ({ url }) => url.pathname.startsWith('/api/'),
-      new workbox.strategies.NetworkFirst({
-        cacheName: 'api-responses',
-        plugins: [
-          new workbox.cacheableResponse.CacheableResponsePlugin({ statuses: [0, 200] }),
-          new workbox.expiration.ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 5 * 60 }),
-        ],
-      }),
-    );
-  } else {
-    console.error('Workbox could not be loaded. No offline support');
-  }
-}
+//     workbox.routing.registerRoute(
+//       ({ url }) => url.pathname.startsWith('/api/'),
+//       new workbox.strategies.NetworkFirst({
+//         cacheName: 'api-responses',
+//         plugins: [
+//           new workbox.cacheableResponse.CacheableResponsePlugin({ statuses: [0, 200] }),
+//           new workbox.expiration.ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 5 * 60 }),
+//         ],
+//       }),
+//     );
+//   } else {
+//     console.error('Workbox could not be loaded. No offline support');
+//   }
+// }
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
