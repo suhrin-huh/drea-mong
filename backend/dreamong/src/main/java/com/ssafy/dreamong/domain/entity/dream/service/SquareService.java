@@ -10,10 +10,8 @@ import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import com.ssafy.dreamong.domain.exception.InvalidDreamException;
 import com.ssafy.dreamong.domain.exception.InvalidUserException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +62,6 @@ public class SquareService {
                         .orElseThrow(() -> new InvalidUserException("Invalid user Id")))
         );
 
-        return new SquareDetailResponse(dream.getSummary(), dream.getContent(), comments, likeByUser);
+        return new SquareDetailResponse(dream.getSummary(), dream.getContent(), dream.getImage(), comments, likeByUser);
     }
 }
