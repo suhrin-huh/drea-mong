@@ -19,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("users/")
@@ -74,4 +76,33 @@ public class UserController {
         userRepository.save(user);
         return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
     }
+
+    @PostMapping("/fcm-token")
+    public void updateFcmToken(@AuthenticationPrincipal CustomOAuth2User oAuth2User, @RequestParam String fcmToken) {
+        Integer userId = oAuth2User.getUserId();
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        user.saveFcmToken(fcmToken);
+        userRepository.save(user);
+    }
+
+    @PostMapping("/schedule-sleep-reminder")
+    public ResponseEntity<ApiResponse<Void>> scheduleSleepReminder(@AuthenticationPrincipal CustomOAuth2User oAuth2User,
+                                                                   @RequestParam LocalDateTime bedtime) {
+        User user = userRepository.findById(oAuth2User.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        userService.scheduleSleepReminder(user, bedtime);
+        return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
+    }
+
+    @PostMapping("/schedule-morning-wakeup")
+    public ResponseEntity<ApiResponse<Void>> scheduleMorningWakeup(@AuthenticationPrincipal CustomOAuth2User oAuth2User,
+                                                                   @RequestParam LocalDateTime wakeupTime) {
+        User user = userRepository.findById(oAuth2User.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        userService.scheduleMorningWakeup(user, wakeupTime);
+        return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
+    }
+
 }

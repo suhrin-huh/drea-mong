@@ -38,3 +38,4 @@ out/
 
 ### environment ###
 src/main/resources/application*
+src/main/resources/firebase/firebase-adminsdk.json
