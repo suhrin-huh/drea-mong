@@ -34,7 +34,7 @@ const StreamingPage = () => {
           clearInterval(intervalId);
         }
         if (updatedSleepTime) {
-          intervalId = setInterval(checkSleepTime, 60000);
+          intervalId = setInterval(checkSleepTime, 10000); // 10초 간격으로 확인
         }
       }
     };
