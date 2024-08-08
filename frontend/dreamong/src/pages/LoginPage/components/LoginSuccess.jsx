@@ -1,13 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { userState, baseURLState } from '../../../recoil/atoms';
+import { getFCMToken } from '../../../utils/firebase';
 
 import 'ldrs/squircle';
 
 const LoginSuccess = () => {
   const navigate = useNavigate();
+
+  const [isTokenFound, setTokenFound] = useState(false);
+
   const setUserState = useSetRecoilState(userState);
   const baseURL = useRecoilValue(baseURLState);
 
@@ -34,6 +38,9 @@ const LoginSuccess = () => {
       .then((res) => {
         setUserState(res.data.data);
         navigate('/');
+      })
+      .then((response) => {
+        getFCMToken(setTokenFound); // FCM 토큰 가져오기 및 서버로 전송
       })
       .catch((error) => {
         console.error('Error in authentication flow:', error);

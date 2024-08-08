@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import Button from '../../components/Button';
 import { useNavigate, Outlet } from 'react-router-dom';
+import { getMessaging, onMessage, getToken } from 'firebase/messaging';
+import axios from 'axios';
+import { useRecoilValue } from 'recoil';
+import { baseURLState } from '../recoil/atoms';
 
 import back from '../../assets/back.svg';
 
@@ -10,9 +14,11 @@ Modal.setAppElement('#root');
 
 const StreamingPage = () => {
   const navigate = useNavigate();
+  const baseURL = useRecoilValue(baseURLState);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalContentVisible, setModalContentVisible] = useState(false);
   const [sleepTime, setSleepTime] = useState(sessionStorage.getItem('sleepTime') || null);
+  const [fcmToken, setFcmToken] = useState(localStorage.getItem('fcmToken') || null);
 
   // 취침 시간 설정 관련 useEffect
   useEffect(() => {
@@ -20,7 +26,7 @@ const StreamingPage = () => {
 
     // sleepTime이 존재할 때만 취침 시간 체크 인터벌 설정
     if (sleepTime) {
-      intervalId = setInterval(checkSleepTime, 60000); // 1분마다 체크
+      intervalId = setInterval(checkSleepTime, 10000); // 10초마다 체크
     }
 
     // localStorage의 sleepTime 변경 감지
@@ -41,13 +47,63 @@ const StreamingPage = () => {
 
     window.addEventListener('storage', handleStorageChange);
 
+    // FCM 토큰 확인 및 갱신
+    checkAndRefreshFCMToken();
+
+    // 포그라운드 메시지 수신 리스너 설정
+    const messaging = getMessaging();
+    const unsubscribe = onMessageListener()
+      .then((payload) => {
+        console.log('Received foreground message ', payload);
+        // 여기에 포그라운드 메시지 처리 로직 추가
+      })
+      .catch((err) => console.log('Failed to receive message: ', err));
+
     return () => {
       if (intervalId) {
         clearInterval(intervalId);
       }
       window.removeEventListener('storage', handleStorageChange);
+
+      // 컴포넌트 언마운트 시 리스너 해제
+      unsubscribe.then((f) => f()).catch((err) => console.log('Error unsubscribing: ', err));
     };
   }, [sleepTime]);
+
+  const checkAndRefreshFCMToken = async () => {
+    const messaging = getMessaging();
+    try {
+      const currentToken = await getToken(messaging, { vapidKey: import.meta.env.VITE_FB_VAPID_ID });
+      if (currentToken && currentToken !== fcmToken) {
+        setFcmToken(currentToken);
+        localStorage.setItem('fcmToken', currentToken);
+        // 서버에 새 토큰 전송
+        sendTokenToServer(currentToken);
+      } else if (!currentToken) {
+        console.log('FCM 토큰을 가져올 수 없습니다. 권한을 확인하세요.');
+      }
+    } catch (error) {
+      console.error('FCM 토큰 가져오기 오류:', error);
+    }
+  };
+
+  const sendTokenToServer = (token) => {
+    axios({
+      method: 'post',
+      url: `${baseURL}/update-fcm-token`,
+      data: { token },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    })
+      .then((response) => {
+        console.log('토큰이 서버에 성공적으로 전송되었습니다.');
+      })
+      .catch((error) => {
+        console.error('토큰 서버 전송 실패:', error);
+      });
+  };
 
   // 취침 시간 체크 함수
   const checkSleepTime = () => {
@@ -57,8 +113,36 @@ const StreamingPage = () => {
     const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
     if (currentTime === sleepTime) {
+      sendFCMMessage();
       navigate('/'); // 루트 URL로 이동
     }
+  };
+
+  const sendFCMMessage = () => {
+    if (!fcmToken) {
+      console.error('FCM 토큰이 없습니다.');
+      return;
+    }
+
+    axios({
+      method: 'post',
+      url: `${baseURL}/send-fcm`,
+      data: {
+        token: fcmToken,
+        title: '취침 시간 알림',
+        body: '설정하신 취침 시간이 되었습니다. 좋은 꿈 꾸세요!',
+      },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+    })
+      .then((response) => {
+        console.log('FCM 메시지 전송 성공:', response.data);
+      })
+      .catch((error) => {
+        console.error('FCM 메시지 전송 실패:', error);
+      });
   };
 
   const toggleModalIsOpen = () => {

@@ -34,15 +34,15 @@ function handleBackgroundMessage(payload) {
 }
 
 // Workbox 초기화 함수 (필요한 경우)
-function initializeWorkbox() {
-  if (typeof workbox !== 'undefined') {
-    console.log('Workbox is loaded');
-    workbox.precaching.precacheAndRoute(self.__WB_MANIFEST);
-    // 추가적인 Workbox 설정...
-  } else {
-    console.log('Workbox could not be loaded. No offline support');
-  }
-}
+// function initializeWorkbox() {
+//   if (typeof workbox !== 'undefined') {
+//     console.log('Workbox is loaded');
+//     workbox.precaching.precacheAndRoute(self.__WB_MANIFEST);
+//     // 추가적인 Workbox 설정...
+//   } else {
+//     console.log('Workbox could not be loaded. No offline support');
+//   }
+// }
 
 // 서비스 워커 설치 이벤트
 self.addEventListener('install', (event) => {
