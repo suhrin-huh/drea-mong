@@ -27,6 +27,9 @@ const StreamingRoom = () => {
     axios({
       method: 'get',
       url: `${baseURL}/rooms/${roomId}`,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
     })
       .then((response) => {
         setRoomInfo(response.data.data);
