@@ -8,7 +8,7 @@ const Button = ({
   className = '',
   ...props
 }) => {
-  const baseClasses = 'font-medium transition-colors duration-200';
+  const baseClasses = 'select-none transition-colors duration-200';
 
   const variantClasses = {
     primary: 'bg-primary-500 text-white hover:bg-primary-700',

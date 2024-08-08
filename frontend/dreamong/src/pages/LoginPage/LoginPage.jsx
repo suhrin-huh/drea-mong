@@ -1,9 +1,11 @@
 import googleLogo from '../../assets/logoSVG/btn_google.svg';
 import naverLogo from '../../assets/logoSVG/btn_naver.svg';
 import kakaoLogo from '../../assets/logoSVG/btn_kakao.svg';
+import { useRecoilValue } from 'recoil';
+import { baseURLState } from '../../recoil/atoms';
 
 const LoginPage = () => {
-  const baseURL = 'https://i11c106.p.ssafy.io';
+  const baseURL = useRecoilValue(baseURLState);
 
   const onGoogleLogin = () => {
     window.location.href = `${baseURL}/oauth2/authorization/google`;
