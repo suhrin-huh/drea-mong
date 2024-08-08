@@ -11,7 +11,7 @@ const NavigationBar = () => {
       icon: (color) => <MainIcon color={color} />,
     },
     {
-      pathname: '/square',
+      pathname: '/square/dreams',
       icon: (color) => <SquareIcon color={color} />,
     },
     {
@@ -43,7 +43,7 @@ const NavigationBar = () => {
   // path에 따라서 렌더링되는 내용이 바뀌도록 설정
   return location.pathname == '/login' ? null : (
     <div className="fixed bottom-0 h-[60px] max-w-[600px] bg-white text-white last:w-full">
-      <div className="mx-4 my-3 flex justify-between">
+      <div className="flex justify-between mx-4 my-3">
         {paths.map(({ pathname, icon }) => {
           const isCurrentPath = location.pathname === pathname;
           const iconColor = isCurrentPath ? MAIN_COLOR : SECONDARY_COLOR;
