@@ -22,13 +22,11 @@ const SquareDetailPage = () => {
   const fetchDreamDetail = async () => {
     try {
       const accessToken = localStorage.getItem('accessToken');
-      console.log(user);
       const response = await axios.get(`${baseURL}/square/${dreamId}`, {
         headers: { Authorization: `Bearer ${accessToken}` },
         params: { userId: user.userId },
       });
       const data = response.data.data;
-      console.log(data);
       setSummary(data.summary);
       setContent(data.content);
       setImage(data.image);
