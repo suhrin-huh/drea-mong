@@ -1,3 +1,9 @@
+self.importScripts(
+  'https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js',
+  'https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js',
+);
+
 // Firebase 앱 초기화 함수
 function initializeFirebase() {
   if (!firebase.apps.length) {
@@ -27,65 +33,22 @@ function handleBackgroundMessage(payload) {
   self.registration.showNotification(notificationTitle, notificationOptions);
 }
 
-// Workbox 초기화 및 설정 함수
-// function initializeWorkbox() {
-//   if (typeof workbox !== 'undefined') {
-//     workbox.precaching.precacheAndRoute([{ url: '/index.html', revision: null }, ...self.__WB_MANIFEST]);
+// Workbox 초기화 함수 (필요한 경우)
+function initializeWorkbox() {
+  if (typeof workbox !== 'undefined') {
+    console.log('Workbox is loaded');
+    workbox.precaching.precacheAndRoute(self.__WB_MANIFEST);
+    // 추가적인 Workbox 설정...
+  } else {
+    console.log('Workbox could not be loaded. No offline support');
+  }
+}
 
-//     const handler = workbox.precaching.createHandlerBoundToURL('index.html');
-//     const navigationRoute = new workbox.routing.NavigationRoute(handler, {
-//       denylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
-//     });
-//     workbox.routing.registerRoute(navigationRoute);
-
-//     workbox.routing.registerRoute(
-//       ({ request }) => ['style', 'script', 'worker'].includes(request.destination),
-//       new workbox.strategies.StaleWhileRevalidate({
-//         cacheName: 'assets',
-//         plugins: [new workbox.cacheableResponse.CacheableResponsePlugin({ statuses: [0, 200] })],
-//       }),
-//     );
-
-//     workbox.routing.registerRoute(
-//       ({ request }) => request.destination === 'image',
-//       new workbox.strategies.CacheFirst({
-//         cacheName: 'images',
-//         plugins: [
-//           new workbox.cacheableResponse.CacheableResponsePlugin({ statuses: [0, 200] }),
-//           new workbox.expiration.ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 }),
-//         ],
-//       }),
-//     );
-
-//     workbox.routing.registerRoute(
-//       ({ url }) => url.pathname.startsWith('/api/'),
-//       new workbox.strategies.NetworkFirst({
-//         cacheName: 'api-responses',
-//         plugins: [
-//           new workbox.cacheableResponse.CacheableResponsePlugin({ statuses: [0, 200] }),
-//           new workbox.expiration.ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 5 * 60 }),
-//         ],
-//       }),
-//     );
-//   } else {
-//     console.error('Workbox could not be loaded. No offline support');
-//   }
-// }
-
+// 서비스 워커 설치 이벤트
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    Promise.all([
-      self.importScripts(
-        'https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js',
-        'https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js',
-        'https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js',
-      ),
-    ]).then(() => {
-      const messaging = initializeFirebase();
-      messaging.onBackgroundMessage(handleBackgroundMessage);
-      initializeWorkbox();
-    }),
-  );
+  const messaging = initializeFirebase();
+  messaging.onBackgroundMessage(handleBackgroundMessage);
+  initializeWorkbox();
 });
 
 // 서비스 워커 업데이트 메시지 처리
