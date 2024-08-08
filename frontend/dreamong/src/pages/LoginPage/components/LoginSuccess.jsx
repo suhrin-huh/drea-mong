@@ -41,8 +41,8 @@ const LoginSuccess = () => {
           console.error('Response data:', error.response.data);
           console.error('Response status:', error.response.status);
         }
-        alert('Authentication failed. Please try logging in again.');
-        // 로그인 페이지로 리다이렉트 또는 다른 에러 처리 로직
+        alert('로그인 과정 중 에러가 발생했습니다. 다시 시도해 주시기 바랍니다.');
+        navigate('/login');
       });
   }, []);
 
