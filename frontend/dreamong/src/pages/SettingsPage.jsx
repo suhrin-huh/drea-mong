@@ -51,8 +51,8 @@ const SettingsPage = () => {
 
   // 컴포넌트 마운트 시 로컬 스토리지에서 설정 불러오기
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode');
-    const savedPush = localStorage.getItem('push');
+    const savedDarkMode = localStorage.getItem('darkMode'); // 다크모드
+    const savedPush = localStorage.getItem('push'); // 푸시 알림
 
     if (savedDarkMode !== null) {
       darkModeRef.current = JSON.parse(savedDarkMode);
@@ -64,11 +64,13 @@ const SettingsPage = () => {
       setPush(pushRef.current);
     }
 
+    // if (isLogin) {
     // FCM 토큰 가져오기 및 서버로 전송
     getFCMToken(setTokenFound);
 
     // 푸시 알림 구독 상태 확인
     checkSubscriptionStatus();
+    // }
 
     // 포그라운드 메시지 수신 리스너 설정
     const unsubscribe = onMessageListener()
@@ -82,7 +84,7 @@ const SettingsPage = () => {
     return () => {
       unsubscribe.then((f) => f()).catch((err) => console.log('Error unsubscribing: ', err));
     };
-  }, []);
+  }, [userInfo]);
 
   // 푸시 알림 구독 상태 확인 함수
   const checkSubscriptionStatus = () => {

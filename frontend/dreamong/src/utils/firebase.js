@@ -36,10 +36,10 @@ export const getFCMToken = (setTokenFound) => {
         if (storedToken !== currentToken) {
           axios({
             method: 'post',
-            url: `${baseURL}/fcm/token`,
+            url: `${baseURL}/users/fcm-token`,
             data: { token: currentToken },
             headers: {
-              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
             },
           })
             .then((response) => {
