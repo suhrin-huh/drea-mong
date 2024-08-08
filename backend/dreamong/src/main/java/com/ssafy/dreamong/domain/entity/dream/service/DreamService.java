@@ -174,7 +174,8 @@ public class DreamService {
     private String SingleLineInterpretation(String message) {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
-                "이 꿈의 주요 상징과 의미를 한 줄로 간단하게 해석해주세요.";
+                "이 꿈의 주요 상징과 의미를 한 줄로 간단하게 요약해주세요. " +
+                "대답은 (예: 입력내용을 기반으로 꾸미는 말 없이 요약해서 '~~하는 꿈'으로 응답해줘)";
         return chatModel.call(prompt);
     }
 
