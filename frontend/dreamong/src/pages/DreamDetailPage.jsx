@@ -18,41 +18,64 @@ import { baseURLState, isListeningState, userState } from '../recoil/atoms';
 import { LargeLoadingSpinner, LargeRegeneratorIcon, SmallLoadingSpinner, SmallRegeneratorIcon } from '../assets/icons';
 
 const DreamRegisterPage = () => {
+  const navigate = useNavigate();
   const user = useRecoilValue(userState);
   const baseURL = useRecoilValue(baseURLState);
   const classList = 'my-2 p-3 bg-black bg-opacity-50 rounded-lg';
 
+  /** Date 타입의 변수를 넣으면 yyyy-mm-dd로 수정해주는 함수*/
+  const replaceDateType = (date) => {
+    const year = String(date.getFullYear());
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
   // 꿈 등록을 위해 필요한 데이터
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
   const [interpretation, setInterpretation] = useState(null);
   const [isShared, setIsShared] = useState(false);
-  const [prevContent, setPrevContent] = useState('')
-  const {dreamId} = useParams()
-  const [ dreamCategories, setDreamCategories] = useState(null)
+  const [date, setDate] = useState(replaceDateType(new Date()));
+  const [prevContent, setPrevContent] = useState('');
+  const { dreamId } = useParams();
+  const [dreamCategories, setDreamCategories] = useState(null);
   const accessToken = localStorage.getItem('accessToken');
 
-  useEffect(
-    async () => {
+  // const replaceDateType = (dateString) => {
+  //   const year = dateString.substring(0, 4);
+  //   const month = dateString.substring(4, 6);
+  //   const day = dateString.substring(6, 8);
+  //   return `${year}-${month}-${day}`;
+  // };
+  useEffect(() => {
+    async function getDetail() {
       try {
         const requestData = {
           userId: user.userId,
         };
-        const response = await axios.get(`${baseURL}/dream/${dreamId}`, requestData, {
+        const response = await axios.get(`${baseURL}/dream/${dreamId}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
+          params: requestData,
         });
-        const responseData = response.data
-        setContent(responseData.content)
-        setImage(responseData.image)
-        setInterpretation(responseData.interpretation)
-        setIsShared(responseData.isShared)
-        setPrevContent(responseData.content)
-        setDreamCategories(response.dreamCategories)
+        const responseData = response.data.data;
+        setContent(responseData.content);
+        setImage(responseData.image);
+        setInterpretation(responseData.interpretation);
+        setIsShared(responseData.isShared);
+        setPrevContent(responseData.content);
+        setDreamCategories(responseData.dreamCategories);
+        const writeTime = responseData.writeTime;
+        const formattedDate = `${writeTime.slice(0, 4)}-${writeTime.slice(4, 6)}-${writeTime.slice(6, 8)}`;
+        setDate(formattedDate);
       } catch (err) {
-        handleError()
-      }}
-  , [])
-  
+        console.log(err);
+        handleError();
+        navigate(-1);
+      }
+    }
+
+    getDetail();
+  }, []);
 
   /** 오류 처리 함수 */
   const handleError = () => {
@@ -64,12 +87,10 @@ const DreamRegisterPage = () => {
     });
   };
 
-  const navigate = useNavigate();
   const navigateBack = () => {
     if (content != prevContent) {
-
       Swal.fire({
-        title:"이전 페이지로 이동하시겠습니까?",
+        title: '이전 페이지로 이동하시겠습니까?',
         text: '번경사항이 저장되지 않을 수 있습니다.',
         icon: 'warning',
         confirmButtonText: '확인',
@@ -77,8 +98,11 @@ const DreamRegisterPage = () => {
       }).then((result) => {
         if (result.isConfirmed) {
           navigate(-1);
-        }})
-      }
+        }
+      });
+      return;
+    }
+    navigate(-1);
   };
 
   /** 상단바, 이전페이지로 돌아가기, 임시저장기능을 담당 */
@@ -91,18 +115,18 @@ const DreamRegisterPage = () => {
           icon: 'warning',
           confirmButtonText: '확인',
           showCancelButton: true, // 취소 버튼을 추가하여 사용자가 선택할 수 있게 함,
-          denyButtonText: '취소'
+          denyButtonText: '취소',
         });
-      if (confirmed) {
-        const requestData = {
-        };
-        const response = await axios.delete(`${baseURL}/dream/${dreamId}`, requestData, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        if (confirmed) {
+          const requestData = {};
+          const response = await axios.delete(`${baseURL}/dream/${dreamId}`, requestData, {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          navigate('/');
+        }
+      } catch {
+        handleError();
       }
-    } catch {
-      handleError()
-    }
     };
 
     return (
@@ -120,15 +144,7 @@ const DreamRegisterPage = () => {
   };
 
   // 2) 날짜선택 컴포넌트
-  /** Date 타입의 변수를 넣으면 yyyy-mm-dd로 수정해주는 함수*/
-  const replaceDateType = (date) => {
-    const year = String(date.getFullYear());
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
 
-  const [date, setDate] = useState(replaceDateType(new Date()));
   /** 날짜선택 컴포넌트 */
   const DateSelector = () => {
     /** 미래의 날짜 선택시 오류 반환, 선택된 날짜는 Date 형식으로 변경 */
@@ -194,7 +210,6 @@ const DreamRegisterPage = () => {
   // 녹음이 끝나면
   recognition.opspeechend = () => {
     setIsListening(false);
-    console.log('isListening', isListening);
     recognition.stop();
   };
 
@@ -207,7 +222,6 @@ const DreamRegisterPage = () => {
   recognition.onerror = () => {
     handleError();
   };
-  // console.log('STT start');
 
   const insertTextAtCursor = (textToInsert) => {
     // 현재 contentRef가 위치한 태그
@@ -245,7 +259,6 @@ const DreamRegisterPage = () => {
       });
       setInterpretation(response.data.data);
     } catch (err) {
-      console.log(err);
       handleError();
     }
   }
@@ -271,6 +284,7 @@ const DreamRegisterPage = () => {
   const [selectedImg, setSelectedImg] = useState(null);
 
   /** 이미지를 생성해주는 함수, 필요데이터 : content */
+  const censoredImageUrl = '/src/assets/MainpageTest.jpg'; // 검열된 이미지의 URL
   async function handleImgGenerator() {
     try {
       if (content.length < MIN_LENGTH) {
@@ -292,8 +306,11 @@ const DreamRegisterPage = () => {
       const response = await axios.post(`${baseURL}/api/generate-image`, requestData, {
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
       });
-      // console.log(response.data.data);
-      setOptions(response.data.data);
+      const censoredOptions = response.data.data;
+      while (censoredOptions.length < 4) {
+        censoredOptions.push(censoredImageUrl);
+      }
+      setOptions(censoredOptions);
     } catch {
       handleError();
     }
@@ -306,17 +323,18 @@ const DreamRegisterPage = () => {
       await handleImgGenerator();
     } catch {
       handleError();
-      // setOptions([
-      //   'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_0.png',
-      //   'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_1.png',
-      //   'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_2.png',
-      //   'https://dreamongbucket.s3.ap-northeast-2.amazonaws.com/image_3.png',
-      // ]);
     }
   }
-
-  const handleSelected = (img) => {
-    setSelectedImg(img);
+  const handleSelected = (i) => {
+    if (options[i] == censoredImageUrl) {
+      Swal.fire({
+        icon: 'warning',
+        text: '검열된 이미지는 선택할 수 없습니다.',
+        confirmButtonText: '확인',
+      });
+      return;
+    }
+    setSelectedImg(i);
   };
 
   const handleImage = (i) => {
@@ -334,6 +352,14 @@ const DreamRegisterPage = () => {
         });
         return;
       }
+      if (content.length < MIN_LENGTH) {
+        Swal.fire({
+          text: `정확한 해석을 위해 꿈 내용을 ${MIN_LENGTH}자 이상 작성해주세요.`,
+          icon: 'warning',
+          confirmButtonText: '확인',
+        });
+        return 0;
+      }
 
       /// 카테고리
       const response = await axios.put(
@@ -341,7 +367,7 @@ const DreamRegisterPage = () => {
         {
           content: content,
           image: image,
-          interpretation: interpretation.slice(0, 30),
+          interpretation: interpretation,
           userId: user.userId,
           isShared: isShared,
           writeTime: date.replace(/-/g, ''),
@@ -353,7 +379,6 @@ const DreamRegisterPage = () => {
       console.log(response.data);
       navigate('/');
     } catch (err) {
-      console.log(err);
       handleError();
     }
   };
@@ -451,7 +476,7 @@ const DreamRegisterPage = () => {
                   {selectedImg == i ? (
                     <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black bg-opacity-50 text-white">
                       <button
-                        className="rounded-xl bg-white px-2 py-1 text-black"
+                        className="rounded-full bg-primary-500 px-3 py-1 text-white"
                         onClick={() => {
                           handleImage(i);
                         }}

@@ -54,30 +54,37 @@ const MainPage = () => {
         { params: {} },
         {
           headers: { Authorization: `Bearer ${accessToken}` },
-          // params: {},
         },
       );
-      setDreams(response.data.data.dreamMainResponsesList);
-      console.log('요청하는 달 ', month);
-      console.log(dreams);
-      // console.log('response data is : ', response.data.data.dreamMainResponsesList);
+      const responseData = response.data.data;
+      setDreams(responseData.dreamMainResponsesList);
+      setTotalCount(responseData.totalCount);
     } catch (err) {
       console.log(err);
       handleError();
+      navigate('/login');
     }
   };
-
-  useEffect(() => console.log('change', dreams), [dreams]);
 
   // 초기 렌더링시에 처리되는 일
   // dreams, totalCount 데이터 변경하기
   useEffect(() => {
+    // if (localStorage.getItem("accessToken") && user.userId) {
+    //   getDreams();
+    //   swiperRef.current?.swiper.slideTo(month - 1, 0);
+    //   return
+    // }
     getDreams();
+    swiperRef.current?.swiper.slideTo(month - 1, 0);
     // 2. 날짜에 맞게 포커스
     // month는 7월, silde index는 (7-1)월이므로 알맞게 수정
-    swiperRef.current?.swiper.slideTo(month - 1, 0);
-    // console.log(location.href);
   }, []);
+
+  useEffect(() => {
+    if (swiperRef.current) {
+      swiperRef.current.swiper.slideTo(month - 1, 0);
+    }
+  }, [month]);
 
   // 날짜 변동에 따라 데이터 새로 호출
   const handleYear = (number) => {
@@ -85,14 +92,8 @@ const MainPage = () => {
   };
 
   const handleMonth = (number) => {
-    console.log('number is :', number);
     setMonth(number + 1);
   };
-  useEffect(() => {
-    if (swiperRef.current) {
-      swiperRef.current.swiper.slideTo(month - 1, 0);
-    }
-  }, [month]);
 
   // 요일을 나타내기 위한 함수
   const getWeekDay = (dateStr) => {
@@ -121,10 +122,10 @@ const MainPage = () => {
       </div>
       <header className="inline-flex h-1/4 w-full flex-col items-center justify-center gap-2.5 text-center text-white">
         {/* 닉네임 여부에 따라 다르게 표시 */}
-        <p className="text-3xl font-bold">안녕하세요, {user.nickname}님!</p>
+        <p className="text-3xl font-bold">안녕하세요{user.nickname ? `, ${user.nickname}님!` : '!'}</p>
         {/* 꿈 작성 개수에 따라 다르게 표시 */}
         <p className="text-sm">
-          {totalCount == 0 ? '첫번째 꿈을 기록해주세요!' : `${totalCount}번째 꿈을 기록해주세요!`}
+          {totalCount == 0 ? '첫번째 꿈을 기록해주세요!' : `${totalCount}번째 꿈을 기록해주세요.`}
         </p>
       </header>
       {/* 아랫부분부터 메인 내용 들어가는 페이지 */}
@@ -176,14 +177,14 @@ const MainPage = () => {
           {dreams && dreams.length > 0 ? (
             dreams.map((dream) => {
               return (
-                <div className="my-2 flex h-16 items-start justify-center gap-x-3">
+                <div key={dream.dreamId} className="my-2 flex h-16 items-start justify-center gap-x-3">
                   <div className="mt-2 h-[60px] w-1/6 flex-col items-center justify-start">
                     <div className="text-center text-2xl font-bold">{dream.writeTime.slice(6, 8)}</div>
                     <div className="text-sm text-slate-500">{getWeekDay(dream.writeTime)}</div>
                   </div>
                   <div
                     // 이 부분 수정 필요!!!!!!!!!!!
-                    onClick={() => handleClick(1)}
+                    onClick={() => handleClick(dream.dreamId)}
                     className={`flex w-3/4 shrink grow basis-0 items-start justify-between self-stretch rounded-lg bg-black bg-opacity-40 p-2.5 text-white bg-blend-darken`}
                     style={{
                       backgroundImage: dream.image ? `url(${dream.image})` : 'url(/src/assets/MainpageTest.jpg)',
