@@ -40,16 +40,13 @@ const SquarePage = () => {
                 },
               );
             const newDreams = response.data.data;
-            // console.log(newDreams)
-
-            // Check for duplicates and add unique dreams
+     
             setDreams((prevDreams) => {
                 const existingDreamIds = new Set(prevDreams.map(dream => dream.dreamId));
                 const uniqueDreams = newDreams.filter(dream => !existingDreamIds.has(dream.dreamId));
                 return [...prevDreams, ...uniqueDreams];
             });
 
-            // Update hasMore and page state
             setHasMore(response.data.totalPages > page + 1);
             setPage((prevPage) => prevPage + 1);
         } catch {
