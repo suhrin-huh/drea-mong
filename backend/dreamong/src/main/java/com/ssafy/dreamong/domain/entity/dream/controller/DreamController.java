@@ -1,7 +1,10 @@
 package com.ssafy.dreamong.domain.entity.dream.controller;
 
 import com.ssafy.dreamong.domain.entity.common.ApiResponse;
-import com.ssafy.dreamong.domain.entity.dream.dto.*;
+import com.ssafy.dreamong.domain.entity.dream.dto.DreamCreateRequest;
+import com.ssafy.dreamong.domain.entity.dream.dto.DreamGetResponse;
+import com.ssafy.dreamong.domain.entity.dream.dto.DreamMainResponseWithCount;
+import com.ssafy.dreamong.domain.entity.dream.dto.DreamUpdateRequest;
 import com.ssafy.dreamong.domain.entity.dream.service.DreamService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,8 +35,8 @@ public class DreamController {
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<?>> createDream(
             @Parameter(description = "꿈 생성 요청 데이터", required = true) @RequestBody DreamCreateRequest dreamCreateRequest) {
-        DreamDto createdDream = dreamService.create(dreamCreateRequest);
-        return ResponseEntity.ok(ApiResponse.success(createdDream));
+        dreamService.create(dreamCreateRequest);
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @Operation(summary = "꿈 상세보기", description = "메인페이지의 리스트중 하나를 선택하여 상세하게 본다.")
@@ -49,8 +52,8 @@ public class DreamController {
     public ResponseEntity<ApiResponse<?>> update(
             @Parameter(description = "꿈 ID", required = true) @PathVariable Integer dreamId,
             @Parameter(description = "꿈 수정 요청 데이터", required = true) @RequestBody DreamUpdateRequest request) {
-        DreamDto updatedDream = dreamService.update(dreamId, request);
-        return ResponseEntity.ok(ApiResponse.success(updatedDream));
+        dreamService.update(dreamId, request);
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @Operation(summary = "꿈 삭제", description = "등록된 꿈을 삭제한다.")
@@ -67,7 +70,7 @@ public class DreamController {
     @PostMapping(value = "/temporary", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<?>> temporaryDream(
             @Parameter(description = "임시 저장 꿈 생성 요청 데이터", required = true) @RequestBody DreamCreateRequest dreamCreateRequest) {
-        DreamDto temporaryDream = dreamService.createTemporaryDream(dreamCreateRequest);
-        return ResponseEntity.ok(ApiResponse.success(temporaryDream));
+        dreamService.createTemporaryDream(dreamCreateRequest);
+        return ResponseEntity.ok(ApiResponse.success());
     }
 }
