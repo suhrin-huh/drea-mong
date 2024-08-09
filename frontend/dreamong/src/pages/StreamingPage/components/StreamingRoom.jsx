@@ -44,7 +44,13 @@ const StreamingRoom = () => {
   useEffect(() => {
     fetchRoomInfo();
 
-    const newSocket = io(socketURL);
+    const newSocket = io(socketURL, {
+      transports: ['websocket'],
+      upgrade: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      timeout: 1000,
+    });
     setSocket(newSocket);
 
     // 방 입장 이벤트 발생
@@ -104,7 +110,11 @@ const StreamingRoom = () => {
         if (socket) {
           socket.emit('video-time-update', { roomId, time: event.target.getCurrentTime() });
         }
-      }, 10000);
+        // 영상 재생 상태가 멈춤 상태일 때(0) 재생 시작
+        if (!event.target.getPlayerState()) {
+          event.target.playVideo();
+        }
+      }, 5000);
 
       // 컴포넌트 언마운트 또는 의존성 변경 시 인터벌 정리
       return () => clearInterval(intervalId);

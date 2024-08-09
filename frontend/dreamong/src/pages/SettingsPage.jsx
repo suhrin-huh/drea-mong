@@ -22,12 +22,9 @@ const SettingsPage = () => {
   const darkModeRef = useRef(false);
   const pushRef = useRef(false);
 
-  // 상태 업데이트를 위한 useState
   const [darkMode, setDarkMode] = useState(darkModeRef.current);
   const [push, setPush] = useState(pushRef.current);
   const [isTokenFound, setTokenFound] = useState(false);
-
-  // 사용자 로그인 상태 확인 코드 작성 예정 (일단은 임시로)
   const [isLogin, setIsLogin] = useState(localStorage.getItem('accessToken') ? true : false);
 
   // 사용자 닉네임 변경 모달 관리
@@ -64,26 +61,10 @@ const SettingsPage = () => {
       setPush(pushRef.current);
     }
 
-    // if (isLogin) {
-    // FCM 토큰 가져오기 및 서버로 전송
-    getFCMToken(setTokenFound);
-
     // 푸시 알림 구독 상태 확인
-    checkSubscriptionStatus();
-    // }
-
-    // 포그라운드 메시지 수신 리스너 설정
-    const unsubscribe = onMessageListener()
-      .then((payload) => {
-        console.log('Received foreground message ', payload);
-        // 여기에 포그라운드 메시지 처리 로직 추가
-      })
-      .catch((err) => console.log('Failed to receive message: ', err));
-
-    // 컴포넌트 언마운트 시 리스너 해제
-    return () => {
-      unsubscribe.then((f) => f()).catch((err) => console.log('Error unsubscribing: ', err));
-    };
+    if (isLogin) {
+      checkSubscriptionStatus();
+    }
   }, [userInfo]);
 
   // 푸시 알림 구독 상태 확인 함수
@@ -96,7 +77,7 @@ const SettingsPage = () => {
       },
     })
       .then((response) => {
-        pushRef.current = response.data.isSubscribed;
+        pushRef.current = response.data.data.isSubscribed;
         setPush(pushRef.current);
       })
       .catch((error) => {
@@ -104,7 +85,7 @@ const SettingsPage = () => {
       });
   };
 
-  // 로그아웃 핸들러 (api URL 확인 후 수정 필요)
+  // 로그아웃 핸들러
   const handleLogout = (event) => {
     event.preventDefault();
     axios({
@@ -115,8 +96,6 @@ const SettingsPage = () => {
       },
     })
       .then((response) => {
-        console.log(response);
-        // 로그아웃 처리 후 로직 추가 예정
         localStorage.removeItem('accessToken');
         navigate('/login');
       })
@@ -139,12 +118,14 @@ const SettingsPage = () => {
       },
     })
       .then((response) => {
-        setModalContentVisible(false);
-        setTimeout(() => setModalIsOpen(false), 300);
-        alert('닉네임 변경이 왼료되었습니다!');
         // 닉네임 변경에 따른 recoil atom 업데이트 로직
         setUserInfo((prevUserInfo) => ({ ...prevUserInfo, nickname: newNickname }));
         setNewNickname('');
+      })
+      .then((response) => {
+        setModalContentVisible(false);
+        setTimeout(() => setModalIsOpen(false), 300);
+        alert('닉네임 변경이 왼료되었습니다!');
       })
       .catch((error) => {
         console.error('닉네임 변경 오류!', error);
@@ -174,6 +155,12 @@ const SettingsPage = () => {
     localStorage.setItem('push', JSON.stringify(newPushState));
 
     const fcmToken = localStorage.getItem('fcmToken');
+
+    // 토큰 유효성 검사
+    if (!fcmToken && newPushState) {
+      alert('푸시 알림을 활성화하려면 FCM 토큰이 필요합니다.');
+      return;
+    }
 
     axios({
       method: 'post',
