@@ -5,7 +5,7 @@ import { useNavigate, Outlet } from 'react-router-dom';
 import { getMessaging, onMessage, getToken } from 'firebase/messaging';
 import axios from 'axios';
 import { useRecoilValue } from 'recoil';
-import { baseURLState } from '../recoil/atoms';
+import { baseURLState } from '../../recoil/atoms';
 
 import back from '../../assets/back.svg';
 

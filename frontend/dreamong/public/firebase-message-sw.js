@@ -1,7 +1,6 @@
 self.importScripts(
   'https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js',
-  'https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js',
 );
 
 // Firebase 앱 초기화 함수
@@ -37,7 +36,7 @@ function handleBackgroundMessage(payload) {
 // function initializeWorkbox() {
 //   if (typeof workbox !== 'undefined') {
 //     console.log('Workbox is loaded');
-//     workbox.precaching.precacheAndRoute(self.__WB_MANIFEST);
+// workbox.precaching.precacheAndRoute(self.__WB_MANIFEST);
 //     // 추가적인 Workbox 설정...
 //   } else {
 //     console.log('Workbox could not be loaded. No offline support');
