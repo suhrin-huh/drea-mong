@@ -10,4 +10,5 @@ public class CommentResponse {
     private String content;
     private Integer likesCount;
     private String nickname;
+    private boolean isCommentOwner;
 }

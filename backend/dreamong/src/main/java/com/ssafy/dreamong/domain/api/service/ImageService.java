@@ -112,7 +112,7 @@ public class ImageService {
                         double sexyConfidence = result.getJSONObject("sexy").getDouble("confidence");
 
                         // 특정 임계값을 초과하는 이미지를 필터링하는 로직
-                        if (adultConfidence < 0.5 && pornConfidence < 0.5 && sexyConfidence < 0.5) {
+                        if (adultConfidence < 0.3 && pornConfidence < 0.3 && sexyConfidence < 0.3) {
                             // 이미지 다운로드
                             byte[] imageBytes = downloadImage(imageUrl);
                             // S3에 이미지 업로드
@@ -202,7 +202,7 @@ public class ImageService {
     private String createDreamImagePrompt(String message) {
         return chatModel.call("당신은 세계 최고의 글 편집가입니다. 사용자가 제공한 꿈의 내용은 다음과 같습니다:\n\"" + message + "\"\n\n" +
                 "이 꿈 내용을 다음의 조건에 따라 수정해 주세요:\n" +
-                "1. 선정적이거나 폭력적, 혐오적인 단어를 제거해 주세요.\n" +
+                "1. 혐오적인 단어를 제거해 주세요.\n" +
                 "2. 특정 인물(예: 이름, 가족, 친구 등)에 관한 언급을 제거해 주세요.\n" +
                 "3. 꿈의 내용과 어울리는 배경의 느낌을 강조해 주세요.\n" +
                 "4. 사물(예: 동물)은 그대로 유지해 주세요.\n\n" +
