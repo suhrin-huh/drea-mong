@@ -30,6 +30,7 @@ public class Dream extends BaseTimeEntity {
     @Column(name = "image")
     private String image;
 
+    @Lob
     @Column(name = "interpretation")
     private String interpretation;
 
