@@ -77,7 +77,7 @@ const SettingsPage = () => {
       },
     })
       .then((response) => {
-        pushRef.current = response.data.isSubscribed;
+        pushRef.current = response.data.data.isSubscribed;
         setPush(pushRef.current);
       })
       .catch((error) => {

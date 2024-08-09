@@ -68,8 +68,17 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(self.clients.openWindow(targetUrl));
 });
 
-// 오프라인 페이지 처리
 self.addEventListener('fetch', (event) => {
+  if (event.request.url.includes('/api/oauth2/authorization/google')) {
+    return;
+  }
+  if (event.request.url.includes('/api/oauth2/authorization/naver')) {
+    return;
+  }
+  if (event.request.url.includes('/api/oauth2/authorization/kakao')) {
+    return;
+  }
+
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => {
