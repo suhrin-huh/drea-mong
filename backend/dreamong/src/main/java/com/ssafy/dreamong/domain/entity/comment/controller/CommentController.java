@@ -32,7 +32,7 @@ public class CommentController {
             @Parameter(description = "사용자 ID", required = true) @PathVariable Integer userId,
             @Parameter(description = "댓글 ID", required = true) @PathVariable Integer commentId) {
         boolean isLike = commentService.toggleCommentLike(userId, commentId);
-        return ResponseEntity.ok(isLike ? ApiResponse.success() : ApiResponse.error());
+        return ResponseEntity.ok(isLike ? ApiResponse.like() : ApiResponse.unLike());
     }
 
     @Operation(summary = "댓글 삭제", description = "등록된 댓글을 삭제 한다.")

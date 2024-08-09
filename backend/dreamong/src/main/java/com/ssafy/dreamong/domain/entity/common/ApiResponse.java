@@ -29,4 +29,16 @@ public class ApiResponse<T> {
                 .status("error")
                 .build();
     }
+
+    public static <T> ApiResponse<T> like() {
+        return ApiResponse.<T>builder()
+                .status("like")
+                .build();
+    }
+
+    public static <T> ApiResponse<T> unLike() {
+        return ApiResponse.<T>builder()
+                .status("unLike")
+                .build();
+    }
 }

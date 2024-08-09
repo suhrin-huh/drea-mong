@@ -9,6 +9,4 @@ import java.util.Optional;
 
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Integer> {
     Optional<CommentLike> findByCommentAndUser(Comment comment, User user);
-
-    boolean existsByCommentAndUser(Comment comment, User user);
 }
