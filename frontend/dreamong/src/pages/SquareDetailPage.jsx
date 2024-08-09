@@ -174,10 +174,10 @@ const SquareDetailPage = () => {
               {/* 요약 */}
               <div className="flex items-center gap-4 mb-4">
                 <p className="text-sm whitespace-nowrap md:text-base lg:text-lg">요약: </p>
-                <p className="text-sm md:text-base lg:text-lg">{summary}</p>
+                <p className="text-sm break-all md:text-base lg:text-lg">{summary}</p>
               </div>
               <hr className="my-4 border-gray-700" />
-              <p className="text-sm md:text-base lg:text-lg">{content}</p>
+              <p className="text-sm break-all md:text-base lg:text-lg">{content}</p>
             </div>
           ) : (
             <span className="text-sm md:text-md lg:text-base">💡 어떤 꿈인지 궁금하시나요? 클릭해보세요!</span>
