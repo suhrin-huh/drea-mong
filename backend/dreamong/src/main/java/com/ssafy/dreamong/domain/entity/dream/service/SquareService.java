@@ -54,7 +54,7 @@ public class SquareService {
                         comment.getContent(),
                         comment.getLikesCount(),
                         comment.getUser().getNickname(),
-                        comment.getUser().equals(userId))) // 닉네임 포함
+                        comment.getUser().getId().equals(userId))) // 닉네임 포함
                 .collect(Collectors.toList());
 
         return new SquareDetailResponse(dream.getSummary(), dream.getContent(), dream.getImage(), comments);
