@@ -27,11 +27,19 @@ const SquareDetailPage = () => {
         headers: { Authorization: `Bearer ${accessToken}` },
         params: { userId: user.userId },
       });
+  
       const data = response.data.data;
+  
+      // 백엔드 데이터에 liked 필드를 추가
+      const updatedComments = data.comments.map(comment => ({
+        ...comment,
+        liked: false // 초기에는 모든 댓글의 liked 상태를 false로 설정
+      }));
+  
       setSummary(data.summary);
       setContent(data.content);
       setImage(data.image);
-      setComments(data.comments);
+      setComments(updatedComments);
     } catch (error) {
       Swal.fire({
         title: 'ERROR',
@@ -46,18 +54,39 @@ const SquareDetailPage = () => {
     setIsToggled(!isToggled);
   };
 
-  const handleLikeClick = (id) => {
-    setComments(
-      comments.map((comment) =>
-        comment.id === id
-          ? {
-              ...comment,
-              likesCount: comment.liked ? comment.likesCount - 1 : comment.likesCount + 1,
-              liked: !comment.liked,
-            }
-          : comment,
-      ),
-    );
+  const handleLikeClick = async (commentId) => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await axios.post(
+        `${baseURL}/comments/${user.userId}/${commentId}/like`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+  
+      // 좋아요 토글 로직
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment.id === commentId
+            ? {
+                ...comment,
+                liked: response.data.status === 'like',
+                likesCount: response.data.status === 'like' 
+                  ? comment.likesCount + 1 
+                  : comment.likesCount - 1,
+              }
+            : comment
+        )
+      );
+    } catch (error) {
+      Swal.fire({
+        title: 'ERROR',
+        text: '좋아요를 처리하는 도중 오류가 발생했습니다.',
+        icon: 'error',
+        confirmButtonText: '돌아가기',
+      });
+    }
   };
 
   const handleCommentChange = (e) => {
@@ -94,8 +123,8 @@ const SquareDetailPage = () => {
       });
     }
   };
+
   const handleDeleteComment = async (commentId) => {
-   
     try {
       const accessToken = localStorage.getItem('accessToken');
       const response = await axios.delete(`${baseURL}/comments/${commentId}`, {
