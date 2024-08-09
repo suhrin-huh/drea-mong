@@ -12,6 +12,7 @@ const SquareDetailPage = () => {
   const [content, setContent] = useState('');
   const [image, setImage] = useState('');
   const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState(''); 
   const baseURL = useRecoilValue(baseURLState);
   const user = useRecoilValue(userState);
 
@@ -59,6 +60,42 @@ const SquareDetailPage = () => {
     );
   };
 
+  const handleCommentChange = (e) => {
+    setNewComment(e.target.value);
+  };
+
+  const handleCommentSubmit = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const response = await axios.post(
+        `${baseURL}/comments/create`,
+        {
+          content: newComment,
+          dreamId: parseInt(dreamId),
+          userId: user.userId,
+        },
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      
+      console.log(response.data.status)
+      if (response.data.status === 'success') {
+        fetchDreamDetail(); 
+        setNewComment('');
+      } else {
+        throw new Error(response.data.message);
+      }
+    } catch (error) {
+      Swal.fire({
+        title: 'ERROR',
+        text: '댓글을 생성하는 도중 오류가 발생했습니다.',
+        icon: 'error',
+        confirmButtonText: '돌아가기',
+      });
+    }
+  };
+
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-[#222222]">
       {/* 꿈 이미지 */}
@@ -97,7 +134,7 @@ const SquareDetailPage = () => {
         {comments.map((comment) => (
           <div key={comment.id} className="flex items-center m-5">
             <div className="flex flex-col justify-center w-full ml-4">
-              <div className="mb-2 text-base text-black">{comment.nickname}</div>
+              <div className="mb-2 text-base font-bold text-black">{comment.nickname}</div>
               <div className="text-sm text-black">{comment.content}</div>
             </div>
             <div className="flex flex-col items-center justify-center">
@@ -120,6 +157,23 @@ const SquareDetailPage = () => {
             </div>
           </div>
         ))}
+        {/* 댓글 작성 */}
+        <div className="flex flex-col items-center mt-4">
+          <textarea
+            id="newComment"
+            name="newComment"
+            className="w-full h-24 p-2 border rounded-lg"
+            placeholder="댓글을 입력하세요..."
+            value={newComment}
+            onChange={handleCommentChange}
+          />
+          <button
+            className="px-4 py-2 mt-2 text-white bg-blue-500 rounded-lg"
+            onClick={handleCommentSubmit}
+          >
+           작성
+          </button>
+        </div>
       </div>
     </div>
   );
