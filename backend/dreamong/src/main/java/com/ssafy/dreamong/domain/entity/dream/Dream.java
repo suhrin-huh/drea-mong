@@ -24,14 +24,14 @@ public class Dream extends BaseTimeEntity {
     private Integer id;
 
     @Lob
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "image")
     private String image;
 
     @Lob
-    @Column(name = "interpretation")
+    @Column(name = "interpretation", columnDefinition = "TEXT")
     private String interpretation;
 
     @Column(name = "summary", nullable = false)
