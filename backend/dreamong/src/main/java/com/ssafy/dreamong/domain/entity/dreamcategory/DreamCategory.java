@@ -31,7 +31,9 @@ public class DreamCategory {
     public DreamCategory(Dream dream, Category category) {
         this.dream = dream;
         this.category = category;
-        // 양방향 관계 설정
+    }
+
+    public void setRelations(Dream dream, Category category) {
         if (dream != null) {
             dream.addDreamCategory(this);
         }
