@@ -1,6 +1,7 @@
-package com.ssafy.dreamong.domain.exception;
+package com.ssafy.dreamong.domain.exception.global;
 
 import com.ssafy.dreamong.domain.entity.common.ApiResponse;
+import com.ssafy.dreamong.domain.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -52,5 +53,15 @@ public class ControllerExceptionAdvice {
     @ExceptionHandler(RoomNotFoundException.class)
     public ResponseEntity<ApiResponse<?>> handleRoomNotFoundException(RoomNotFoundException e) {
         return new ResponseEntity<>(ApiResponse.error(), HttpStatus.NOT_FOUND); // 404
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleUserNotFoundException(UserNotFoundException e) {
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.NOT_FOUND); // 404
+    }
+
+    @ExceptionHandler(NicknameAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<?>> handleNicknameAlreadyExistsException(NicknameAlreadyExistsException e) {
+        return new ResponseEntity<>(ApiResponse.error(), HttpStatus.CONFLICT); // 409
     }
 }

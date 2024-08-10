@@ -1,4 +1,4 @@
-package com.ssafy.dreamong.domain.entity.user.service;
+package com.ssafy.dreamong.domain.oauth.service;
 
 
 import com.ssafy.dreamong.domain.entity.user.Role;
@@ -6,6 +6,7 @@ import com.ssafy.dreamong.domain.entity.user.User;
 import com.ssafy.dreamong.domain.entity.user.dto.UserDto;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import com.ssafy.dreamong.domain.oauth.dto.*;
+import com.ssafy.dreamong.domain.oauth.factory.OAuth2ResponseFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -24,7 +25,7 @@ import java.util.Map;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-    private final String PREFIX = "dreamer_";
+    private final Map<String, OAuth2ResponseFactory> responseFactories; // DI를 통해 주입받음
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -42,10 +43,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User findUser = userRepository.findByProviderUserId(providerUserId);
 
         if (findUser == null) { // 우리 서비스에 처음 로그인한 경우
-            User user = User.createUser(oAuth2Response.getEmail(), oAuth2Response.getName(), providerUserId, Role.MEMBER);
-            userRepository.save(user);
+            User user = User.createUser(oAuth2Response.getEmail(), oAuth2Response.getName(), providerUserId);
+            userRepository.save(user); // 첫 번째 save: User를 저장하여 ID를 할당받음
 
-            String defaultNickname = PREFIX + user.getId();
+            String defaultNickname = "dreamer_" + user.getId(); // ID를 활용해 닉네임을 업데이트
             user.updateNickname(defaultNickname);
             userRepository.save(user);
 
@@ -59,7 +60,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return new CustomOAuth2User(userDto);
         } else { // 이전에 로그인한 기록이 있는 경우
             findUser.updateUserInfo(oAuth2Response.getEmail(), oAuth2Response.getName());
-            userRepository.save(findUser); // 변경 감지 쓸거면 삭제해도 될 거 같음
+            userRepository.save(findUser);
 
 
             UserDto userDto = new UserDto();
@@ -73,16 +74,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
     }
 
+
     private OAuth2Response getOAuth2Response(String registrationId, Map<String, Object> attributes) {
-        switch (registrationId) {
-            case "naver":
-                return new NaverResponse(attributes);
-            case "google":
-                return new GoogleResponse(attributes);
-            case "kakao":
-                return new KakaoResponse(attributes);
-            default:
-                throw new OAuth2AuthenticationException("Unknown registration id: " + registrationId);
+        OAuth2ResponseFactory factory = responseFactories.get(registrationId);
+        if (factory == null) {
+            throw new OAuth2AuthenticationException("Unknown registration id: " + registrationId);
         }
+        return factory.create(attributes);
     }
 }

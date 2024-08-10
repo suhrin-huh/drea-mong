@@ -24,7 +24,7 @@ public class NotificationScheduler {
     private final UserRepository userRepository;
     private final FcmService fcmService;
 
-    @Scheduled(fixedRate = 60000) // 1분마다 실행
+//    @Scheduled(fixedRate = 60000) // 1분마다 실행
     public void checkAndSendNotifications() {
         List<Notification> notifications = notificationRepository
                 .findByScheduleTimeBeforeAndSentFalse(LocalDateTime.now());

@@ -1,10 +1,8 @@
 package com.ssafy.dreamong.domain.entity.user.controller;
 
 import com.ssafy.dreamong.domain.entity.common.ApiResponse;
-import com.ssafy.dreamong.domain.entity.user.User;
 import com.ssafy.dreamong.domain.entity.user.dto.UpdateNicknameRequest;
 import com.ssafy.dreamong.domain.entity.user.dto.UserInfoResponse;
-import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import com.ssafy.dreamong.domain.entity.user.service.UserService;
 import com.ssafy.dreamong.domain.oauth.dto.CustomOAuth2User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +26,6 @@ import java.time.LocalDateTime;
 @Tag(name = "User", description = "사용자 API")
 public class UserController {
     private final UserService userService;
-    private final UserRepository userRepository;
 
     @Operation(summary = "사용자 정보 조회", description = "현재 로그인된 사용자의 정보를 조회합니다.")
     @GetMapping("/info")
@@ -69,39 +66,31 @@ public class UserController {
     public ResponseEntity<ApiResponse<Void>> updateNickname(@AuthenticationPrincipal CustomOAuth2User oAuth2User,
                                                             @RequestBody UpdateNicknameRequest updateNicknameRequest) {
         Integer userId = oAuth2User.getUserId();
-
         log.info("requestBody: {}", updateNicknameRequest.getNickname());
-        User user = userRepository.findById(userId).orElseThrow();
-        user.updateNickname(updateNicknameRequest.getNickname());
-        userRepository.save(user);
+        userService.updateNickname(userId, updateNicknameRequest.getNickname());
+
         return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
     }
 
     @PostMapping("/fcm-token")
-    public void updateFcmToken(@AuthenticationPrincipal CustomOAuth2User oAuth2User, @RequestParam String fcmToken) {
+    public ResponseEntity<ApiResponse<Void>> updateFcmToken(@AuthenticationPrincipal CustomOAuth2User oAuth2User, @RequestParam String fcmToken) {
         Integer userId = oAuth2User.getUserId();
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
-        user.saveFcmToken(fcmToken);
-        userRepository.save(user);
+        userService.updateUserFcmToken(userId, fcmToken);
+        return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
     }
 
     @PostMapping("/schedule-sleep-reminder")
     public ResponseEntity<ApiResponse<Void>> scheduleSleepReminder(@AuthenticationPrincipal CustomOAuth2User oAuth2User,
                                                                    @RequestParam LocalDateTime bedtime) {
-        User user = userRepository.findById(oAuth2User.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        userService.scheduleSleepReminder(user, bedtime);
+        userService.scheduleSleepReminder(oAuth2User.getUserId(), bedtime);
         return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
     }
 
     @PostMapping("/schedule-morning-wakeup")
     public ResponseEntity<ApiResponse<Void>> scheduleMorningWakeup(@AuthenticationPrincipal CustomOAuth2User oAuth2User,
                                                                    @RequestParam LocalDateTime wakeupTime) {
-        User user = userRepository.findById(oAuth2User.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        userService.scheduleMorningWakeup(user, wakeupTime);
+        userService.scheduleMorningWakeup(oAuth2User.getUserId(), wakeupTime);
         return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
     }
 

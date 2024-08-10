@@ -1,4 +1,4 @@
-package com.ssafy.dreamong.domain.oauth;
+package com.ssafy.dreamong.domain.oauth.handler;
 
 import com.ssafy.dreamong.domain.entity.user.User;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
