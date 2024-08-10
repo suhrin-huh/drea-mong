@@ -76,8 +76,11 @@ public class Dream extends BaseTimeEntity {
     }
 
     public void addDreamCategory(DreamCategory dreamCategory) {
-        this.dreamCategories.add(dreamCategory);
+        if (!this.dreamCategories.contains(dreamCategory)) {
+            this.dreamCategories.add(dreamCategory);
+        }
     }
+
 
     public void update(String content, String image, String interpretation, String summary, String writeTime, boolean isShared, Set<DreamCategory> newCategories) {
         this.content = content;
