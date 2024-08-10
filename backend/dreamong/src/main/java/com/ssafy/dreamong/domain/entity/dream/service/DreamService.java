@@ -60,9 +60,13 @@ public class DreamService {
 
         Set<DreamCategory> dreamCategories = new HashSet<>();
         for (DreamCategoryDto dto : dreamCategoryDtoSet) {
-            Category category = categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType())));
-            DreamCategory dreamCategory = new DreamCategory(dream, category);
-            dreamCategories.add(dreamCategory);
+            Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
+                    .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
+
+            if (!dreamCategoryExists(dream, category)) {
+                DreamCategory dreamCategory = new DreamCategory(dream, category);
+                dreamCategories.add(dreamCategory);
+            }
         }
 
         dream.getDreamCategories().addAll(dreamCategories);
@@ -70,7 +74,6 @@ public class DreamService {
 
         return toDreamDto(dream);
     }
-
     // 상세보기
     public DreamGetResponse getDream(Integer dreamId) {
         Dream dream = dreamRepository.findById(dreamId).orElseThrow(() -> new NotFoundException("Dream not found"));
@@ -307,6 +310,11 @@ public class DreamService {
     private DreamCategoryDto toDreamCategoryDto(DreamCategory dreamCategory) {
         return new DreamCategoryDto(dreamCategory.getId(), dreamCategory.getCategory().getWord(),
                 dreamCategory.getCategory().getType().name());
+    }
+
+    private boolean dreamCategoryExists(Dream dream, Category category) {
+        return dream.getDreamCategories().stream()
+                .anyMatch(dreamCategory -> dreamCategory.getCategory().equals(category));
     }
 }
 
