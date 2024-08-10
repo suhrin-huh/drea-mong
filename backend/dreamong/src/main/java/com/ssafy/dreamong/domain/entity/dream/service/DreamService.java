@@ -9,6 +9,7 @@ import com.ssafy.dreamong.domain.entity.dream.Dream;
 import com.ssafy.dreamong.domain.entity.dream.dto.*;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
 import com.ssafy.dreamong.domain.entity.dreamcategory.DreamCategory;
+import com.ssafy.dreamong.domain.entity.dreamcategory.repository.DreamCategoryRepository;
 import com.ssafy.dreamong.domain.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.model.ChatModel;
@@ -30,19 +31,16 @@ public class DreamService {
     private final DreamRepository dreamRepository;
     private final CategoryRepository categoryRepository;
     private final ChatModel chatModel;
+    private final DreamCategoryRepository dreamCategoryRepository;
     private final ObjectMapper objectMapper; // Jackson ObjectMapper를 사용하여 JSON 파싱
 
     // 꿈 생성
     @Transactional
     public DreamDto create(DreamCreateRequest dreamRequest) {
-        // AI API 호출하여 summary 생성
         String newSummary = SingleLineInterpretation(dreamRequest.getContent());
 
-        // AI API 호출하여 category 분석
         String detailedPrompt = DetailedPrompt(dreamRequest.getContent());
         String analysisResultJson = chatModel.call(detailedPrompt);
-
-        // Set으로 중복 제거
         Set<DreamCategoryDto> dreamCategoryDtoSet = new HashSet<>(parseDreamCategories(analysisResultJson));
 
         Dream dream = Dream.builder()
@@ -58,22 +56,26 @@ public class DreamService {
 
         dream = dreamRepository.save(dream);
 
-        Set<DreamCategory> dreamCategories = new HashSet<>();
         for (DreamCategoryDto dto : dreamCategoryDtoSet) {
             Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
                     .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
 
-            if (!dreamCategoryExists(dream, category)) {
-                DreamCategory dreamCategory = new DreamCategory(dream, category);
-                dreamCategories.add(dreamCategory);
+            // 중복 체크를 통해 DreamCategory가 이미 존재하는지 확인
+            boolean exists = dreamCategoryRepository.existsByDreamAndCategory(dream, category);
+
+            if (!exists) {
+                DreamCategory dreamCategory = DreamCategory.builder()
+                        .dream(dream)
+                        .category(category)
+                        .build();
+                dream.addDreamCategory(dreamCategory);
+                category.addDreamCategory(dreamCategory);
             }
         }
 
-        dream.getDreamCategories().addAll(dreamCategories);
-        dream = dreamRepository.save(dream);
-
-        return toDreamDto(dream);
+        return toDreamDto(dreamRepository.save(dream));
     }
+
     // 상세보기
     public DreamGetResponse getDream(Integer dreamId) {
         Dream dream = dreamRepository.findById(dreamId).orElseThrow(() -> new NotFoundException("Dream not found"));

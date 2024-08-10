@@ -31,8 +31,13 @@ public class DreamCategory {
     public DreamCategory(Dream dream, Category category) {
         this.dream = dream;
         this.category = category;
-        dream.getDreamCategories().add(this); // Dream에 추가
-        category.getDreamCategories().add(this); // Category에 추가
+        // 양방향 관계 설정
+        if (dream != null) {
+            dream.addDreamCategory(this);
+        }
+        if (category != null) {
+            category.addDreamCategory(this);
+        }
     }
 
     public String getDreamType() {
