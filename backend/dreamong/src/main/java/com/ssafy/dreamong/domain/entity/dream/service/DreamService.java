@@ -17,8 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,7 +42,8 @@ public class DreamService {
         String detailedPrompt = DetailedPrompt(dreamRequest.getContent());
         String analysisResultJson = chatModel.call(detailedPrompt);
 
-        List<DreamCategoryDto> dreamCategoryDto = parseDreamCategories(analysisResultJson);
+        // Set으로 중복 제거
+        Set<DreamCategoryDto> dreamCategoryDtoSet = new HashSet<>(parseDreamCategories(analysisResultJson));
 
         Dream dream = Dream.builder()
                 .content(dreamRequest.getContent())
@@ -56,10 +58,9 @@ public class DreamService {
 
         dream = dreamRepository.save(dream);
 
-        List<DreamCategory> dreamCategories = new ArrayList<>();
-        for (DreamCategoryDto dto : dreamCategoryDto) {
-            Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
-                    .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
+        Set<DreamCategory> dreamCategories = new HashSet<>();
+        for (DreamCategoryDto dto : dreamCategoryDtoSet) {
+            Category category = categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType())));
             DreamCategory dreamCategory = new DreamCategory(dream, category);
             dreamCategories.add(dreamCategory);
         }
@@ -112,17 +113,18 @@ public class DreamService {
         // AI API 호출하여 category 분석
         String detailedPrompt = DetailedPrompt(dreamUpdateRequest.getContent());
         String analysisResultJson = chatModel.call(detailedPrompt);
-        List<DreamCategoryDto> dreamCategoryDtos = parseDreamCategories(analysisResultJson);
+
+        // Set으로 중복 제거
+        Set<DreamCategoryDto> dreamCategoryDtos = new HashSet<>(parseDreamCategories(analysisResultJson));
 
         // 기존 카테고리 삭제
         existingDream.getDreamCategories().clear();
         dreamRepository.save(existingDream); // 업데이트된 상태를 먼저 저장
 
         // 새로운 카테고리 추가
-        List<DreamCategory> newDreamCategories = new ArrayList<>();
+        Set<DreamCategory> newDreamCategories = new HashSet<>();
         for (DreamCategoryDto dto : dreamCategoryDtos) {
-            Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
-                    .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
+            Category category = categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType())));
             DreamCategory dreamCategory = new DreamCategory(existingDream, category);
             newDreamCategories.add(dreamCategory);
         }
@@ -142,6 +144,7 @@ public class DreamService {
 
         return toDreamDto(dreamRepository.save(existingDream));
     }
+
 
     // 꿈 삭제
     @Transactional
@@ -163,7 +166,7 @@ public class DreamService {
                 .likesCount(0)
                 .userId(dreamCreateRequest.getUserId())
                 .writeTime(dreamCreateRequest.getWriteTime())
-                .dreamCategories(new ArrayList<>())
+                .dreamCategories(new HashSet<>()) // HashSet으로 중복 방지
                 .build();
 
         dream = dreamRepository.save(dream);
@@ -183,25 +186,28 @@ public class DreamService {
     private String DetailedPrompt(String message) {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
-                "이 꿈을 다음의 카테고리로 분류하고 각 카테고리별로 주요 단어를 한 단어로 (예: 하늘 높이 솟아 오른 나무들 => 나무) JSON 형식으로 추출해주세요:\n" +
+                "이 꿈을 아래의 다섯 개 카테고리로 분류해주세요. **모든** 카테고리에서 반드시 **최소 하나** 이상의 항목을 선택하여야 하며, 각 항목이 적절하게 선택되어야 합니다. " +
+                "모든 카테고리에서 항목이 누락되거나 부적절하게 선택된 경우, 불이익이 있을 수 있습니다. " +
+                "결과는 반드시 JSON 형식으로 출력해주세요:\n" +
                 "1. 꿈 종류 (dreamType): 이 꿈의 종류는 무엇입니까? (예: 일반 / 루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈) 예시에 있는 종류로만 구분해주세요. (루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈) 여기에 해당하지 않는 꿈은 일반으로 해주세요.\n" +
-                "2. 인물 (character): 꿈에 등장한 주요 인물은 누구입니까? 인물의 역할과 관계를 포함해주세요. (예: 가족, 친구, 낯선 사람 등) 나, 자신, 사용자 등 자신을 포함하는 단어는 빼주세요.\n" +
+                "2. 인물 (character): 꿈에 등장한 인물은 누구입니까? 인물의 역할과 관계를 (예: 가족, 친구, 낯선 사람 등) 포함해주세요. 반대로 나, 자신, 사용자 등 자신을 포함하는 단어는 제외해주세요.\n" +
                 "3. 기분 (mood): 이 꿈을 꿀 때 느낀 기분은 어떠했습니까? (예: 두려움, 기쁨, 슬픔 등)\n" +
-                "4. 장소 (location): 꿈에서 나타난 주요 장소는 어디입니까? 가능한 자세하게 설명해주세요. (예: 집, 학교, 공원 등)\n" +
+                "4. 장소 (location): 꿈에서 장소들은 어디입니까? 가능한 자세하게 설명해주세요. (예: 집, 학교, 공원 등)\n" +
                 "5. 사물 또는 동물 (objects): 꿈에 등장한 주요 사물이나 동물은 무엇입니까? 가능한 구체적으로 설명해주세요. (예: 자동차, 고양이, 책 등)\n" +
-                "응답은 JSON 형식으로 해주세요.";
+                "모든 카테고리에서 최소 하나 이상의 항목이 포함된 JSON 형식으로 응답해주세요.";
         return prompt;
     }
 
     // 카테고리별 파싱
-    private List<DreamCategoryDto> parseDreamCategories(String json) {
+    private Set<DreamCategoryDto> parseDreamCategories(String json) {
         try {
             json = json.trim();
             json = json.replace("```json", "").replace("```", "").replace("`", "").trim();
 
             JsonNode root = objectMapper.readTree(json);
 
-            List<DreamCategoryDto> categories = new ArrayList<>();
+            Set<DreamCategoryDto> categories = new HashSet<>(); // 중복 제거를 위해 Set 사용
+
             if (root.has("dreamType")) {
                 String dreamType = root.get("dreamType").asText();
                 if (!dreamType.isEmpty()) {
@@ -281,9 +287,9 @@ public class DreamService {
                 }
             }
 
-            return categories;
+            return categories; // Set을 반환하여 중복을 제거함
         } catch (Exception e) {
-            return new ArrayList<>();
+            return new HashSet<>();
         }
     }
 
@@ -303,3 +309,4 @@ public class DreamService {
                 dreamCategory.getCategory().getType().name());
     }
 }
+
