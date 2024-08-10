@@ -32,8 +32,8 @@ public class DreamController {
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<?>> createDream(
             @Parameter(description = "꿈 생성 요청 데이터", required = true) @RequestBody DreamCreateRequest dreamCreateRequest) {
-        DreamDto dream = dreamService.create(dreamCreateRequest);
-        return ResponseEntity.ok(ApiResponse.success(dream));
+        dreamService.create(dreamCreateRequest);
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @Operation(summary = "꿈 상세보기", description = "메인페이지의 리스트중 하나를 선택하여 상세하게 본다.")

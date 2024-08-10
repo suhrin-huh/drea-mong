@@ -43,6 +43,7 @@ public class DreamService {
         String analysisResultJson = chatModel.call(detailedPrompt);
         Set<DreamCategoryDto> dreamCategoryDtoSet = new HashSet<>(parseDreamCategories(analysisResultJson));
 
+        // Dream 객체 생성
         Dream dream = Dream.builder()
                 .content(dreamRequest.getContent())
                 .image(dreamRequest.getImage())
@@ -54,8 +55,11 @@ public class DreamService {
                 .writeTime(dreamRequest.getWriteTime())
                 .build();
 
+        // Dream 객체를 먼저 저장하여 ID를 생성
         dream = dreamRepository.save(dream);
 
+        // 새로운 카테고리 추가
+        Set<DreamCategory> newDreamCategories = new HashSet<>();
         for (DreamCategoryDto dto : dreamCategoryDtoSet) {
             Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
                     .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
@@ -68,11 +72,14 @@ public class DreamService {
                         .dream(dream)
                         .category(category)
                         .build();
-                dream.addDreamCategory(dreamCategory);
-                category.addDreamCategory(dreamCategory);
+                newDreamCategories.add(dreamCategory);
             }
         }
 
+        // 새로운 DreamCategory를 Dream에 추가
+        dream.getDreamCategories().addAll(newDreamCategories);
+
+        // Dream 객체를 다시 저장
         return toDreamDto(dreamRepository.save(dream));
     }
 
@@ -124,16 +131,27 @@ public class DreamService {
 
         // 기존 카테고리 삭제
         existingDream.getDreamCategories().clear();
-        dreamRepository.save(existingDream); // 업데이트된 상태를 먼저 저장
+        dreamRepository.save(existingDream); // 기존의 연관관계를 명시적으로 저장
 
         // 새로운 카테고리 추가
         Set<DreamCategory> newDreamCategories = new HashSet<>();
         for (DreamCategoryDto dto : dreamCategoryDtos) {
-            Category category = categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType())));
-            DreamCategory dreamCategory = new DreamCategory(existingDream, category);
-            newDreamCategories.add(dreamCategory);
+            Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
+                    .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
+
+            // 중복 체크를 통해 DreamCategory가 이미 존재하는지 확인
+            boolean exists = dreamCategoryRepository.existsByDreamAndCategory(existingDream, category);
+
+            if (!exists) {
+                DreamCategory dreamCategory = DreamCategory.builder()
+                        .dream(existingDream)
+                        .category(category)
+                        .build();
+                newDreamCategories.add(dreamCategory);
+            }
         }
 
+        // 새로운 DreamCategory를 기존 Dream에 추가
         existingDream.getDreamCategories().addAll(newDreamCategories);
 
         // Dream 객체 업데이트
