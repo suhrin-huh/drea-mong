@@ -43,19 +43,26 @@ const NavigationBar = () => {
   // path에 따라서 렌더링되는 내용이 바뀌도록 설정
   return location.pathname == '/login' ? null : (
     <div className="fixed bottom-0 h-[60px] max-w-[600px] bg-white text-white last:w-full">
-      <div className="flex justify-between mx-4 my-3">
+      <div className="mx-4 my-3 flex justify-between">
         {paths.map(({ pathname, icon }) => {
           const isCurrentPath = location.pathname === pathname;
           const iconColor = isCurrentPath ? MAIN_COLOR : SECONDARY_COLOR;
 
           // paths 내부에서 pathname == "/dream/create"인 path에 대해서
-          // 현재 경로가 useSTTPath(STT를 사용하는 경로)에 해당될 때 true 반환
+          /** 현재 경로가 useSTTPath(STT를 사용하는 경로)에 해당될 때 true 반환 */
           const isSTTActive =
             pathname == '/dream/create' && useSTTPath.some((path) => location.pathname.includes(path));
+          // STTIcon 사용시에는 Link 연결 X
+          if (isSTTActive) {
+            return (
+              <div className="relative" key={pathname}>
+                <STTIcon handleSTT={handleSTT}></STTIcon>;
+              </div>
+            );
+          }
           return (
             <Link key={pathname} to={pathname} className="relative">
-              {/* 꿈 등록페이지와 수정페이지에서 아이콘이 바뀌도록 후에 수정 예정 */}
-              {isSTTActive ? <STTIcon handleSTT={handleSTT}></STTIcon> : icon(iconColor)}
+              {icon(iconColor)}
             </Link>
           );
         })}
