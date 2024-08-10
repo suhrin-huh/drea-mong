@@ -6,7 +6,7 @@ import NavigationBar from './components/NavigationBar';
 import MainPage from './pages/MainPage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import LoginSuccess from './pages/LoginPage/components/LoginSuccess';
-import DreamRegisterPage from './pages/DreamRegisterPage';
+import DreamRegisterPage from './pages/DreamPage/DreamRegisterPage';
 import DreamDetailPage from './pages/DreamDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import StreamingPage from './pages/StreamingPage/StreamingPage';
