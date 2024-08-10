@@ -10,7 +10,7 @@ import axios from 'axios';
 // 앱 내부의 컴포넌트/아이콘
 import Button from '../../../components/Button';
 import { useHandleError } from '../../../utils/utils';
-import { SmallLoadingSpinner } from '../../../assets/icons';
+import { SmallLoadingSpinner, ArrowIcon } from '../../../assets/icons';
 
 /** - 해석 생성
  * - 오류 발생시 현재 페이지에 머무른다.*/
@@ -107,16 +107,13 @@ const InterpretationBox = ({
             >
               해석 재생성하기
             </button>
-            {/* 1번 한글로 닫기 */}
-            <button className="mx-auto mt-4 block text-center text-slate-100" onClick={() => closeInterp()}>
-              닫기
-            </button>
-            {/* 2번 X 표시 */}
             <button
               className="absolute right-3 top-2 text-center text-2xl text-slate-100"
               onClick={() => closeInterp()}
             >
-              X
+              <div className={`transition-transform duration-1000 ease-in-out ${isInterpVisible ? 'rotate-90' : ''}`}>
+                {ArrowIcon}
+              </div>
             </button>
           </div>
         </div>

@@ -18,6 +18,7 @@ import { useHandleError } from '../../../utils/utils';
 const UpperBar = ({ content = '', image = '', interpretation = '', date = '', dreamId = '', mode }) => {
   const user = useRecoilValue(userState);
   const baseURL = useRecoilValue(baseURLState);
+
   const navigate = useNavigate();
   const handleError = useHandleError();
 
@@ -63,7 +64,9 @@ const UpperBar = ({ content = '', image = '', interpretation = '', date = '', dr
           axios.post(`${baseURL}/dream/temporary`, requestData, {
             headers: { Authorization: `Bearer ${accessToken}` },
           });
-          navigate('/');
+          setTimeout(() => {
+            navigate('/');
+          }, 500);
         } catch (error) {
           handleError('/login');
         }
@@ -82,13 +85,20 @@ const UpperBar = ({ content = '', image = '', interpretation = '', date = '', dr
         denyButtonText: '취소',
       });
       if (confirmed) {
+        const accessToken = localStorage.getItem('accessToken');
         const requestData = {};
-        const response = await axios.delete(`${baseURL}/dream/${dreamId}`, requestData, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
+        const response = await axios.delete(
+          `${baseURL}/dream/${dreamId}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          },
+          requestData,
+        );
+        console.log(response);
         navigate('/');
       }
-    } catch {
+    } catch (err) {
+      console.log(err);
       handleError();
     }
   };

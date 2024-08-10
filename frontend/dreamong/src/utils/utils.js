@@ -8,6 +8,7 @@ import Swal from 'sweetalert2/dist/sweetalert2.js';
 import 'sweetalert2/src/sweetalert2.scss';
 
 /** - 오류 발생 모달 표시 후 돌아가기 클릭시 redirectURL로 이동
+ * - 경로 없으면 현재 페이지
  * - { redirectURL = '' } = {} : 인자 미제공시에 발생하는 오류 해결
  * - Invalid hook call : 훅은 React의 함수형 컴포넌트 내에서만 사용*/
 export function useHandleError({ redirectURL = '' } = {}) {

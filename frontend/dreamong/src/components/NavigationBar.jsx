@@ -37,12 +37,14 @@ const NavigationBar = () => {
 
   const [isListening, setIsListening] = useRecoilState(isListeningState);
   const handleSTT = async () => {
-    setIsListening((prev) => !prev);
+    if (!isListening) {
+      setIsListening(true);
+    }
   };
 
   // path에 따라서 렌더링되는 내용이 바뀌도록 설정
   return location.pathname == '/login' ? null : (
-    <div className="fixed bottom-0 h-[60px] max-w-[600px] bg-white text-white last:w-full">
+    <div className="fixed bottom-0 z-50 h-[60px] max-w-[600px] bg-white text-white last:w-full">
       <div className="mx-4 my-3 flex justify-between">
         {paths.map(({ pathname, icon }) => {
           const isCurrentPath = location.pathname === pathname;

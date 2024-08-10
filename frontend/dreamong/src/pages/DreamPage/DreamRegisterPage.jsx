@@ -14,7 +14,13 @@ import axios from 'axios';
 // 앱 내부의 컴포넌트/아이콘
 import Button from '../../components/Button';
 import { useHandleError } from '../../utils/utils';
-import { LargeLoadingSpinner, LargeRegeneratorIcon, SmallLoadingSpinner } from '../../assets/icons';
+import {
+  LargeLoadingSpinner,
+  LargeRegeneratorIcon,
+  SmallLoadingSpinner,
+  SttWaveBar,
+  SaveBar,
+} from '../../assets/icons';
 import UpperBar from './components/UpperBar';
 import DatePicker from './components/DatePicker';
 import ContentBox from './components/ContentBox';
@@ -47,20 +53,6 @@ const DreamRegisterPage = () => {
 
   // 저장시에 응답이 올때까지 대체화면 표시
   const [isSaving, setIsSaving] = useState(false);
-
-  // 음성인식 중에 표시
-  const SttListener = (
-    <div className="absolute top-24 z-30 flex w-full items-center justify-center">
-      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white">
-        <div className="stt-loader"></div>
-      </div>
-    </div>
-  );
-
-  // 저장중 대체 화면
-  const SaveBar = (
-    <div className="absolute left-1/4 right-1/4 top-1/3 z-30 h-1/3 rounded-xl bg-black bg-opacity-80"></div>
-  );
 
   /** 꿈 일기 최소, 최대 길이 # MIN_LENGTH, MAX_LENGTH */
   const MIN_LENGTH = 25;
@@ -145,11 +137,10 @@ const DreamRegisterPage = () => {
   return (
     <div className="relative flex min-h-dvh flex-col px-6 py-3 text-white" style={{ minheight: '100vh' }}>
       {/* 음성인식 여부에 따른 animation */}
-      {isListening ? SttListener : null}
+      {isListening ? SttWaveBar : null}
 
       {/* 저장 중 loading page */}
-      {/* {isSaving ? SaveBar : null} */}
-      {isSaving ? null : SaveBar}
+      {/* {!isSaving ? SaveBar : null} */}
 
       <UpperBar content={content} image={image} interpretation={interpretation} date={date} mode={'save'} />
       <DatePicker date={date} setDate={setDate} replaceDateType={replaceDateType} />

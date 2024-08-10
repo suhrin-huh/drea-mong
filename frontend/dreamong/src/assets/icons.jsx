@@ -227,3 +227,36 @@ export const LargeRegeneratorIcon = (
     </defs>
   </svg>
 );
+
+export const SttWaveBar = (
+  <div className="fixed inset-0 z-30 flex w-full items-center justify-center">
+    <div className="flex h-36 w-36 items-center justify-center rounded-full bg-white bg-opacity-60 backdrop-blur-sm">
+      <div class="boxContainer">
+        <div class="box box1"></div>
+        <div class="box box2"></div>
+        <div class="box box3"></div>
+        <div class="box box4"></div>
+        <div class="box box5"></div>
+      </div>
+    </div>
+  </div>
+);
+
+import catImage from './cat.png';
+
+export const SaveBar = (
+  <div className="absolute inset-0 z-10 flex h-full w-full items-center justify-center bg-black bg-opacity-30 backdrop-blur-sm">
+    <div className="scale-150">
+      <span class="save-loader z-20"></span>
+    </div>
+  </div>
+);
+
+export const ArrowIcon = (
+  <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path
+      d="M13.3626 18.75H36.6376C37.0495 18.7501 37.4522 18.8723 37.7948 19.1012C38.1373 19.3302 38.4042 19.6555 38.5619 20.0361C38.7195 20.4168 38.7608 20.8356 38.6804 21.2396C38.6001 21.6437 38.4017 22.0149 38.1105 22.3062L26.473 33.9437C26.0823 34.3343 25.5525 34.5537 25.0001 34.5537C24.4476 34.5537 23.9178 34.3343 23.5271 33.9437L11.8896 22.3062C11.5984 22.0149 11.4 21.6437 11.3197 21.2396C11.2393 20.8356 11.2806 20.4168 11.4382 20.0361C11.5959 19.6555 11.8628 19.3302 12.2053 19.1012C12.5479 18.8723 12.9506 18.7501 13.3626 18.75Z"
+      fill="white"
+    />
+  </svg>
+);

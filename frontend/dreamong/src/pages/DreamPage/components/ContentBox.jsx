@@ -20,25 +20,24 @@ const ContentBox = ({ content, setContent, MAX_LENGTH, setIsInterpVisible, class
   const contentRef = useRef(null);
   const handleError = useHandleError();
 
-  useEffect(() => {
-    if (isListening) {
-      // 녹음이 시작하면
-      recognition.start();
-    } else {
-      recognition.stop();
-    }
-  }, [isListening]);
-
   const recognition = new window.webkitSpeechRecognition();
   recognition.lang = 'ko-KR';
   recognition.interimResults = false; // 중간 결과 포함여부
 
+  useEffect(() => {
+    if (isListening) {
+      // 녹음이 시작하면
+      recognition.start();
+    }
+  }, [isListening]);
+
   recognition.onstart = () => {
+    setIsListening(true);
     console.log('start!');
   };
 
-  // 녹음이 끝나면
-  recognition.opspeechend = () => {
+  // 녹음이 끝나면 icon 변경
+  recognition.onspeechend = () => {
     setIsListening(false);
     recognition.stop();
   };
@@ -48,8 +47,10 @@ const ContentBox = ({ content, setContent, MAX_LENGTH, setIsInterpVisible, class
     const transcript = event.results[0][0].transcript;
     insertTextAtCursor(transcript);
   };
+
   recognition.onerror = () => {
     recognition.stop();
+    setIsListening(false);
     handleError();
   };
 
@@ -61,6 +62,7 @@ const ContentBox = ({ content, setContent, MAX_LENGTH, setIsInterpVisible, class
       const startPoint = contentArea.selectionStart;
       const endPoint = contentArea.selectionEnd;
       const newContent = content.slice(0, startPoint) + textToInsert + content.slice(endPoint);
+      // 설정한 MAX_LENGTH까지만 입력 가능하도록 설정
       setContent(newContent.slice(0, MAX_LENGTH));
     } else {
       setContent((prev) => (prev + textToInsert).slice(0, MAX_LENGTH));
@@ -72,7 +74,7 @@ const ContentBox = ({ content, setContent, MAX_LENGTH, setIsInterpVisible, class
     if (e.target.value.length <= MAX_LENGTH) {
       setContent(e.target.value);
     } else {
-      e.target.value.slice(0, MAX_LENGTH);
+      setContent(e.target.value.slice(0, MAX_LENGTH));
     }
   };
 

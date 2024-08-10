@@ -14,7 +14,7 @@ import axios from 'axios';
 import { useHandleError } from '../../../utils/utils';
 import { LargeLoadingSpinner, LargeRegeneratorIcon } from '../../../assets/icons';
 
-/** - 오류 발생시 login으로 이동
+/** - 이미지 생성 오류 발생시 현재위치
  * - 검열이미지 대체할 요소 고려 필요!
  */
 const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => {
@@ -65,9 +65,12 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
     } catch (err) {
       console.log(err);
       setImage(null);
-      setIsGenerating(true);
+      setIsGenerating(false);
       setOptions(null);
-      handleError('/login');
+      Swal.fire({
+        icon: 'error',
+        text: '오류가 발생했습니다. 다시 시도해주세요.',
+      });
     }
   }
 
@@ -158,7 +161,14 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
 
   // 생성중에는 로딩스피너
   if (isGenerating) {
-    return <button className={`${classList} h-40 flex-col items-center justify-center`}>{LargeLoadingSpinner}</button>;
+    // return <button className={`${classList} h-40 flex-col items-center justify-center`}>{LargeLoadingSpinner}</button>;
+    return (
+      <div className={`${classList} flex-row`}>
+        <button className={`flex h-40 w-full items-center justify-center`}>
+          <div class="loader"></div>
+        </button>
+      </div>
+    );
   }
 
   return (
