@@ -1,4 +1,4 @@
-package com.ssafy.dreamong.domain.entity.user.service;
+package com.ssafy.dreamong.domain.oauth.service;
 
 
 import com.ssafy.dreamong.domain.entity.user.Role;
@@ -6,6 +6,7 @@ import com.ssafy.dreamong.domain.entity.user.User;
 import com.ssafy.dreamong.domain.entity.user.dto.UserDto;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import com.ssafy.dreamong.domain.oauth.dto.*;
+import com.ssafy.dreamong.domain.oauth.factory.OAuth2ResponseFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -24,6 +25,7 @@ import java.util.Map;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final Map<String, OAuth2ResponseFactory> responseFactories; // DI를 통해 주입받음
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -72,16 +74,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
     }
 
+
     private OAuth2Response getOAuth2Response(String registrationId, Map<String, Object> attributes) {
-        switch (registrationId) {
-            case "naver":
-                return new NaverResponse(attributes);
-            case "google":
-                return new GoogleResponse(attributes);
-            case "kakao":
-                return new KakaoResponse(attributes);
-            default:
-                throw new OAuth2AuthenticationException("Unknown registration id: " + registrationId);
+        OAuth2ResponseFactory factory = responseFactories.get(registrationId);
+        if (factory == null) {
+            throw new OAuth2AuthenticationException("Unknown registration id: " + registrationId);
         }
+        return factory.create(attributes);
     }
 }
