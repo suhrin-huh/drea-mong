@@ -1,10 +1,7 @@
 package com.ssafy.dreamong.domain.entity.dream.controller;
 
 import com.ssafy.dreamong.domain.entity.common.ApiResponse;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamCreateRequest;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamGetResponse;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamMainResponseWithCount;
-import com.ssafy.dreamong.domain.entity.dream.dto.DreamUpdateRequest;
+import com.ssafy.dreamong.domain.entity.dream.dto.*;
 import com.ssafy.dreamong.domain.entity.dream.service.DreamService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,8 +32,8 @@ public class DreamController {
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<?>> createDream(
             @Parameter(description = "꿈 생성 요청 데이터", required = true) @RequestBody DreamCreateRequest dreamCreateRequest) {
-        dreamService.create(dreamCreateRequest);
-        return ResponseEntity.ok(ApiResponse.success());
+        DreamDto dream = dreamService.create(dreamCreateRequest);
+        return ResponseEntity.ok(ApiResponse.success(dream));
     }
 
     @Operation(summary = "꿈 상세보기", description = "메인페이지의 리스트중 하나를 선택하여 상세하게 본다.")
