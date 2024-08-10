@@ -69,11 +69,6 @@ const MainPage = () => {
   // 초기 렌더링시에 처리되는 일
   // dreams, totalCount 데이터 변경하기
   useEffect(() => {
-    // if (localStorage.getItem("accessToken") && user.userId) {
-    //   getDreams();
-    //   swiperRef.current?.swiper.slideTo(month - 1, 0);
-    //   return
-    // }
     getDreams();
     swiperRef.current?.swiper.slideTo(month - 1, 0);
     // 2. 날짜에 맞게 포커스
@@ -117,7 +112,7 @@ const MainPage = () => {
   };
   return (
     <div className="relative h-dvh">
-      <div className="absolute right-3 top-3" onClick={() => navigateToStatistics()}>
+      <div className="absolute right-4 top-3" onClick={() => navigateToStatistics()}>
         {StatisticsIcon}
       </div>
       <header className="inline-flex h-1/4 w-full flex-col items-center justify-center gap-2.5 text-center text-white">
@@ -183,7 +178,6 @@ const MainPage = () => {
                     <div className="text-sm text-slate-500">{getWeekDay(dream.writeTime)}</div>
                   </div>
                   <div
-                    // 이 부분 수정 필요!!!!!!!!!!!
                     onClick={() => handleClick(dream.dreamId)}
                     className={`flex w-3/4 shrink grow basis-0 items-start justify-between self-stretch rounded-lg bg-black bg-opacity-40 p-2.5 text-white bg-blend-darken`}
                     style={{
