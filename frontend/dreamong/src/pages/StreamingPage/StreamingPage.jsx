@@ -230,7 +230,7 @@ const StreamingPage = () => {
 
       <section className="mb-2 flex justify-end">
         {location.pathname !== '/streaming' && (
-          <Button size="md" className="mr-auto text-white hover:text-gray-400" onClick={() => navigate(-1)}>
+          <Button size="md" className="mr-auto text-white hover:text-gray-400" onClick={() => navigate('/streaming')}>
             <img src={back} alt="뒤로가기" className="w-[21px]" />
           </Button>
         )}
