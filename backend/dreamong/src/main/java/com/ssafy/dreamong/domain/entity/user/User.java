@@ -22,7 +22,7 @@ public class User extends BaseTimeEntity {
     private String name;
     @Column(name = "provider_user_id", nullable = false, unique = true)
     private String providerUserId; // 외부 제공자와 관련된 고유 식별자
-    @Column(name = "nickname", nullable = false)
+    @Column(name = "nickname")
     private String nickname; // 사용자 인터페이스에 표시될 이름
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

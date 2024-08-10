@@ -24,7 +24,6 @@ import java.util.Map;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-    private final String PREFIX = "dreamer_";
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -42,10 +41,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User findUser = userRepository.findByProviderUserId(providerUserId);
 
         if (findUser == null) { // 우리 서비스에 처음 로그인한 경우
-            User user = User.createUser(oAuth2Response.getEmail(), oAuth2Response.getName(), providerUserId, Role.MEMBER);
-            userRepository.save(user);
+            User user = User.createUser(oAuth2Response.getEmail(), oAuth2Response.getName(), providerUserId);
+            userRepository.save(user); // 첫 번째 save: User를 저장하여 ID를 할당받음
 
-            String defaultNickname = PREFIX + user.getId();
+            String defaultNickname = "dreamer_" + user.getId(); // ID를 활용해 닉네임을 업데이트
             user.updateNickname(defaultNickname);
             userRepository.save(user);
 
@@ -59,7 +58,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return new CustomOAuth2User(userDto);
         } else { // 이전에 로그인한 기록이 있는 경우
             findUser.updateUserInfo(oAuth2Response.getEmail(), oAuth2Response.getName());
-            userRepository.save(findUser); // 변경 감지 쓸거면 삭제해도 될 거 같음
+            userRepository.save(findUser);
 
 
             UserDto userDto = new UserDto();
