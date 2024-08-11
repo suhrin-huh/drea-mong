@@ -40,7 +40,9 @@ export const getFCMToken = async () => {
   }
 
   try {
-    const currentToken = await getToken(messaging, { vapidKey: import.meta.env.VITE_FB_VIPID_ID });
+    const currentToken = await getToken(messaging, {
+      vapidKey: 'BDtrsBZFH9cOTh1MxRcyggaJnYeXDt2JaBo1dE2mIJAGTowdHap5MgejbebcKsaBQUSAtB2Q1vmun-db19YSJJg',
+    });
     if (currentToken) {
       console.log('FCM token:', currentToken);
       return currentToken;
