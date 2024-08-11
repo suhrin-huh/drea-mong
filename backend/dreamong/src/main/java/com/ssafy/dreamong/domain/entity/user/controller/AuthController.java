@@ -1,5 +1,6 @@
 package com.ssafy.dreamong.domain.entity.user.controller;
 
+import com.ssafy.dreamong.domain.entity.common.ApiResponse;
 import com.ssafy.dreamong.domain.entity.user.User;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import com.ssafy.dreamong.domain.jwt.JWTUtil;
@@ -27,15 +28,15 @@ public class AuthController {
 
     @Operation(summary = "액세스 토큰 재발급", description = "리프레시 토큰을 사용하여 새로운 액세스 토큰을 재발급합니다.")
     @PostMapping("/refresh")
-    public ResponseEntity<Void> refreshAccessToken(@CookieValue("RefreshToken") String refreshToken, HttpServletResponse response) {
-        log.info("================ RefreshToken 재발급  =====================");
+    public ResponseEntity<ApiResponse<Void>> refreshAccessToken(@CookieValue("RefreshToken") String refreshToken, HttpServletResponse response) {
+        log.info("================ accessToken 재발급  =====================");
 
         log.info("Refresh token: {} ", refreshToken);
         log.info("Response: {} ", response.getStatus());
 
         if (refreshToken == null || jwtUtil.isExpired(refreshToken)) {
             log.info("Refresh token is null or expired");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return new ResponseEntity<>(ApiResponse.error(), HttpStatus.UNAUTHORIZED);
         }
 
         String providerUserId = jwtUtil.getProviderUserId(refreshToken);
@@ -43,13 +44,13 @@ public class AuthController {
 
         if (user == null || !refreshToken.equals(user.getRefreshToken())) {
             log.info("User not found or refresh token does not match");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return new ResponseEntity<>(ApiResponse.error(), HttpStatus.UNAUTHORIZED);
         }
 
-        String accessToken = jwtUtil.createAccessToken(user.getId(), providerUserId, user.getRole(), 60 * 60 * 1000L); // 1시간
+        String accessToken = jwtUtil.createAccessToken(user.getId(), providerUserId, user.getRole());
         response.setHeader("Authorization", "Bearer " + accessToken);
         log.info("Access token generated and set in header");
 
-        return ResponseEntity.ok().build();
+        return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
     }
 }
