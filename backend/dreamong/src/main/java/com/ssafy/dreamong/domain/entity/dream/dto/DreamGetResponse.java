@@ -19,5 +19,7 @@ public class DreamGetResponse {
 
     private Integer likesCount;
 
+    private Integer userId;
+
     private String writeTime;
 }
