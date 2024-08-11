@@ -94,6 +94,7 @@ public class DreamService {
                 dream.getSummary(),
                 dream.isShared(),
                 dream.getLikesCount(),
+                dream.getUserId(),
                 dream.getWriteTime()
         );
     }
