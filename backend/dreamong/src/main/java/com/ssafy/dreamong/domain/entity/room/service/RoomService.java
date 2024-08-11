@@ -3,7 +3,7 @@ package com.ssafy.dreamong.domain.entity.room.service;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.ssafy.dreamong.domain.entity.room.Room;
 import com.ssafy.dreamong.domain.entity.room.dto.RoomCreateRequest;
-import com.ssafy.dreamong.domain.entity.room.dto.RoomListResponse;
+import com.ssafy.dreamong.domain.entity.room.dto.RoomDetailsResponse;
 import com.ssafy.dreamong.domain.entity.room.repository.RoomRepository;
 import com.ssafy.dreamong.domain.entity.user.User;
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
@@ -40,14 +40,16 @@ public class RoomService {
         socketIOServer.getBroadcastOperations().sendEvent("room-created", createdRoom);
     }
 
-    public List<RoomListResponse> getAllRooms() {
+    public List<RoomDetailsResponse> getAllRooms() {
         return roomRepository.findAllByOrderByIdDesc().stream()
-                .map(this::mapToRoomListResponse)
+                .map(this::mapToRoomDetailResponse)
                 .collect(Collectors.toList());
     }
 
-    public Room getRoomById(Integer id) {
-        return roomRepository.findById(id).orElseThrow(RoomNotFoundException::new);
+    public RoomDetailsResponse getRoomDetailsById(Integer roomId) {
+        return roomRepository.findById(roomId).map(this::mapToRoomDetailResponse)
+                .orElseThrow(RoomNotFoundException::new);
+
     }
 
     public void deleteRoom(Integer romeId) {
@@ -61,9 +63,9 @@ public class RoomService {
         socketIOServer.getBroadcastOperations().sendEvent("room-deleted", romeId);
     }
 
-    private RoomListResponse mapToRoomListResponse(Room room) {
+    private RoomDetailsResponse mapToRoomDetailResponse(Room room) {
         int participantCount = socketIOServer.getRoomOperations(String.valueOf(room.getId())).getClients().size();
-        return new RoomListResponse(room.getId(), room.getTitle(), room.getYoutubeLink(), room.getThumbnail(), participantCount);
+        return new RoomDetailsResponse(room.getId(), room.getTitle(), room.getYoutubeLink(), room.getThumbnail(), participantCount);
     }
 }
 
