@@ -7,8 +7,6 @@ import axios from 'axios';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { userState, baseURLState } from '../recoil/atoms';
 
-import { getFCMToken, onMessageListener } from '../utils/firebase';
-
 import login from '../assets/login.svg';
 import logout from '../assets/logout.svg';
 import user from '../assets/user.svg';
@@ -60,30 +58,7 @@ const SettingsPage = () => {
       pushRef.current = JSON.parse(savedPush);
       setPush(pushRef.current);
     }
-
-    // 푸시 알림 구독 상태 확인
-    if (isLogin) {
-      checkSubscriptionStatus();
-    }
   }, [userInfo]);
-
-  // 푸시 알림 구독 상태 확인 함수
-  const checkSubscriptionStatus = () => {
-    axios({
-      method: 'get',
-      url: `${baseURL}/push-notifications/status`,
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    })
-      .then((response) => {
-        pushRef.current = response.data.data.isSubscribed;
-        setPush(pushRef.current);
-      })
-      .catch((error) => {
-        console.error('구독 상태 확인 실패:', error);
-      });
-  };
 
   // 로그아웃 핸들러
   const handleLogout = (event) => {

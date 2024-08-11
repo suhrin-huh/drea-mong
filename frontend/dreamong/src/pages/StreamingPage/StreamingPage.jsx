@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import Button from '../../components/Button';
 import { useNavigate, Outlet } from 'react-router-dom';
-import { useRecoilValue } from 'recoil';
-import { baseURLState } from '../../recoil/atoms';
 
 import back from '../../assets/back.svg';
 
@@ -12,11 +10,9 @@ Modal.setAppElement('#root');
 
 const StreamingPage = () => {
   const navigate = useNavigate();
-  const baseURL = useRecoilValue(baseURLState);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [modalContentVisible, setModalContentVisible] = useState(false);
   const [sleepTime, setSleepTime] = useState(sessionStorage.getItem('sleepTime') || null);
-  const [fcmToken, setFcmToken] = useState(localStorage.getItem('fcmToken') || null);
 
   // 취침 시간 설정 관련 useEffect
   useEffect(() => {
