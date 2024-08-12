@@ -2,12 +2,7 @@ import { atom } from 'recoil';
 
 export const userState = atom({
   key: 'userState',
-  default: {
-    userId: 1,
-    email: '',
-    nickname: '',
-    role: 'ADMIN',
-  },
+  default: {},
 });
 
 export const isListeningState = atom({
@@ -17,10 +12,10 @@ export const isListeningState = atom({
 
 export const baseURLState = atom({
   key: 'baseURLState',
-  default: 'http://localhost:8080',
+  default: 'https://i11c106.p.ssafy.io/api',
 });
 
 export const socketURLState = atom({
   key: 'socketURLState',
-  default: 'http://localhost:9093',
+  default: 'wss://i11c106.p.ssafy.io',
 });
