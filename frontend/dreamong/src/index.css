@@ -208,3 +208,47 @@ body {
     background-position: 50% 36px;
   }
 }
+
+// scroll-loader
+.scroll-loader {
+  width: 40px;
+  height: 50px;
+  position: relative;
+  box-sizing: border-box;
+  border: 2px solid #fff;
+  margin: auto;
+  border-radius: 50% 50% 50% 50% / 25% 25% 25% 25%;
+}
+.scroll-loader::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 20px;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: #fff;
+  border-radius: 10px;
+  animation: scrollDown 1.5s linear infinite;
+}
+@keyframes scrollDown {
+  0% {
+    top: 15px;
+    height: 4px;
+    opacity: 1;
+  }
+  33% {
+    top: 15px;
+    height: 30px;
+  }
+  66% {
+    top: 40px;
+    height: 10px;
+    opacity: 1;
+  }
+  100% {
+    top: 50px;
+    height: 8px;
+    opacity: 0;
+  }
+}

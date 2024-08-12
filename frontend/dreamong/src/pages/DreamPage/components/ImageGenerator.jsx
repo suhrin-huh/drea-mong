@@ -26,17 +26,8 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
   const [options, setOptions] = useState(null);
   const [selected, setSelected] = useState(null);
 
-  // 검열시에 표현될 요소
-  const censored = (
-    <div className="flex h-full w-full items-center bg-black text-white">
-      <p>검열된 이미지입니다.</p>
-    </div>
-  );
-
   async function handleImgGenerator() {
     try {
-      setIsGenerating(true);
-
       // 꿈의 길이가 최소길이 이상일 때 생성 가능
       if (content.length < MIN_LENGTH) {
         Swal.fire({
@@ -46,6 +37,7 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
         });
         return 0;
       }
+      setIsGenerating(true);
       // content를 사용해 이미지 생성
       const requestData = {
         prompt: content,
@@ -127,16 +119,12 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
               className={`relative block h-full p-1 ${selected == idx ? 'rounded-lg border border-slate-100' : null}`}
             >
               {/* 이미지가 존재하면 표시, 검열된 이미지면 다른 이미지 렌더링 */}
-              {img ? (
-                <img
-                  onClick={() => handleSelected(idx)}
-                  className="block h-full w-full rounded-lg"
-                  src={img}
-                  key={idx}
-                ></img>
-              ) : (
-                censored
-              )}
+              <img
+                onClick={() => handleSelected(idx)}
+                className={`block h-full w-full rounded-lg ${img ? null : 'opacity-50'}`}
+                src={img ? img : '/src/assets/censoredImg.png'}
+                key={idx}
+              ></img>
               {selected == idx ? (
                 <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black bg-opacity-50 text-white">
                   <button

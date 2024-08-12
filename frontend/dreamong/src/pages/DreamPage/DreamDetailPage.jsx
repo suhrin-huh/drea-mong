@@ -60,6 +60,10 @@ const DreamRegisterPage = () => {
   useEffect(() => {
     async function getDetail() {
       try {
+        if (!accessToken) {
+          navigate('/login');
+          return;
+        }
         const requestData = {
           userId: user.userId,
         };
@@ -68,6 +72,9 @@ const DreamRegisterPage = () => {
           params: requestData,
         });
         const responseData = response.data.data;
+        if (responseData.userId != user.userId) {
+          navigate('/');
+        }
         setContent(responseData.content);
         setImage(responseData.image);
         setInterpretation(responseData.interpretation);
@@ -80,9 +87,14 @@ const DreamRegisterPage = () => {
         handleError('/login');
       }
     }
-
     getDetail();
   }, []);
+
+  useEffect(() => {
+    if (!image) {
+      setIsShared(false);
+    }
+  }, [image]);
 
   /** 음성인식 작동 여부 */
   const isListening = useRecoilValue(isListeningState);
@@ -142,7 +154,7 @@ const DreamRegisterPage = () => {
       {isListening ? SttWaveBar : null}
 
       {/* 저장 중 loading page */}
-      {!isSaving ? SaveBar : null}
+      {isSaving ? SaveBar : null}
       {/* {isSaving ? null : SaveBar} */}
       <UpperBar
         content={content}

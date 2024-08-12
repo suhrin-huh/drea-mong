@@ -25,6 +25,7 @@ const InterpretationBox = ({
 }) => {
   const baseURL = useRecoilValue(baseURLState);
   const handleError = useHandleError();
+  const accessToken = localStorage.getItem('accessToken');
 
   /** 해석 생성 함수 해석*/
   const handleInterp = async () => {
@@ -58,7 +59,7 @@ const InterpretationBox = ({
       const requestData = {
         message: content,
       };
-      const accessToken = localStorage.getItem('accessToken');
+
       const response = await axios.post(`${baseURL}/api/generate-interpretation`, requestData, {
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
       });
@@ -111,9 +112,7 @@ const InterpretationBox = ({
               className="absolute right-3 top-2 text-center text-2xl text-slate-100"
               onClick={() => closeInterp()}
             >
-              <div className={`transition-transform duration-1000 ease-in-out ${isInterpVisible ? 'rotate-90' : ''}`}>
-                {ArrowIcon}
-              </div>
+              <div className={`transition-transform duration-1000 ease-in-out`}>{ArrowIcon}</div>
             </button>
           </div>
         </div>
