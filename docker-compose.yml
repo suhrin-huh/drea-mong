@@ -26,6 +26,7 @@ services:
       - mysql
     ports:
       - "8080:8080"
+      - "9093:9093"
     networks:
       - spring-mysql-net
 
