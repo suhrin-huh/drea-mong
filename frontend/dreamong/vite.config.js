@@ -21,11 +21,6 @@ export default defineConfig({
         enabled: true, // 개발 중에도 PWA 활성화
         type: 'module', // ES 모듈 형식 사용
       },
-      // workbox: {
-      //   // Workbox 설정
-      //   cleanupOutdatedCaches: false, // 오래된 캐시 자동 정리 비활성화
-      //   sourcemap: true, // 소스맵 생성 활성화
-      // },
       includeAssets: ['apple-touch-icon.png'],
       manifest: {
         name: '드리-몽',
@@ -53,6 +48,15 @@ export default defineConfig({
       server: {
         headers: {
           'Service-Worker-Allowed': '/',
+        },
+        proxy: {
+          '/socket.io': {
+            target: 'https://i11c106.p.ssafy.io',
+            changeOrigin: true,
+            ws: true,
+            secure: true,
+            rewrite: (path) => path.replace(/^\/socket.io/, '/socket.io'),
+          },
         },
       },
     }),
