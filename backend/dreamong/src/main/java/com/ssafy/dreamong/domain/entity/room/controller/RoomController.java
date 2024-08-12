@@ -5,6 +5,8 @@ import com.ssafy.dreamong.domain.entity.room.Room;
 import com.ssafy.dreamong.domain.entity.room.dto.RoomListResponse;
 import com.ssafy.dreamong.domain.entity.room.service.RoomService;
 import com.ssafy.dreamong.domain.exception.RoomNotFoundException;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +18,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/rooms")
 @RequiredArgsConstructor
+@Tag(name = "Room", description = "방 API")
 public class RoomController {
 
     private final RoomService roomService;
 
+    @Operation(summary = "방 생성", description = "새로운 방을 생성합니다. 관리자 권한이 필요합니다.")
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<Room>> createRoom(@RequestBody Room room) {
@@ -31,9 +35,9 @@ public class RoomController {
         }
     }
 
+    @Operation(summary = "모든 방 조회", description = "모든 방을 조회합니다.")
     @GetMapping
     public ResponseEntity<ApiResponse<List<RoomListResponse>>> getAllRooms() {
-
         try {
             List<RoomListResponse> allRooms = roomService.getAllRooms();
             if (allRooms.isEmpty()) {
@@ -45,6 +49,7 @@ public class RoomController {
         }
     }
 
+    @Operation(summary = "방 조회", description = "방 ID로 방을 조회합니다.")
     @GetMapping("/{roomId}")
     public ResponseEntity<ApiResponse<Room>> getRoomById(@PathVariable Integer roomId) {
         try {
@@ -57,6 +62,7 @@ public class RoomController {
         }
     }
 
+    @Operation(summary = "방 삭제", description = "방 ID로 방을 삭제합니다. 관리자 권한이 필요합니다.")
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{roomId}")
     public ResponseEntity<ApiResponse<Void>> deleteRoom(@PathVariable Integer roomId) {
@@ -69,6 +75,4 @@ public class RoomController {
             return new ResponseEntity<>(ApiResponse.error(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-
 }

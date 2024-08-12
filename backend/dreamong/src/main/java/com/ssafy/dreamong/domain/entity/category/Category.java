@@ -38,6 +38,9 @@ public class Category {
     }
 
     public void addDreamCategory(DreamCategory dreamCategory) {
-        this.dreamCategories.add(dreamCategory);
+        if (!this.dreamCategories.contains(dreamCategory)) {
+            this.dreamCategories.add(dreamCategory);
+        }
     }
+
 }

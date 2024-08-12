@@ -10,7 +10,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -24,13 +26,14 @@ public class Dream extends BaseTimeEntity {
     private Integer id;
 
     @Lob
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "image")
     private String image;
 
-    @Column(name = "interpretation")
+    @Lob
+    @Column(name = "interpretation", columnDefinition = "TEXT")
     private String interpretation;
 
     @Column(name = "summary", nullable = false)
@@ -49,7 +52,7 @@ public class Dream extends BaseTimeEntity {
     private String writeTime;
 
     @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DreamCategory> dreamCategories = new ArrayList<>();
+    private Set<DreamCategory> dreamCategories = new HashSet<>();
 
     @OneToMany(mappedBy = "dream", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
@@ -57,7 +60,7 @@ public class Dream extends BaseTimeEntity {
     @Builder
     public Dream(Integer id, String content, String image, String interpretation,
                  String summary, boolean isShared, Integer likesCount,
-                 Integer userId, String writeTime, List<DreamCategory> dreamCategories) {
+                 Integer userId, String writeTime, Set<DreamCategory> dreamCategories) {
         this.id = id;
         this.content = content;
         this.image = image;
@@ -65,18 +68,21 @@ public class Dream extends BaseTimeEntity {
         this.summary = summary;
         this.isShared = isShared;
         this.likesCount = likesCount;
-        this.writeTime = writeTime;
         this.userId = userId;
+        this.writeTime = writeTime;
         if (dreamCategories != null) {
-            this.dreamCategories = new ArrayList<>(dreamCategories);
+            this.dreamCategories = new HashSet<>(dreamCategories);
         }
     }
 
     public void addDreamCategory(DreamCategory dreamCategory) {
-        this.dreamCategories.add(dreamCategory);
+        if (!this.dreamCategories.contains(dreamCategory)) {
+            this.dreamCategories.add(dreamCategory);
+        }
     }
 
-    public void update(String content, String image, String interpretation, String summary, String writeTime, boolean isShared, List<DreamCategory> newCategories) {
+
+    public void update(String content, String image, String interpretation, String summary, String writeTime, boolean isShared, Set<DreamCategory> newCategories) {
         this.content = content;
         this.image = image;
         this.interpretation = interpretation;
@@ -86,11 +92,9 @@ public class Dream extends BaseTimeEntity {
         setDreamCategories(newCategories);
     }
 
-    private void setDreamCategories(List<DreamCategory> newCategories) {
+    private void setDreamCategories(Set<DreamCategory> newCategories) {
         this.dreamCategories.clear();
-        for (DreamCategory category : newCategories) {
-            this.addDreamCategory(category);
-        }
+        this.dreamCategories.addAll(newCategories);
     }
 
     public void updateLikesCount(Integer likesCount) {

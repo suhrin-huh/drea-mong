@@ -9,6 +9,7 @@ import com.ssafy.dreamong.domain.entity.dream.Dream;
 import com.ssafy.dreamong.domain.entity.dream.dto.*;
 import com.ssafy.dreamong.domain.entity.dream.repository.DreamRepository;
 import com.ssafy.dreamong.domain.entity.dreamcategory.DreamCategory;
+import com.ssafy.dreamong.domain.entity.dreamcategory.repository.DreamCategoryRepository;
 import com.ssafy.dreamong.domain.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.model.ChatModel;
@@ -17,8 +18,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,20 +31,19 @@ public class DreamService {
     private final DreamRepository dreamRepository;
     private final CategoryRepository categoryRepository;
     private final ChatModel chatModel;
+    private final DreamCategoryRepository dreamCategoryRepository;
     private final ObjectMapper objectMapper; // Jackson ObjectMapper를 사용하여 JSON 파싱
 
     // 꿈 생성
     @Transactional
     public DreamDto create(DreamCreateRequest dreamRequest) {
-        // AI API 호출하여 summary 생성
         String newSummary = SingleLineInterpretation(dreamRequest.getContent());
 
-        // AI API 호출하여 category 분석
         String detailedPrompt = DetailedPrompt(dreamRequest.getContent());
         String analysisResultJson = chatModel.call(detailedPrompt);
+        Set<DreamCategoryDto> dreamCategoryDtoSet = new HashSet<>(parseDreamCategories(analysisResultJson));
 
-        List<DreamCategoryDto> dreamCategoryDto = parseDreamCategories(analysisResultJson);
-
+        // Dream 객체 생성
         Dream dream = Dream.builder()
                 .content(dreamRequest.getContent())
                 .image(dreamRequest.getImage())
@@ -54,20 +55,32 @@ public class DreamService {
                 .writeTime(dreamRequest.getWriteTime())
                 .build();
 
+        // Dream 객체를 먼저 저장하여 ID를 생성
         dream = dreamRepository.save(dream);
 
-        List<DreamCategory> dreamCategories = new ArrayList<>();
-        for (DreamCategoryDto dto : dreamCategoryDto) {
+        // 새로운 카테고리 추가
+        Set<DreamCategory> newDreamCategories = new HashSet<>();
+        for (DreamCategoryDto dto : dreamCategoryDtoSet) {
             Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
                     .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
-            DreamCategory dreamCategory = new DreamCategory(dream, category);
-            dreamCategories.add(dreamCategory);
+
+            // 중복 체크를 통해 DreamCategory가 이미 존재하는지 확인
+            boolean exists = dreamCategoryRepository.existsByDreamAndCategory(dream, category);
+
+            if (!exists) {
+                DreamCategory dreamCategory = DreamCategory.builder()
+                        .dream(dream)
+                        .category(category)
+                        .build();
+                newDreamCategories.add(dreamCategory);
+            }
         }
 
-        dream.getDreamCategories().addAll(dreamCategories);
-        dream = dreamRepository.save(dream);
+        // 새로운 DreamCategory를 Dream에 추가
+        dream.getDreamCategories().addAll(newDreamCategories);
 
-        return toDreamDto(dream);
+        // Dream 객체를 다시 저장
+        return toDreamDto(dreamRepository.save(dream));
     }
 
     // 상세보기
@@ -81,6 +94,7 @@ public class DreamService {
                 dream.getSummary(),
                 dream.isShared(),
                 dream.getLikesCount(),
+                dream.getUserId(),
                 dream.getWriteTime()
         );
     }
@@ -112,21 +126,33 @@ public class DreamService {
         // AI API 호출하여 category 분석
         String detailedPrompt = DetailedPrompt(dreamUpdateRequest.getContent());
         String analysisResultJson = chatModel.call(detailedPrompt);
-        List<DreamCategoryDto> dreamCategoryDtos = parseDreamCategories(analysisResultJson);
+
+        // Set으로 중복 제거
+        Set<DreamCategoryDto> dreamCategoryDtos = new HashSet<>(parseDreamCategories(analysisResultJson));
 
         // 기존 카테고리 삭제
         existingDream.getDreamCategories().clear();
-        dreamRepository.save(existingDream); // 업데이트된 상태를 먼저 저장
+        dreamRepository.save(existingDream); // 기존의 연관관계를 명시적으로 저장
 
         // 새로운 카테고리 추가
-        List<DreamCategory> newDreamCategories = new ArrayList<>();
+        Set<DreamCategory> newDreamCategories = new HashSet<>();
         for (DreamCategoryDto dto : dreamCategoryDtos) {
             Category category = categoryRepository.findByWordAndType(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))
                     .orElseGet(() -> categoryRepository.save(new Category(dto.getCategoryWord(), Type.valueOf(dto.getCategoryType()))));
-            DreamCategory dreamCategory = new DreamCategory(existingDream, category);
-            newDreamCategories.add(dreamCategory);
+
+            // 중복 체크를 통해 DreamCategory가 이미 존재하는지 확인
+            boolean exists = dreamCategoryRepository.existsByDreamAndCategory(existingDream, category);
+
+            if (!exists) {
+                DreamCategory dreamCategory = DreamCategory.builder()
+                        .dream(existingDream)
+                        .category(category)
+                        .build();
+                newDreamCategories.add(dreamCategory);
+            }
         }
 
+        // 새로운 DreamCategory를 기존 Dream에 추가
         existingDream.getDreamCategories().addAll(newDreamCategories);
 
         // Dream 객체 업데이트
@@ -142,6 +168,7 @@ public class DreamService {
 
         return toDreamDto(dreamRepository.save(existingDream));
     }
+
 
     // 꿈 삭제
     @Transactional
@@ -163,7 +190,7 @@ public class DreamService {
                 .likesCount(0)
                 .userId(dreamCreateRequest.getUserId())
                 .writeTime(dreamCreateRequest.getWriteTime())
-                .dreamCategories(new ArrayList<>())
+                .dreamCategories(new HashSet<>()) // HashSet으로 중복 방지
                 .build();
 
         dream = dreamRepository.save(dream);
@@ -174,7 +201,8 @@ public class DreamService {
     private String SingleLineInterpretation(String message) {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
-                "이 꿈의 주요 상징과 의미를 한 줄로 간단하게 해석해주세요.";
+                "이 꿈의 주요 상징과 의미를 한 줄로 간단하게 요약해주세요. " +
+                "대답은 (예: 입력내용을 기반으로 꾸미는 말 없이 요약해서 '~~하는 꿈'으로 응답해줘)";
         return chatModel.call(prompt);
     }
 
@@ -182,25 +210,30 @@ public class DreamService {
     private String DetailedPrompt(String message) {
         // 프롬프트 작성 로직
         String prompt = "사용자가 꾼 꿈의 내용은 다음과 같습니다: \"" + message + "\". " +
-                "이 꿈을 다음의 카테고리로 분류하고 각 카테고리별로 주요 단어를 한 단어로 (예: 하늘 높이 솟아 오른 나무들 => 나무) JSON 형식으로 추출해주세요:\n" +
-                "1. 꿈 종류 (dreamType): 이 꿈의 종류는 무엇입니까? (예: 일반 / 루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈) 예시에 있는 종류로만 구분해주세요. (루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈) 여기에 해당하지 않는 꿈은 일반으로 해주세요.\n" +
-                "2. 인물 (character): 꿈에 등장한 주요 인물은 누구입니까? 인물의 역할과 관계를 포함해주세요. (예: 가족, 친구, 낯선 사람 등) 나, 자신, 사용자 등 자신을 포함하는 단어는 빼주세요.\n" +
-                "3. 기분 (mood): 이 꿈을 꿀 때 느낀 기분은 어떠했습니까? (예: 두려움, 기쁨, 슬픔 등)\n" +
-                "4. 장소 (location): 꿈에서 나타난 주요 장소는 어디입니까? 가능한 자세하게 설명해주세요. (예: 집, 학교, 공원 등)\n" +
-                "5. 사물 또는 동물 (objects): 꿈에 등장한 주요 사물이나 동물은 무엇입니까? 가능한 구체적으로 설명해주세요. (예: 자동차, 고양이, 책 등)\n" +
-                "응답은 JSON 형식으로 해주세요.";
+                "이 꿈을 아래의 다섯 개 카테고리로 분류해주세요. **각 카테고리에서 반드시 최소 하나** 이상의 항목을 선택하여야 합니다. " +
+                "모든 카테고리에서 항목이 누락되거나 부적절하게 선택된 경우, 불이익이 있을 수 있습니다. " +
+                "결과는 반드시 JSON 형식으로 출력해주세요:\n" +
+                "1. 꿈 종류 (dreamType): 이 꿈의 종류는 무엇입니까? (예: 일반 / 루시드드림 / 악몽 / 반복적 꿈 / 예지몽 / 생생한 꿈). " +
+                "각 단어에 해당하지 않는 꿈은 일반으로 선택해주세요.\n" +
+                "2. 인물 (character): 꿈에 등장한 인물은 누구입니까? 예를 들어, '친구', '선생님', '가족', '낯선 사람' 등과 같은 식으로 작성해주세요. 인물들이 누구였는지를 중심으로 추출하고, '나', '사용자'와 같은 단어는 제외해주세요.\n" +
+                "3. 기분 (mood): 이 꿈을 꿀 때 느낀 기분은 무엇이었습니까? (예: 두려움, 기쁨, 슬픔 등) 여러 감정이 있었을 경우, 모든 감정을 포함해주세요.\n" +
+                "4. 장소 (location): 꿈에서 등장한 장소는 어디입니까? 구체적이고 명확한 장소만 포함해주세요. 현실적이거나 비현실적인 모든 장소를 포함하지만, '어려운 상황을 나타내는 장소', '다툼이 벌어진 장소'와 같이 모호하거나 추상적인 표현은 제외해주세요. (예: 집, 학교, 공원, 하늘, 우주, 판타지 세계 등)\n" +
+                "5. 사물 또는 동물 (objects): 꿈에 등장한 주요 사물이나 동물은 무엇입니까? 가능한 구체적으로 설명해주세요. (예: 자동차, 고양이, 책, 용, 마법 지팡이 등)\n" +
+                "모든 카테고리에서 최소 하나 이상의 항목이 포함된 JSON 형식으로 응답해주세요.";
         return prompt;
     }
 
+
     // 카테고리별 파싱
-    private List<DreamCategoryDto> parseDreamCategories(String json) {
+    private Set<DreamCategoryDto> parseDreamCategories(String json) {
         try {
             json = json.trim();
             json = json.replace("```json", "").replace("```", "").replace("`", "").trim();
 
             JsonNode root = objectMapper.readTree(json);
 
-            List<DreamCategoryDto> categories = new ArrayList<>();
+            Set<DreamCategoryDto> categories = new HashSet<>(); // 중복 제거를 위해 Set 사용
+
             if (root.has("dreamType")) {
                 String dreamType = root.get("dreamType").asText();
                 if (!dreamType.isEmpty()) {
@@ -280,9 +313,9 @@ public class DreamService {
                 }
             }
 
-            return categories;
+            return categories; // Set을 반환하여 중복을 제거함
         } catch (Exception e) {
-            return new ArrayList<>();
+            return new HashSet<>();
         }
     }
 
@@ -301,4 +334,10 @@ public class DreamService {
         return new DreamCategoryDto(dreamCategory.getId(), dreamCategory.getCategory().getWord(),
                 dreamCategory.getCategory().getType().name());
     }
+
+    private boolean dreamCategoryExists(Dream dream, Category category) {
+        return dream.getDreamCategories().stream()
+                .anyMatch(dreamCategory -> dreamCategory.getCategory().equals(category));
+    }
 }
+

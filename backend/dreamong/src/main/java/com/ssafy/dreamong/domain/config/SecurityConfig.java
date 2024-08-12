@@ -1,10 +1,10 @@
 package com.ssafy.dreamong.domain.config;
 
 import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
-import com.ssafy.dreamong.domain.entity.user.service.CustomOAuth2UserService;
+import com.ssafy.dreamong.domain.oauth.service.CustomOAuth2UserService;
 import com.ssafy.dreamong.domain.jwt.JWTFilter;
 import com.ssafy.dreamong.domain.jwt.JWTUtil;
-import com.ssafy.dreamong.domain.oauth.CustomSuccessHandler;
+import com.ssafy.dreamong.domain.oauth.handler.CustomSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
