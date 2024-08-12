@@ -20,7 +20,7 @@ const StreamingPage = () => {
 
     // sleepTime이 존재할 때만 취침 시간 체크 인터벌 설정
     if (sleepTime) {
-      intervalId = setInterval(checkSleepTime, 60000); // 1분마다 체크
+      intervalId = setInterval(checkSleepTime, 10000); // 10초마다 체크
     }
 
     // localStorage의 sleepTime 변경 감지
@@ -34,7 +34,7 @@ const StreamingPage = () => {
           clearInterval(intervalId);
         }
         if (updatedSleepTime) {
-          intervalId = setInterval(checkSleepTime, 60000);
+          intervalId = setInterval(checkSleepTime, 10000); // 10초 간격으로 확인
         }
       }
     };
@@ -146,7 +146,7 @@ const StreamingPage = () => {
 
       <section className="mb-2 flex justify-end">
         {location.pathname !== '/streaming' && (
-          <Button size="md" className="mr-auto text-white hover:text-gray-400" onClick={() => navigate(-1)}>
+          <Button size="md" className="mr-auto text-white hover:text-gray-400" onClick={() => navigate('/streaming')}>
             <img src={back} alt="뒤로가기" className="w-[21px]" />
           </Button>
         )}

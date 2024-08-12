@@ -35,9 +35,13 @@ const StreamingList = () => {
       },
     })
       .then((response) => {
-        // console.log(response.data.data)
-        setRooms(response.data.data);
-        console.log('방 목록 fetch 완료!');
+        if (response.status === 204) {
+          setRooms([]);
+          console.log('스트리밍방 목록이 비어 있습니다.');
+        } else {
+          setRooms(response.data.data);
+          console.log('스트리밍방 목록 fetch 완료!');
+        }
       })
       .catch((error) => {
         console.error('방 목록 조회 중 오류 발생', error);

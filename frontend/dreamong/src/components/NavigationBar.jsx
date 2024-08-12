@@ -1,10 +1,18 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MainIcon, SquareIcon, CreateIcon, StreamingIcon, SettingsIcon, STTIcon } from '../assets/icons';
-import { useRecoilState } from 'recoil';
-import { isListeningState } from '../recoil/atoms';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { isListeningState, userState } from '../recoil/atoms';
+import { useHandleError } from '../utils/utils';
+import axios from 'axios';
+import { baseURLState } from '../recoil/atoms';
 
 const NavigationBar = () => {
+  const handleError = useHandleError();
+  const navigate = useNavigate();
   const location = useLocation();
+  const baseURL = useRecoilValue(baseURLState);
+  const [user, setUser] = useRecoilState(userState);
   const paths = [
     {
       pathname: '/',
@@ -37,25 +45,57 @@ const NavigationBar = () => {
 
   const [isListening, setIsListening] = useRecoilState(isListeningState);
   const handleSTT = async () => {
-    setIsListening((prev) => !prev);
+    if (!isListening) {
+      setIsListening(true);
+    }
   };
+  const accessToken = localStorage.getItem('accessToken');
+  const fetchData = async () => {
+    if (accessToken) {
+      try {
+        const response = await axios.get(`${baseURL}/users/info`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        console.log(response.data.data);
+        setUser(response.data.data);
+        // 오류 발생시에는 로그인페이지로 이동
+      } catch (err) {
+        console.log('navbar error:', err);
+        handleError('/login');
+      }
+      // 토큰이 없을 경우에는 login 페이지로 이동
+    } else {
+      navigate('/login');
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // path에 따라서 렌더링되는 내용이 바뀌도록 설정
   return location.pathname == '/login' ? null : (
-    <div className="fixed bottom-0 h-[60px] max-w-[600px] bg-white text-white last:w-full">
-      <div className="flex justify-between mx-4 my-3">
+    <div className="fixed bottom-0 z-50 h-[60px] max-w-[600px] bg-white text-white last:w-full">
+      <div className="mx-4 my-3 flex justify-between">
         {paths.map(({ pathname, icon }) => {
           const isCurrentPath = location.pathname === pathname;
           const iconColor = isCurrentPath ? MAIN_COLOR : SECONDARY_COLOR;
 
           // paths 내부에서 pathname == "/dream/create"인 path에 대해서
-          // 현재 경로가 useSTTPath(STT를 사용하는 경로)에 해당될 때 true 반환
+          /** 현재 경로가 useSTTPath(STT를 사용하는 경로)에 해당될 때 true 반환 */
           const isSTTActive =
             pathname == '/dream/create' && useSTTPath.some((path) => location.pathname.includes(path));
+          // STTIcon 사용시에는 Link 연결 X
+          if (isSTTActive) {
+            return (
+              <div className="relative" key={pathname}>
+                <STTIcon handleSTT={handleSTT}></STTIcon>;
+              </div>
+            );
+          }
           return (
             <Link key={pathname} to={pathname} className="relative">
-              {/* 꿈 등록페이지와 수정페이지에서 아이콘이 바뀌도록 후에 수정 예정 */}
-              {isSTTActive ? <STTIcon handleSTT={handleSTT}></STTIcon> : icon(iconColor)}
+              {icon(iconColor)}
             </Link>
           );
         })}

@@ -1,19 +1,16 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StatisticsIcon } from '../assets/icons';
+import { StatisticsIcon, ScrollButton } from '../assets/icons';
 import axios from 'axios';
 import { baseURLState } from '../recoil/atoms';
 import { userState } from '../recoil/atoms';
-import { useRecoilValue } from 'recoil';
+import { useRecoilValue, useRecoilState } from 'recoil';
 
 // Import Swiper React components
-// npm install swiper
 import { Swiper, SwiperSlide } from 'swiper/react';
-
-// import required modules
-import { Pagination } from 'swiper/modules';
-
+import { Autoplay, Pagination } from 'swiper/modules';
 import Swal from 'sweetalert2';
+import { useHandleError } from '../utils/utils';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -23,63 +20,67 @@ import 'swiper/css/navigation';
 const MainPage = () => {
   // dreams : 꿈리스트 / year, month : 년월 /
   const current = new Date();
-
   const [dreams, setDreams] = useState([]);
   const [year, setYear] = useState(current.getFullYear());
   // 달은 현재의 달에서 -1이 된 값이 전달
   const [month, setMonth] = useState(current.getMonth() + 1);
-  const user = useRecoilValue(userState);
+  const [user, setUser] = useRecoilState(userState);
   const [totalCount, setTotalCount] = useState(0);
-
   // 월에 포커스를 맞추기 위해서
   const swiperRef = useRef(null);
-
-  /** 오류 처리 함수 */
-  const handleError = () => {
-    Swal.fire({
-      title: 'ERROR',
-      text: '오류가 발생했습니다.',
-      icon: 'error',
-      confirmButtonText: '돌아가기',
-    });
-  };
   const baseURL = useRecoilValue(baseURLState);
+  const accessToken = localStorage.getItem('accessToken');
+  const navigate = useNavigate();
+  const handleError = useHandleError();
 
-  /** 데이터를 가져오는 함수, 날짜 변동에 따라 계속 호출되므로 함수로 처리 */
+  /** - 데이터를 가져오는 함수, 날짜 변동에 따라 계속 호출되므로 함수로 처리 */
   const getDreams = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await axios.get(
-        `${baseURL}/dream/${user.userId}/${year}${String(month).padStart(2, '0')}01`,
-        { params: {} },
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        },
-      );
+      const response = await axios.get(`${baseURL}/dream/${user.userId}/${year}${String(month).padStart(2, '0')}01`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        params: {},
+      });
       const responseData = response.data.data;
+      console.log(responseData);
       setDreams(responseData.dreamMainResponsesList);
       setTotalCount(responseData.totalCount);
     } catch (err) {
-      console.log(err);
-      handleError();
+      console.log('mainerror:', err);
+    }
+  };
+
+  // useEffect
+  // dreams, totalCount 데이터 변경하기
+  // 새로고침시에 recoil 초기화되는 부분 갱신하기
+  const fetchData = async () => {
+    if (accessToken) {
+      try {
+        const response = await axios.get(`${baseURL}/users/info`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        console.log(response.data.data);
+        setUser(response.data.data);
+        swiperRef.current?.swiper.slideTo(month - 1, 0);
+        getDreams();
+        // 오류 발생시에는 로그인페이지로 이동
+      } catch {
+        handleError('/login');
+      }
+      // 토큰이 없을 경우에는 login 페이지로 이동
+    } else {
       navigate('/login');
     }
   };
 
-  // 초기 렌더링시에 처리되는 일
-  // dreams, totalCount 데이터 변경하기
   useEffect(() => {
-    // if (localStorage.getItem("accessToken") && user.userId) {
-    //   getDreams();
-    //   swiperRef.current?.swiper.slideTo(month - 1, 0);
-    //   return
-    // }
-    getDreams();
+    // Access Token의 존재 유무를 판단한다.
+    // 존재할 경우에는 recoil 갱신 후에 데이터 통신 실행
+    // fetchData();
     swiperRef.current?.swiper.slideTo(month - 1, 0);
-    // 2. 날짜에 맞게 포커스
-    // month는 7월, silde index는 (7-1)월이므로 알맞게 수정
+    getDreams();
   }, []);
 
+  // 선택한 달에 따라서 swiper 이동
   useEffect(() => {
     if (swiperRef.current) {
       swiperRef.current.swiper.slideTo(month - 1, 0);
@@ -87,8 +88,12 @@ const MainPage = () => {
   }, [month]);
 
   // 날짜 변동에 따라 데이터 새로 호출
+  useEffect(() => {
+    getDreams();
+  }, [year, month]);
+
   const handleYear = (number) => {
-    setYear((prev) => prev + number);
+    setYear((prev) => Math.max(prev + number, 1900));
   };
 
   const handleMonth = (number) => {
@@ -102,44 +107,83 @@ const MainPage = () => {
     return date.toLocaleDateString('en-US', option).slice(0, 3).toUpperCase();
   };
 
-  useEffect(() => {
-    getDreams();
-  }, [year, month]);
-
-  // 상세페이지 이동을 위한 navigate
-  const navigate = useNavigate();
   const handleClick = (dreamId) => {
     navigate(`/dream/${dreamId}`);
   };
-
+  // 통계 아이콘 선택시 통계 페이지로 이동
   const navigateToStatistics = () => {
+    console.log(window.scrollY);
     navigate('/statistics');
   };
+
+  const [isButtonVisible, setIsButtonVisible] = useState(true);
+
+  const mainRef = useRef(null);
+
+  // 버튼 노출 여부
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        // 요소가 보일 때 true, 보이지 않을 때 false로 설정
+        setIsButtonVisible(entry.isIntersecting);
+      },
+      {
+        threshold: 0.8, // 요소가 10% 이상 보이면 감지
+      },
+    );
+
+    if (mainRef.current) {
+      observer.observe(mainRef.current);
+    }
+
+    // 컴포넌트가 언마운트될 때 observer를 해제합니다.
+    return () => {
+      if (mainRef.current) {
+        observer.unobserve(mainRef.current);
+      }
+    };
+  }, []);
+  const ScrollToDiv = () => {
+    // 참조된 div가 있으면 그 위치로 스크롤 이동
+    if (mainRef.current) {
+      mainRef.current.scrollIntoView({ behavior: 'smooth' });
+      console.log(window.scrollY);
+    }
+  };
+
   return (
     <div className="relative h-dvh">
-      <div className="absolute right-3 top-3" onClick={() => navigateToStatistics()}>
-        {StatisticsIcon}
-      </div>
-      <header className="inline-flex h-1/4 w-full flex-col items-center justify-center gap-2.5 text-center text-white">
+      <header className="inline-flex h-[800px] w-full flex-col items-center justify-center gap-2.5 text-center text-white transition delay-150 ease-in-out">
         {/* 닉네임 여부에 따라 다르게 표시 */}
         <p className="text-3xl font-bold">안녕하세요{user.nickname ? `, ${user.nickname}님!` : '!'}</p>
         {/* 꿈 작성 개수에 따라 다르게 표시 */}
         <p className="text-sm">
-          {totalCount == 0 ? '첫번째 꿈을 기록해주세요!' : `${totalCount}번째 꿈을 기록해주세요.`}
+          {totalCount == 0 ? '첫번째 꿈을 기록해주세요!' : `${totalCount + 1}번째 꿈을 기록해주세요.`}
         </p>
+        {!isButtonVisible ? <ScrollButton scrollDown={() => ScrollToDiv()} /> : null}
       </header>
       {/* 아랫부분부터 메인 내용 들어가는 페이지 */}
-      <div className="mx-auto h-3/4 w-full flex-col items-center gap-2 rounded-t-3xl bg-white px-4 py-3 text-center">
-        {/* 날짜 선택 */}
+      <div
+        ref={mainRef}
+        className="relative mx-auto h-3/4 w-full flex-col items-center gap-2 rounded-t-3xl bg-white px-4 py-1 text-center"
+      >
+        <div className="absolute right-5 top-5" onClick={() => navigateToStatistics()}>
+          {StatisticsIcon}
+        </div>
         <div className="h-1/5 w-full py-4 text-center">
+          <div className="flex justify-center">
+            <div className="mb-3 h-2 w-24 rounded-full bg-primary-500"></div>
+          </div>
+          {/* 날짜 선택 */}
           {/* 연도 선택 */}
-          <div className="flex items-center justify-center gap-12 p-2.5 text-xl">
+          <div className="flex items-center justify-center gap-12 px-2.5 py-1 text-xl">
             <button onClick={() => handleYear(-1)}>{'<'}</button>
-            <p>{year}</p>
+            <p className="md:text-lg lg:text-xl">{year}</p>
             <button onClick={() => handleYear(1)}>{'>'}</button>
           </div>
           {/* 월 선택 */}
-          <div className="align-center my-2 flex items-center justify-center gap-1 text-base">
+          <div className="align-center my-3 flex items-center justify-center gap-1 text-base">
             <Swiper
               ref={swiperRef}
               slidesPerView={6}
@@ -183,11 +227,10 @@ const MainPage = () => {
                     <div className="text-sm text-slate-500">{getWeekDay(dream.writeTime)}</div>
                   </div>
                   <div
-                    // 이 부분 수정 필요!!!!!!!!!!!
                     onClick={() => handleClick(dream.dreamId)}
-                    className={`flex w-3/4 shrink grow basis-0 items-start justify-between self-stretch rounded-lg bg-black bg-opacity-40 p-2.5 text-white bg-blend-darken`}
+                    className={`flex w-3/4 items-start justify-between rounded-lg bg-black bg-opacity-30 p-2.5 text-white bg-blend-darken`}
                     style={{
-                      backgroundImage: dream.image ? `url(${dream.image})` : 'url(/src/assets/MainpageTest.jpg)',
+                      backgroundImage: dream.image ? `url(${dream.image})` : 'url(/src/assets/test.jfif)',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                     }}

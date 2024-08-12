@@ -22,6 +22,10 @@ const StreamingRoom = () => {
   const baseURL = useRecoilValue(baseURLState);
   const socketURL = useRecoilValue(socketURLState);
 
+  const messageEndRef = useRef(null); // 메시지 목록의 끝 참조하기 위한 ref
+  const messageContainerRef = useRef(null); // 메시지 컨테이너 전체를 참조하기 위한 ref
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+
   // 컴포넌트 마운트 시 방 정보를 가져오는 함수
   const fetchRoomInfo = useCallback(() => {
     axios({
@@ -44,7 +48,13 @@ const StreamingRoom = () => {
   useEffect(() => {
     fetchRoomInfo();
 
-    const newSocket = io(socketURL);
+    const newSocket = io(socketURL, {
+      transports: ['websocket'],
+      upgrade: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      timeout: 1000,
+    });
     setSocket(newSocket);
 
     // 방 입장 이벤트 발생
@@ -53,6 +63,8 @@ const StreamingRoom = () => {
     // 채팅 메시지 수신 이벤트 리스너
     newSocket.on('chat-message', (msg) => {
       setMessages((prevMessages) => [...prevMessages, msg]);
+      // 새 메시지가 도착하면 자동 스크롤 활성화
+      setShouldAutoScroll(true);
     });
 
     // 비디오 시간 동기화 이벤트 리스너
@@ -79,6 +91,29 @@ const StreamingRoom = () => {
     };
   }, [roomId, fetchRoomInfo]);
 
+  const scrollToBottom = () => {
+    messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // 메시지가 추가되거나 shouldAutoScroll 상태가 변경될 때마다 실행
+  useEffect(() => {
+    // 자동 스크롤이 활성화된 경우에만 스크롤을 아래로 이동
+    if (shouldAutoScroll) {
+      scrollToBottom();
+    }
+  }, [messages, shouldAutoScroll]);
+
+  // 사용자의 스크롤 동작을 감지하는 함수
+  const handleScroll = () => {
+    if (messageContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messageContainerRef.current;
+      // 스크롤이 맨 아래에 있는지 확인
+      const isScrollecToBottom = scrollHeight - scrollTop - clientHeight < 1;
+      // 스크롤 위치에 따라 자동 스크롤 상태 업데이트
+      setShouldAutoScroll(isScrolledToBottom);
+    }
+  };
+
   // 채팅 메시지 전송 함수
   const sendMessage = useCallback(() => {
     if (inputMessage && socket) {
@@ -104,7 +139,11 @@ const StreamingRoom = () => {
         if (socket) {
           socket.emit('video-time-update', { roomId, time: event.target.getCurrentTime() });
         }
-      }, 10000);
+        // 영상 재생 상태가 멈춤 상태일 때(0) 재생 시작
+        if (!event.target.getPlayerState()) {
+          event.target.playVideo();
+        }
+      }, 5000);
 
       // 컴포넌트 언마운트 또는 의존성 변경 시 인터벌 정리
       return () => clearInterval(intervalId);
@@ -145,7 +184,11 @@ const StreamingRoom = () => {
         </div>
       </div>
       {/* 채팅 메시지 표시 영역 */}
-      <div className="flex flex-grow flex-col overflow-hidden rounded-t-lg border-b-2 border-gray-500 bg-black bg-opacity-50 backdrop-blur-sm backdrop-filter">
+      <div
+        className="flex flex-grow flex-col overflow-hidden rounded-t-lg border-b-2 border-gray-500 bg-black bg-opacity-50 backdrop-blur-sm backdrop-filter"
+        ref={messageContainerRef}
+        onScroll={handleScroll}
+      >
         <div className="mx-4 mt-auto overflow-y-auto">
           <div className="mb-2 overflow-y-auto">
             {messages.map((message, index) => (
@@ -154,6 +197,7 @@ const StreamingRoom = () => {
                 <p className={`text-white ${message.nickname === userNickname ? 'mr-2' : 'ml-2'}`}>{message.message}</p>
               </div>
             ))}
+            <div ref={messageEndRef} /> {/* 메시지 목록의 끝을 표시하는 요소 */}
           </div>
         </div>
       </div>
