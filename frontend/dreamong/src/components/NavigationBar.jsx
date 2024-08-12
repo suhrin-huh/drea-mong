@@ -1,10 +1,18 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MainIcon, SquareIcon, CreateIcon, StreamingIcon, SettingsIcon, STTIcon } from '../assets/icons';
-import { useRecoilState } from 'recoil';
-import { isListeningState } from '../recoil/atoms';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { isListeningState, userState } from '../recoil/atoms';
+import { useHandleError } from '../utils/utils';
+import axios from 'axios';
+import { baseURLState } from '../recoil/atoms';
 
 const NavigationBar = () => {
+  const handleError = useHandleError();
+  const navigate = useNavigate();
   const location = useLocation();
+  const baseURL = useRecoilValue(baseURLState);
+  const [user, setUser] = useRecoilState(userState);
   const paths = [
     {
       pathname: '/',
@@ -41,6 +49,29 @@ const NavigationBar = () => {
       setIsListening(true);
     }
   };
+  const accessToken = localStorage.getItem('accessToken');
+  const fetchData = async () => {
+    if (accessToken) {
+      try {
+        const response = await axios.get(`${baseURL}/users/info`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        console.log(response.data.data);
+        setUser(response.data.data);
+        // 오류 발생시에는 로그인페이지로 이동
+      } catch (err) {
+        console.log('navbar error:', err);
+        handleError('/login');
+      }
+      // 토큰이 없을 경우에는 login 페이지로 이동
+    } else {
+      navigate('/login');
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // path에 따라서 렌더링되는 내용이 바뀌도록 설정
   return location.pathname == '/login' ? null : (
