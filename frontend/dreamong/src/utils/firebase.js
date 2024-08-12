@@ -1,86 +1,95 @@
 import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { getMessaging, getToken, isSupported } from 'firebase/messaging';
 import axios from 'axios';
 
-const baseURL = 'http://localhost:8080';
-
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FB_API_KEY,
-  authDomain: import.meta.env.VITE_FB_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FB_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FB_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FB_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FB_APP_ID,
-  measurementId: import.meta.env.VITE_MEASUREMENT_ID,
+  apiKey: 'AIzaSyA235r3rrXeSNznE0LnIWfZqF4bVXPk4Qs',
+  authDomain: 'drea-mong.firebaseapp.com',
+  projectId: 'drea-mong',
+  storageBucket: 'drea-mong.appspot.com',
+  messagingSenderId: '299128370529',
+  appId: '1:299128370529:web:cc4cbe81ebe8c3e0b4c120',
 };
 
 // Firebase 앱 초기화
 const app = initializeApp(firebaseConfig);
-const messaging = getMessaging(app);
 
-/**
- * FCM 토큰을 가져오고 서버로 전송하는 함수
- * @param {Function} setTokenFound - 토큰 상태를 업데이트하는 함수
- */
-export const getFCMToken = (setTokenFound) => {
-  return getToken(messaging, {
-    vapidKey: import.meta.env.VITE_FB_VIPID_ID,
-  })
-    .then((currentToken) => {
-      if (currentToken) {
-        setTokenFound(true);
-        console.log('Token: ', currentToken);
+let messaging;
 
-        const storedToken = localStorage.getItem('fcmToken');
-
-        if (storedToken !== currentToken) {
-          axios({
-            method: 'post',
-            url: `${baseURL}/users/fcm-token`,
-            data: { token: currentToken },
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            },
-          })
-            .then((response) => {
-              if (response.status === 200) {
-                console.log('Token sent to server successfully.');
-                localStorage.setItem('fcmToken', currentToken);
-              } else {
-                console.error('Failed to send token to server.');
-              }
-            })
-            .catch((error) => {
-              console.error('Error sending token to server: ', error);
-            });
-        } else {
-          console.log('Token already sent to server.');
-        }
-      } else {
-        console.log('No registration token available. Request permission to generate one.');
-        setTokenFound(false);
-      }
-    })
-    .catch((err) => {
-      console.error('An error occurred while retrieving token: ', err);
-
-      if (err.code === 'messaging/permission-blocked') {
-        console.error('Notification permission was blocked.');
-      } else {
-        console.error('An error occurred while retrieving token: ', err);
-      }
-
-      setTokenFound(false);
-    });
+// FCM 지원 여부 확인 및 메시징 객체 초기화
+const initializeMessaging = async () => {
+  try {
+    if (await isSupported()) {
+      messaging = getMessaging(app);
+      console.log('FCM is supported');
+      return true;
+    }
+    console.log('FCM is not supported');
+    return false;
+  } catch (error) {
+    console.error('FCM initialization error', error);
+    return false;
+  }
 };
 
-/**
- * FCM 메시지 수신 리스너 설정
- * @returns {Promise} 메시지 수신 프라미스
- */
-export const onMessageListener = () =>
-  new Promise((resolve) => {
-    onMessage(messaging, (payload) => {
-      resolve(payload);
+// FCM 토큰 가져오기
+export const getFCMToken = async () => {
+  if (!messaging) {
+    const isInitialized = await initializeMessaging();
+    if (!isInitialized) return null;
+  }
+
+  try {
+    const currentToken = await getToken(messaging, {
+      vapidKey: 'BDtrsBZFH9cOTh1MxRcyggaJnYeXDt2JaBo1dE2mIJAGTowdHap5MgejbebcKsaBQUSAtB2Q1vmun-db19YSJJg',
     });
-  });
+    if (currentToken) {
+      console.log('FCM token:', currentToken);
+      return currentToken;
+    } else {
+      console.log('No registration token available.');
+      return null;
+    }
+  } catch (err) {
+    console.error('An error occurred while retrieving token.', err);
+    return null;
+  }
+};
+
+// 토픽 구독
+export const subscribeToTopic = async (token, topic) => {
+  try {
+    const response = await axios({
+      method: 'post',
+      url: `https://iid.googleapis.com/iid/v1/${token}/rel/topics/${topic}`,
+      headers: {
+        Authorization: `key=${import.meta.env.VITE_FB_SERVER_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log(`Subscribed to ${topic}`);
+    return true;
+  } catch (error) {
+    console.error('Error subscribing to topic:', error);
+    return false;
+  }
+};
+
+// 토픽 구독 해제
+export const unsubscribeFromTopic = async (token, topic) => {
+  try {
+    const response = await axios({
+      method: 'delete',
+      url: `https://iid.googleapis.com/iid/v1/${token}/rel/topics/${topic}`,
+      headers: {
+        Authorization: `key=${import.meta.env.VITE_FB_SERVER_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log(`Unsubscribed from ${topic}`);
+    return true;
+  } catch (error) {
+    console.error('Error unsubscribing from topic:', error);
+    return false;
+  }
+};

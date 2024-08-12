@@ -7,7 +7,7 @@ import axios from 'axios';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { userState, baseURLState } from '../recoil/atoms';
 
-import { getFCMToken, onMessageListener } from '../utils/firebase';
+import { getFCMToken, subscribeToTopic, unsubscribeFromTopic } from '../utils/firebase';
 
 import login from '../assets/login.svg';
 import logout from '../assets/logout.svg';
@@ -24,8 +24,8 @@ const SettingsPage = () => {
 
   const [darkMode, setDarkMode] = useState(darkModeRef.current);
   const [push, setPush] = useState(pushRef.current);
-  const [isTokenFound, setTokenFound] = useState(false);
-  const [isLogin, setIsLogin] = useState(localStorage.getItem('accessToken') ? true : false);
+  const [isLogin] = useState(localStorage.getItem('accessToken') ? true : false);
+  const [isPushEnabled, setIsPushEnabled] = useState(false);
 
   // 사용자 닉네임 변경 모달 관리
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -60,30 +60,20 @@ const SettingsPage = () => {
       pushRef.current = JSON.parse(savedPush);
       setPush(pushRef.current);
     }
-
-    // 푸시 알림 구독 상태 확인
-    if (isLogin) {
-      checkSubscriptionStatus();
-    }
   }, [userInfo]);
 
-  // 푸시 알림 구독 상태 확인 함수
-  const checkSubscriptionStatus = () => {
-    axios({
-      method: 'get',
-      url: `${baseURL}/push-notifications/status`,
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    })
-      .then((response) => {
-        pushRef.current = response.data.data.isSubscribed;
-        setPush(pushRef.current);
-      })
-      .catch((error) => {
-        console.error('구독 상태 확인 실패:', error);
-      });
-  };
+  useEffect(() => {
+    const checkPushStatus = async () => {
+      const fcmToken = await getFCMToken();
+      if (fcmToken) {
+        localStorage.setItem('fcmToken', fcmToken);
+        const storedPushStatus = localStorage.getItem('isPushEnabled');
+        setIsPushEnabled(storedPushStatus === 'true');
+      }
+    };
+
+    checkPushStatus();
+  }, []);
 
   // 로그아웃 핸들러
   const handleLogout = (event) => {
@@ -148,41 +138,26 @@ const SettingsPage = () => {
   };
 
   // 푸시 알림 토글 핸들러
-  const handlePushToggle = () => {
-    const newPushState = !pushRef.current;
-    pushRef.current = newPushState;
-    setPush(newPushState);
-    localStorage.setItem('push', JSON.stringify(newPushState));
-
+  const handlePushToggle = async () => {
+    const newPushState = !isPushEnabled;
     const fcmToken = localStorage.getItem('fcmToken');
 
-    // 토큰 유효성 검사
-    if (!fcmToken && newPushState) {
-      alert('푸시 알림을 활성화하려면 FCM 토큰이 필요합니다.');
+    if (!fcmToken) {
+      console.error('FCM token not found');
       return;
     }
 
-    axios({
-      method: 'post',
-      url: `${baseURL}/push-notifications/toggle`,
-      data: {
-        subscribing: newPushState,
-        token: fcmToken,
-      },
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    })
-      .then((response) => {
-        console.log('푸시 알림 설정이 서버에 저장되었습니다.');
-      })
-      .catch((error) => {
-        console.error('푸시 알림 설정 저장 중 오류 발생:', error);
-        // 실패 시 상태를 원래대로 되돌림
-        pushRef.current = !newPushState;
-        setPush(!newPushState);
-        localStorage.setItem('push', JSON.stringify(!newPushState));
-      });
+    try {
+      if (newPushState) {
+        await subscribeToTopic(fcmToken, 'daily_reminder');
+      } else {
+        await unsubscribeFromTopic(fcmToken, 'daily_reminder');
+      }
+      setIsPushEnabled(newPushState);
+      localStorage.setItem('isPushEnabled', newPushState.toString());
+    } catch (error) {
+      console.error('Failed to toggle push notifications:', error);
+    }
   };
 
   return (
@@ -265,7 +240,7 @@ const SettingsPage = () => {
             <p>푸시 알림 활성화</p>
             <label className="flex cursor-pointer items-center justify-between">
               <div>
-                <input type="checkbox" checked={push} onChange={handlePushToggle} className="peer sr-only" />
+                <input type="checkbox" checked={isPushEnabled} onChange={handlePushToggle} className="peer sr-only" />
                 <div className="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none rtl:peer-checked:after:-translate-x-full"></div>
               </div>
             </label>
