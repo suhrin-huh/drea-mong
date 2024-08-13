@@ -34,6 +34,8 @@ services:
     build:
       context: ./frontend/dreamong
     container_name: frontend-container
+    volumes:
+      - frontend-dist:/app/dist  # dist 디렉토리를 공유
     ports:
       - "5173:80"
     networks:
@@ -53,11 +55,14 @@ services:
       - /etc/nginx/sites-available:/etc/nginx/sites-available
       - /etc/nginx/sites-enabled:/etc/nginx/sites-enabled
       - /etc/letsencrypt:/etc/letsencrypt
+      - frontend-dist:/app/dist  # Nginx에 dist 디렉토리를 마운트
+
     networks:
       - spring-mysql-net
 
 volumes:
   mysql-data:
+  frontend-dist:  # 프론트엔드 빌드 파일을 저장할 볼륨
 
 networks:
   spring-mysql-net:
