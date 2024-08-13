@@ -17,5 +17,8 @@ public class DreamGetResponse {
 
     private boolean isShared;
 
+
+    private Integer userId;
+
     private String writeTime;
 }
