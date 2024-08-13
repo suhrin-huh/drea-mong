@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("users/")
+@RequestMapping("/users")
 @Slf4j
 @Tag(name = "User", description = "사용자 API")
 public class UserController {
