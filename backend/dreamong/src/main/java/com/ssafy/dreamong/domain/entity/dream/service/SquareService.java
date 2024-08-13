@@ -54,7 +54,10 @@ public class SquareService {
                         comment.getContent(),
                         comment.getLikesCount(),
                         comment.getUser().getNickname(),
-                        comment.getUser().getId().equals(userId))) // 닉네임 포함
+                        comment.getUser().getId().equals(userId),
+                        commentLikeRepository.findByCommentAndUser(comment, userRepository.findById(userId)
+                                .orElseThrow(() -> new InvalidDreamException("Invalid user ID"))).isPresent() // 좋아요 여부
+                ))// 닉네임 포함
                 .collect(Collectors.toList());
 
         return new SquareDetailResponse(dream.getSummary(), dream.getContent(), dream.getImage(), comments);
