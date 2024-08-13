@@ -50,7 +50,6 @@ public class DreamService {
                 .interpretation(dreamRequest.getInterpretation())
                 .summary(newSummary)
                 .isShared(dreamRequest.isShared())
-                .likesCount(0)
                 .userId(dreamRequest.getUserId())
                 .writeTime(dreamRequest.getWriteTime())
                 .build();
@@ -93,7 +92,6 @@ public class DreamService {
                 dream.getInterpretation(),
                 dream.getSummary(),
                 dream.isShared(),
-                dream.getLikesCount(),
                 dream.getWriteTime()
         );
     }
@@ -186,7 +184,6 @@ public class DreamService {
                 .interpretation(dreamCreateRequest.getInterpretation())
                 .summary("")
                 .isShared(dreamCreateRequest.isShared())
-                .likesCount(0)
                 .userId(dreamCreateRequest.getUserId())
                 .writeTime(dreamCreateRequest.getWriteTime())
                 .dreamCategories(new HashSet<>()) // HashSet으로 중복 방지
@@ -322,7 +319,7 @@ public class DreamService {
                 .map(this::toDreamCategoryDto)
                 .collect(Collectors.toList());
         return new DreamDto(dream.getId(), dream.getContent(), dream.getImage(), dream.getInterpretation(),
-                dream.getSummary(), dream.isShared(), dream.getLikesCount(), dream.getUserId(),
+                dream.getSummary(), dream.isShared(), dream.getUserId(),
                 dream.getWriteTime(), categoryDtos);
     }
 

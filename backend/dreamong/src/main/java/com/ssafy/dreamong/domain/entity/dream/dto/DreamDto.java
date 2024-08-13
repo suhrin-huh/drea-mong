@@ -14,7 +14,6 @@ public class DreamDto {
     private String interpretation;
     private String summary;
     private boolean isShared;
-    private Integer likesCount;
     private Integer userId;
     private String writeTime;
     private List<DreamCategoryDto> dreamCategories;

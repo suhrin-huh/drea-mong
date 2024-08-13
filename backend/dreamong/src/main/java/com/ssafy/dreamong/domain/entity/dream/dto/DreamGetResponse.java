@@ -17,7 +17,5 @@ public class DreamGetResponse {
 
     private boolean isShared;
 
-    private Integer likesCount;
-
     private String writeTime;
 }
