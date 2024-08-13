@@ -44,7 +44,7 @@ public class JWTFilter extends OncePerRequestFilter {
         String requestUri = request.getRequestURI();
 
         // 예외 처리 경로 설정
-        if (requestUri.matches("^\\/login(?:\\/.*)?$") || requestUri.matches("^\\/oauth2(?:\\/.*)?$") || requestUri.matches("^\\/api(?:\\/.*)?$")) {
+        if (requestUri.matches("^\\/login(?:\\/.*)?$") || requestUri.matches("^\\/oauth2(?:\\/.*)?$") || requestUri.matches("^\\/auth\\/refresh(?:\\/.*)?$")) {
             log.debug("login,oauth2,api: rqeustURI: {}", requestUri);
             filterChain.doFilter(request, response);
             return;
