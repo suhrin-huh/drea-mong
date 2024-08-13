@@ -49,11 +49,12 @@ const StreamingRoom = () => {
     fetchRoomInfo();
 
     const newSocket = io(socketURL, {
-      transports: ['websocket'],
-      upgrade: false,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      timeout: 1000,
+      // transports: ['websocket'],
+      // upgrade: false,
+      // reconnection: true,
+      // reconnectionAttempts: 5,
+      // timeout: 1000,
+      secure: true
     });
     setSocket(newSocket);
 
