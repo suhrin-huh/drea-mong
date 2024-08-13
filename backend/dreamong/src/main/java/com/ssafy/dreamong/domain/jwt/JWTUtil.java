@@ -18,11 +18,17 @@ public class JWTUtil {
 
     private SecretKey secretKey;
 
-    public JWTUtil(@Value("${spring.jwt.secret}")String secret) {
+    @Value("${spring.jwt.access-token-expiration}")
+    private Long accessTokenExpiration;
+
+    @Value("${spring.jwt.refresh-token-expiration}")
+    private Long refreshTokenExpiration;
 
 
+    public JWTUtil(@Value("${spring.jwt.secret}") String secret) {
         secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
     }
+
     public Integer getUserId(String token) {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("userId", Integer.class);
     }
@@ -47,23 +53,23 @@ public class JWTUtil {
 //        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 
-    public String createAccessToken(Integer userId, String providerUserId, Role role, Long expiredMs) {
+    public String createAccessToken(Integer userId, String providerUserId, Role role) {
         return Jwts.builder()
                 .claim("userId", userId)
                 .claim("providerUserId", providerUserId)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiredMs))
+                .expiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(secretKey)
                 .compact();
     }
 
-    public String createRefreshToken(Integer userId, String providerUserId, Long expiredMs) {
+    public String createRefreshToken(Integer userId, String providerUserId) {
         return Jwts.builder()
                 .claim("userId", userId)
                 .claim("providerUserId", providerUserId)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + expiredMs))
+                .expiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(secretKey)
                 .compact();
     }

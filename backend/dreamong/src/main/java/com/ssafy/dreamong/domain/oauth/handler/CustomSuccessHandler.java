@@ -43,7 +43,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         String role = authorities.iterator().next().getAuthority();
 
-        String refreshToken = jwtUtil.createRefreshToken(userId, providerUserId, 7 * 24 * 60 * 60 * 1000L); // 1주일
+        String refreshToken = jwtUtil.createRefreshToken(userId, providerUserId); // 1주일
 
         // 데이터베이스에 리프레시 토큰 저장
         User findUser = userRepository.findByProviderUserId(providerUserId);

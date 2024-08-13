@@ -1,7 +1,7 @@
 package com.ssafy.dreamong.domain.socket;
 
 import com.corundumstudio.socketio.SocketIOServer;
-import com.ssafy.dreamong.domain.entity.room.Room;
+import com.ssafy.dreamong.domain.entity.room.dto.RoomDetailsResponse;
 import com.ssafy.dreamong.domain.entity.room.service.RoomService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ public class SocketIOEventHandler {
         server.addEventListener("join-room", String.class, (client, roomId, ackRequest) -> {
             log.info("Received join-room event for room: {}", roomId);
 
-            Room room = roomService.getRoomById(Integer.parseInt(roomId));
+            RoomDetailsResponse room = roomService.getRoomDetailsById(Integer.parseInt(roomId));
             if (room == null) {
                 log.info("Room not found: {}", roomId);
                 client.sendEvent("error", "Room not found");

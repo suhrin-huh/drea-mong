@@ -42,9 +42,6 @@ public class Dream extends BaseTimeEntity {
     @Column(name = "is_shared")
     private boolean isShared;
 
-    @Column(name = "likes_count")
-    private Integer likesCount;
-
     @Column(name = "user_id")
     private Integer userId;
 
@@ -59,7 +56,7 @@ public class Dream extends BaseTimeEntity {
 
     @Builder
     public Dream(Integer id, String content, String image, String interpretation,
-                 String summary, boolean isShared, Integer likesCount,
+                 String summary, boolean isShared,
                  Integer userId, String writeTime, Set<DreamCategory> dreamCategories) {
         this.id = id;
         this.content = content;
@@ -67,7 +64,6 @@ public class Dream extends BaseTimeEntity {
         this.interpretation = interpretation;
         this.summary = summary;
         this.isShared = isShared;
-        this.likesCount = likesCount;
         this.userId = userId;
         this.writeTime = writeTime;
         if (dreamCategories != null) {
@@ -95,9 +91,5 @@ public class Dream extends BaseTimeEntity {
     private void setDreamCategories(Set<DreamCategory> newCategories) {
         this.dreamCategories.clear();
         this.dreamCategories.addAll(newCategories);
-    }
-
-    public void updateLikesCount(Integer likesCount) {
-        this.likesCount = likesCount;
     }
 }

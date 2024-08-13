@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2LoginAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,26 +35,25 @@ public class SecurityConfig {
 
         http
                 //csrf disable
-                .csrf((auth) -> auth.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 //Form 로그인 방식 disable
-                .formLogin((auth) -> auth.disable())
+                .formLogin(AbstractHttpConfigurer::disable)
                 //HTTP Basic 인증 방식 disable
-                .httpBasic((auth) -> auth.disable())
+                .httpBasic(AbstractHttpConfigurer::disable)
                 // CORS 설정 적용
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 //JWTFilter 추가
                 .addFilterAfter(new JWTFilter(jwtUtil, userRepository), OAuth2LoginAuthenticationFilter.class)
                 //oauth2
                 .oauth2Login((oauth2) -> oauth2
-                        .loginPage("/login") // 상대 경로로 설정 (프론트엔드와 백엔드가 같은 도메인이라면 유효)
-                        .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
-                                .userService(customOAuth2UserService))
-                        .successHandler(customSuccessHandler)
+//                        .loginPage("/login") // 상대 경로로 설정 (프론트엔드와 백엔드가 같은 도메인이라면 유효)
+                                .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
+                                        .userService(customOAuth2UserService))
+                                .successHandler(customSuccessHandler)
                 )
                 .authorizeHttpRequests((auth) -> auth
-//                        .requestMatchers("/", "/login", "/auth/refresh").permitAll()
-//                        .requestMatchers("/dream/**").permitAll()
-                        .anyRequest().permitAll())
+                        .requestMatchers("/", "/login", "/auth/refresh").permitAll()
+                        .anyRequest().authenticated())
                 //세션 설정 : STATELESS
                 .sessionManagement((session) -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS));

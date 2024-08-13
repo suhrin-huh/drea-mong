@@ -4,12 +4,15 @@ import com.ssafy.dreamong.domain.entity.common.ApiResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareDetailResponse;
 import com.ssafy.dreamong.domain.entity.dream.dto.SquareGetResponseDto;
 import com.ssafy.dreamong.domain.entity.dream.service.SquareService;
+import com.ssafy.dreamong.domain.oauth.dto.CustomOAuth2User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/square")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Square", description = "꿈 광장 API")
 public class SquareController {
 
@@ -41,4 +45,5 @@ public class SquareController {
         SquareDetailResponse dreamDetail = squareService.getDreamDetail(dreamId, userId);
         return ResponseEntity.ok(ApiResponse.success(dreamDetail));
     }
+
 }

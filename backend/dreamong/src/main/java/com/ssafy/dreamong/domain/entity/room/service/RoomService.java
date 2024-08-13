@@ -2,9 +2,13 @@ package com.ssafy.dreamong.domain.entity.room.service;
 
 import com.corundumstudio.socketio.SocketIOServer;
 import com.ssafy.dreamong.domain.entity.room.Room;
-import com.ssafy.dreamong.domain.entity.room.dto.RoomListResponse;
+import com.ssafy.dreamong.domain.entity.room.dto.RoomCreateRequest;
+import com.ssafy.dreamong.domain.entity.room.dto.RoomDetailsResponse;
 import com.ssafy.dreamong.domain.entity.room.repository.RoomRepository;
+import com.ssafy.dreamong.domain.entity.user.User;
+import com.ssafy.dreamong.domain.entity.user.repository.UserRepository;
 import com.ssafy.dreamong.domain.exception.RoomNotFoundException;
+import com.ssafy.dreamong.domain.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,22 +22,34 @@ import java.util.stream.Collectors;
 public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final UserRepository userRepository;
     private final SocketIOServer socketIOServer;
 
-    public Room createRoom(Room room) {
+    public void createRoom(Integer userId, RoomCreateRequest roomCreateRequest) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        Room room = Room.builder()
+                .title(roomCreateRequest.getTitle())
+                .youtubeLink(roomCreateRequest.getYoutubeLink())
+                .thumbnail(roomCreateRequest.getThumbnail())
+                .user(user)
+                .build();
+
         Room createdRoom = roomRepository.save(room);
         socketIOServer.getBroadcastOperations().sendEvent("room-created", createdRoom);
-        return createdRoom;
     }
 
-    public List<RoomListResponse> getAllRooms() {
+    public List<RoomDetailsResponse> getAllRooms() {
         return roomRepository.findAllByOrderByIdDesc().stream()
-                .map(this::mapToRoomListResponse)
+                .map(this::mapToRoomDetailResponse)
                 .collect(Collectors.toList());
     }
 
-    public Room getRoomById(Integer id) {
-        return roomRepository.findById(id).orElseThrow(RoomNotFoundException::new);
+    public RoomDetailsResponse getRoomDetailsById(Integer roomId) {
+        return roomRepository.findById(roomId).map(this::mapToRoomDetailResponse)
+                .orElseThrow(RoomNotFoundException::new);
+
     }
 
     public void deleteRoom(Integer romeId) {
@@ -47,9 +63,9 @@ public class RoomService {
         socketIOServer.getBroadcastOperations().sendEvent("room-deleted", romeId);
     }
 
-    private RoomListResponse mapToRoomListResponse(Room room) {
+    private RoomDetailsResponse mapToRoomDetailResponse(Room room) {
         int participantCount = socketIOServer.getRoomOperations(String.valueOf(room.getId())).getClients().size();
-        return new RoomListResponse(room.getId(), room.getTitle(), room.getYoutubeLink(), room.getThumbnail(), participantCount);
+        return new RoomDetailsResponse(room.getId(), room.getTitle(), room.getYoutubeLink(), room.getThumbnail(), participantCount);
     }
 }
 

@@ -9,10 +9,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoomListResponse {
-    private Integer roomId;
+public class RoomCreateRequest {
     private String title;
     private String youtubeLink;
     private String thumbnail;
-    private int participantCount; // 참여자 수 필드 추가
 }
