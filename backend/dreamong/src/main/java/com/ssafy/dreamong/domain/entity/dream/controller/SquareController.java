@@ -40,11 +40,10 @@ public class SquareController {
     @Operation(summary = "꿈 광장 상세보기", description = "꿈 광장에서 선택한 글을 상세하게 본다.")
     @GetMapping(value = "/{dreamId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<?>> getDreamDetail(
-            @AuthenticationPrincipal CustomOAuth2User oAuth2User, @Parameter(description = "꿈 ID", required = true) @PathVariable Integer dreamId) {
-
-        SquareDetailResponse dreamDetail = squareService.getDreamDetail(dreamId, oAuth2User.getUserId());
-        log.info("dreamId: {}", dreamId);
-        log.info("userId: {}", oAuth2User.getUserId());
+            @Parameter(description = "꿈 ID", required = true) @PathVariable Integer dreamId,
+            @Parameter(description = "사용자 ID", required = true) @RequestParam Integer userId) {
+        SquareDetailResponse dreamDetail = squareService.getDreamDetail(dreamId, userId);
         return ResponseEntity.ok(ApiResponse.success(dreamDetail));
     }
+
 }
