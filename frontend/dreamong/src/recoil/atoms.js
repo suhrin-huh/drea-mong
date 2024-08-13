@@ -17,5 +17,5 @@ export const baseURLState = atom({
 
 export const socketURLState = atom({
   key: 'socketURLState',
-  default: 'wss://i11c106.p.ssafy.io',
+  default: 'wss://i11c106.p.ssafy.io/',
 });
