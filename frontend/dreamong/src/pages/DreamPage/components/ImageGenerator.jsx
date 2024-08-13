@@ -13,6 +13,7 @@ import axios from 'axios';
 // 앱 내부의 컴포넌트/아이콘
 import { useHandleError } from '../../../utils/utils';
 import { LargeLoadingSpinner, LargeRegeneratorIcon } from '../../../assets/icons';
+import imgGenerator from '../../../assets/img_generator.png';
 
 /** - 이미지 생성 오류 발생시 현재위치
  * - 검열이미지 대체할 요소 고려 필요!
@@ -164,7 +165,8 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
       onClick={() => handleImgGenerator()}
       className="my-2 w-full flex-row items-center justify-center rounded-lg bg-primary-500 p-4"
     >
-      <img className="inline-block h-20 w-20" src="../src/assets/img_generator.png" alt="이미지 생성하기"></img>
+      <img className="inline-block h-20 w-20" src={imgGenerator} alt="이미지 생성하기"/>
+
       <p className="py-2 font-bold">꿈 이미지 생성하기</p>
     </button>
   );
