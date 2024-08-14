@@ -1,5 +1,6 @@
 // 앱 내부의 상태 관리와 관련된 파일
 import { useRecoilValue } from 'recoil';
+import { useNavigate } from 'react-router-dom';
 import { baseURLState } from '../../../recoil/atoms';
 
 // 외부 라이브러리
@@ -26,10 +27,12 @@ const InterpretationBox = ({
   const baseURL = useRecoilValue(baseURLState);
   const handleError = useHandleError();
   const accessToken = localStorage.getItem('accessToken');
+  const navigate = useNavigate();
 
   /** 해석 생성 함수 해석*/
   const handleInterp = async () => {
     try {
+      if (!accessToken) return Navigate('/login');
       // 1) 공백 및 최소 글자수 미만으로 작성 시 생성
       if (content.replace(/ /g, '') == '') {
         Swal.fire({
@@ -62,14 +65,22 @@ const InterpretationBox = ({
 
       const response = await axios.post(`${baseURL}/api/generate-interpretation`, requestData, {
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
+        withCredentials: true,
       });
 
       setInterpretation(response.data.data);
-    } catch (err) {
+    } catch (error) {
       // 오류 발생 시에는 해석생성 버튼으로 돌아오기
-      console.log(err);
       setIsInterpVisible(false);
-      handleError();
+      console.log(error.message);
+      if (error.response && error.response.status === 401) {
+        navigate('/login');
+      } else {
+        Swal.fire({
+          icon: 'error',
+          text: '오류가 발생했습니다. 해석을 다시 생성해주세요.',
+        });
+      }
     }
   };
 

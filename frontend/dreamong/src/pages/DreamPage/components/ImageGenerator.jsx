@@ -14,6 +14,7 @@ import axios from 'axios';
 import { useHandleError } from '../../../utils/utils';
 import { LargeLoadingSpinner, LargeRegeneratorIcon } from '../../../assets/icons';
 import imgGenerator from '../../../assets/img_generator.png';
+import censoredImage from '../../../assets/censoredImg.png';
 
 /** - 이미지 생성 오류 발생시 현재위치
  * - 검열이미지 대체할 요소 고려 필요!
@@ -46,6 +47,7 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
       const accessToken = localStorage.getItem('accessToken');
       const response = await axios.post(`${baseURL}/api/generate-image`, requestData, {
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
+        withCredentials: true,
       });
 
       // 검열된 이미지 존재시에 그만큼 공백 추가
@@ -101,7 +103,7 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
   if (image) {
     return (
       <div className={`${classList} relative rounded-lg`}>
-        <button onClick={() => imgRegenerator()} className="z-1 absolute right-6 top-6">
+        <button onClick={() => imgRegenerator()} className="absolute z-1 right-6 top-6">
           {LargeRegeneratorIcon}
         </button>
         <img src={image}></img>
@@ -112,7 +114,7 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
   if (options) {
     return (
       <div className={`${classList}`}>
-        <p className="my-3 text-center text-lg">그림을 선택하세요</p>
+        <p className="my-3 text-lg text-center">그림을 선택하세요</p>
         <div className="grid grid-cols-2">
           {options.map((img, idx) => (
             <div
@@ -122,14 +124,14 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
               {/* 이미지가 존재하면 표시, 검열된 이미지면 다른 이미지 렌더링 */}
               <img
                 onClick={() => handleSelected(idx)}
-                className={`block h-full w-full rounded-lg ${img ? null : 'opacity-50'}`}
-                src={img ? img : '/src/assets/censoredImg.png'}
+                className={`block h-full w-full rounded-lg`}
+                src={img ? img : censoredImage}
                 key={idx}
               ></img>
               {selected == idx ? (
-                <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black bg-opacity-50 text-white">
+                <div className="absolute inset-0 flex items-center justify-center text-white bg-black bg-opacity-50 rounded-lg">
                   <button
-                    className="rounded-full bg-primary-500 px-3 py-1 text-white"
+                    className="px-3 py-1 text-white rounded-full bg-primary-500"
                     onClick={() => {
                       handleImage(idx);
                     }}
@@ -141,7 +143,7 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
             </div>
           ))}
         </div>
-        <div className="my-3 flex justify-around">
+        <div className="flex justify-around my-3">
           <button onClick={() => imgRegenerator()}>{LargeRegeneratorIcon}</button>
         </div>
       </div>
@@ -163,9 +165,9 @@ const ImageGenerator = ({ MIN_LENGTH, classList, content, image, setImage }) => 
   return (
     <button
       onClick={() => handleImgGenerator()}
-      className="my-2 w-full flex-row items-center justify-center rounded-lg bg-primary-500 p-4"
+      className="flex-row items-center justify-center w-full p-4 my-2 rounded-lg bg-primary-500"
     >
-      <img className="inline-block h-20 w-20" src={imgGenerator} alt="이미지 생성하기"/>
+      <img className="inline-block w-20 h-20" src={imgGenerator} alt="이미지 생성하기"/>
 
       <p className="py-2 font-bold">꿈 이미지 생성하기</p>
     </button>

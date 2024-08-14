@@ -31,7 +31,7 @@ import ShareSettings from './components/ShareSettings';
 const DreamRegisterPage = () => {
   const navigate = useNavigate();
   const handleError = useHandleError();
-  const user = useRecoilValue(userState);
+  const [user, setUser] = useRecoilState(userState);
   const baseURL = useRecoilValue(baseURLState);
   const { dreamId } = useParams();
 
@@ -55,26 +55,43 @@ const DreamRegisterPage = () => {
   const [isShared, setIsShared] = useState(false);
   // 날짜의 형식을 변경해야하므로 함수 설정 후에 변수 선언
   const [date, setDate] = useState(replaceDateType(new Date()));
+  const [writerId, setWriterId] = useState();
   const accessToken = localStorage.getItem('accessToken');
 
+  const mainRef = useRef(null);
+  const ScrollToDiv = () => {
+    // 참조된 div가 있으면 그 위치로 스크롤 이동
+    if (mainRef.current) {
+      mainRef.current.scrollIntoView({ behavior: 'smooth' });
+      console.log(window.scrollY);
+    }
+  };
   useEffect(() => {
-    async function getDetail() {
-      try {
-        if (!accessToken) {
-          navigate('/login');
+    ScrollToDiv();
+    if (!accessToken) {
+      navigate('/login');
+      return;
+    }
+    axios
+      .get(`${baseURL}/users/info`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        withCredentials: true,
+      })
+      .then((response) => {
+        setUser(response.data.data);
+        return axios.get(`${baseURL}/dream/${dreamId}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+          withCredentials: true,
+        });
+      })
+      .then((res) => {
+        const responseData = res.data.data;
+        if (responseData.userId != user.userId) {
+          console.log(responseData, 'user', user);
+          navigate('/');
           return;
         }
-        const requestData = {
-          userId: user.userId,
-        };
-        const response = await axios.get(`${baseURL}/dream/${dreamId}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          params: requestData,
-        });
-        const responseData = response.data.data;
-        if (responseData.userId != user.userId) {
-          navigate('/');
-        }
+        setWriterId(responseData.userId);
         setContent(responseData.content);
         setImage(responseData.image);
         setInterpretation(responseData.interpretation);
@@ -82,12 +99,15 @@ const DreamRegisterPage = () => {
         const writeTime = responseData.writeTime;
         const formattedDate = `${writeTime.slice(0, 4)}-${writeTime.slice(4, 6)}-${writeTime.slice(6, 8)}`;
         setDate(formattedDate);
-      } catch (err) {
-        console.log(err);
-        handleError('/login');
-      }
-    }
-    getDetail();
+      })
+      .catch((error) => {
+        console.log(error);
+        if (error.response && error.response.status === 401) {
+          navigate('/login');
+        } else {
+          navigate('/error');
+        }
+      });
   }, []);
 
   useEffect(() => {
@@ -108,7 +128,8 @@ const DreamRegisterPage = () => {
   /** 꿈 일기 수정 후 저장 */
   const saveDream = async () => {
     try {
-      if (content.replace(/ /g, '') == '') {
+      // 공백 확인
+      if (content.replace(/ /g, '') === '') {
         Swal.fire({
           title: 'ERROR',
           icon: 'error',
@@ -116,17 +137,44 @@ const DreamRegisterPage = () => {
         });
         return;
       }
+
+      // 최소 길이 확인
       if (content.length < MIN_LENGTH) {
         Swal.fire({
           text: `정확한 해석을 위해 꿈 내용을 ${MIN_LENGTH}자 이상 작성해주세요.`,
           icon: 'warning',
           confirmButtonText: '확인',
         });
-        return 0;
+        return;
       }
 
+      if (isSaving) return;
       setIsSaving(true);
-      const response = await axios.put(
+
+      if (!accessToken) {
+        navigate('/login');
+        return;
+      }
+
+      const dreamResponse = await axios.get(`${baseURL}/dream/${dreamId}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        withCredentials: true,
+      });
+
+      const responseData = dreamResponse.data.data;
+
+      // 주석 처리된 권한 확인 부분
+      if (writerId !== user.userId) {
+        await Swal.fire({
+          icon: 'error',
+          text: '글 수정 권한이 없습니다.',
+        });
+        navigate('/');
+        return;
+      }
+
+      // 업데이트 요청 실행
+      const updateResponse = await axios.put(
         `${baseURL}/dream/${dreamId}`,
         {
           content: content,
@@ -138,18 +186,31 @@ const DreamRegisterPage = () => {
         },
         {
           headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
+          withCredentials: true,
         },
       );
-      console.log(response.data);
+
+      // 성공 시 알림 및 페이지 이동
+      Swal.fire({
+        icon: 'success',
+        text: '저장이 완료되었습니다.',
+      });
+
       navigate('/');
-    } catch (err) {
-      handleError();
+    } catch (error) {
+      console.log(error);
+      setIsSaving(false);
+      if (error.response && error.response.status === 401) {
+        navigate('/login');
+      } else {
+        handleError('/');
+      }
     }
   };
 
   return (
     // 이 부분 최소 높이 class 수정 필요!!
-    <div className="flex flex-col px-6 py-3 text-white" style={{ minheight: '100vh' }}>
+    <div ref={mainRef} className="flex flex-col px-6 py-3 text-white" style={{ minheight: '100vh' }}>
       {/* 음성인식 여부에 따른 animation */}
       {isListening ? SttWaveBar : null}
 
@@ -188,6 +249,9 @@ const DreamRegisterPage = () => {
         image={image}
         setImage={setImage}
       />
+      <p className="px-2 pb-2 pt-1 text-center text-[12px]">
+        드리-몽도 실수할 수 있습니다. 이미지가 검열될 수 있습니다.
+      </p>
       <ShareSettings isShared={isShared} setIsShared={setIsShared} interpretation={interpretation} image={image} />
 
       <div className="flex justify-center">
