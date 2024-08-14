@@ -63,7 +63,7 @@ export const subscribeToTopic = async (token, topic) => {
       method: 'post',
       url: `https://iid.googleapis.com/iid/v1/${token}/rel/topics/${topic}`,
       headers: {
-        Authorization: `key=a0c20c2e459b5cc5334cdb3961a0be4edf51a16f`,
+        Authorization: `key=AIzaSyA235r3rrXeSNznE0LnIWfZqF4bVXPk4Qs`,
         'Content-Type': 'application/json',
       },
     });
@@ -82,7 +82,7 @@ export const unsubscribeFromTopic = async (token, topic) => {
       method: 'delete',
       url: `https://iid.googleapis.com/iid/v1/${token}/rel/topics/${topic}`,
       headers: {
-        Authorization: `key=a0c20c2e459b5cc5334cdb3961a0be4edf51a16f`,
+        Authorization: `key=AIzaSyA235r3rrXeSNznE0LnIWfZqF4bVXPk4Qs`,
         'Content-Type': 'application/json',
       },
     });
