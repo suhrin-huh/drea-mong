@@ -3,7 +3,7 @@ import Modal from 'react-modal';
 import Button from '../../components/Button';
 import { useNavigate, Outlet } from 'react-router-dom';
 
-import { useRecoilValue } from 'recoil';
+import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { baseURLState, userState } from '../../recoil/atoms';
 
 import back from '../../assets/back.svg';
@@ -18,7 +18,7 @@ const StreamingPage = () => {
   const [sleepTime, setSleepTime] = useState(sessionStorage.getItem('sleepTime') || null);
 
   const baseURL = useRecoilValue(baseURLState);
-  const setUserState = useSetRecoilState(userState);
+  const setUser = useSetRecoilState(userState);
 
   useEffect(() => {
     fetchUserInfo();
@@ -71,7 +71,7 @@ const StreamingPage = () => {
         Authorization: `Bearer ${accessToken}`,
       },
     }).then((response) => {
-      setUserState(response.data.data);
+      setUser(response.data.data);
     });
   };
 
