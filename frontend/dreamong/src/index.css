@@ -10,6 +10,13 @@ body {
   display: none;
 }
 
+* {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
+
 // STTWaveBar
 @keyframes quiet {
   25% {
@@ -239,7 +246,7 @@ body {
   }
   33% {
     top: 15px;
-    height: 30px;
+    height: 25px;
   }
   66% {
     top: 40px;
@@ -247,8 +254,8 @@ body {
     opacity: 1;
   }
   100% {
-    top: 50px;
-    height: 8px;
+    top: 48px;
+    height: 6px;
     opacity: 0;
   }
 }
