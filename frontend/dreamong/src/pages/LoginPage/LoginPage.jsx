@@ -4,6 +4,8 @@ import kakaoLogo from '../../assets/logoSVG/btn_kakao.svg';
 import { useRecoilValue } from 'recoil';
 import { baseURLState } from '../../recoil/atoms';
 
+import FadeInText from './components/FadeInText';
+
 const LoginPage = () => {
   const baseURL = useRecoilValue(baseURLState);
 
@@ -22,9 +24,14 @@ const LoginPage = () => {
   return (
     <div className="flex h-screen flex-col justify-end">
       <section className="pr-[10%] text-end">
-        <h1 className="mb-12 text-5xl font-bold text-white">Drea-mong</h1>
-        <p className="mb-3 text-2xl text-white">꿈의 비밀을 통해</p>
-        <p className="text-2xl text-white">자신을 발견해 보세요</p>
+        <div className="mb-12 animate-bounce text-5xl">
+          <FadeInText text="Drea-mong" delay={500} className="font-bold" />
+        </div>
+        {/* <h1 className="mb-10 animate-bounce text-5xl font-bold text-white">Drea-mong</h1> */}
+        <div className="text-2xl">
+          <FadeInText text="꿈의 비밀을 통해" delay={1200} />
+          <FadeInText text="자신을 발견해 보세요" delay={1800} />
+        </div>
       </section>
       <section className="mb-[10%] mt-60 flex flex-col items-center gap-y-4 text-lg">
         <button
