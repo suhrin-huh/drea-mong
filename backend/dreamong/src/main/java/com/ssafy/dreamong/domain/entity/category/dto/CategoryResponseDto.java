@@ -9,6 +9,8 @@ import java.util.List;
 @AllArgsConstructor
 public class CategoryResponseDto {
 
+    private Integer userId;
+
     private List<CommonResponseDto> moods;
 
     private List<CommonResponseDto> characters;
