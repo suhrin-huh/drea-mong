@@ -27,38 +27,36 @@ import java.util.stream.Collectors;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final ChatModel chatModel; // AI 모델과의 통신을 위한 ChatModel
+    private final ChatModel chatModel;
 
-    // 요청 데이터를 처리하여 한 달간의 카테고리별 데이터를 조회
     public CategoryResponseDto getCategoryDataByUserAndDate(Integer userId, String currentDate) {
         YearMonth yearMonth = YearMonth.parse(currentDate, DateTimeFormatter.ofPattern("yyyyMM"));
         return getCategoryDataByUserAndDate(userId, yearMonth);
     }
 
-    // 한 달간의 카테고리별 데이터 조회
     private CategoryResponseDto getCategoryDataByUserAndDate(Integer userId, YearMonth yearMonth) {
         String startDate = yearMonth.atDay(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String endDate = yearMonth.atEndOfMonth().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
         // 기분 데이터
-        List<CommonResponseDto> moodDtos = categoryRepository.findMoodCategoriesByDateRange(startDate, endDate).stream()
+        List<CommonResponseDto> moodDtos = categoryRepository.findMoodCategoriesByDateRangeAndUserId(userId, startDate, endDate).stream()
                 .map(category -> new CommonResponseDto(category.getWord(), category.getType()))
                 .collect(Collectors.toList());
 
         // 인물 데이터 (빈도수 상위 3개)
-        List<CommonResponseDto> characterDtos = categoryRepository.findCharacterCategoriesByDateRange(startDate, endDate).stream()
+        List<CommonResponseDto> characterDtos = categoryRepository.findCharacterCategoriesByDateRangeAndUserId(userId, startDate, endDate).stream()
                 .limit(3)
                 .map(category -> new CommonResponseDto(category.getWord(), category.getType()))
                 .collect(Collectors.toList());
 
         // 장소 데이터 (빈도수 상위 3개)
-        List<CommonResponseDto> locationDtos = categoryRepository.findLocationCategoriesByDateRange(startDate, endDate).stream()
+        List<CommonResponseDto> locationDtos = categoryRepository.findLocationCategoriesByDateRangeAndUserId(userId, startDate, endDate).stream()
                 .limit(3)
                 .map(category -> new CommonResponseDto(category.getWord(), category.getType()))
                 .collect(Collectors.toList());
 
         // 사물 데이터 (빈도수 상위 3개)
-        List<ObjectResponseDto> objectDtos = categoryRepository.findObjectCategoriesByDateRange(startDate, endDate).stream()
+        List<ObjectResponseDto> objectDtos = categoryRepository.findObjectCategoriesByDateRangeAndUserId(userId, startDate, endDate).stream()
                 .limit(3)
                 .map(category -> {
                     List<String> hashTags;
@@ -72,11 +70,11 @@ public class CategoryService {
                 .collect(Collectors.toList());
 
         // 꿈 종류별 카운트 데이터
-        List<DreamTypeCountDto> dreamTypeCounts = categoryRepository.countDreamTypesByDateRange(startDate, endDate).stream()
+        List<DreamTypeCountDto> dreamTypeCounts = categoryRepository.countDreamTypesByDateRangeAndUserId(userId, startDate, endDate).stream()
                 .map(countDto -> new DreamTypeCountDto(countDto.getDreamType(), countDto.getCount()))
                 .collect(Collectors.toList());
 
-        return new CategoryResponseDto(moodDtos, characterDtos, locationDtos, objectDtos, dreamTypeCounts);
+        return new CategoryResponseDto(userId, moodDtos, characterDtos, locationDtos, objectDtos, dreamTypeCounts);
     }
 
     private List<String> getHashTagsFromAI(String word) {
@@ -87,7 +85,7 @@ public class CategoryService {
 
     private String generateHashTagPrompt(String word) {
         return "사용자가 꾼 꿈에 등장한 사물 또는 동물은 다음과 같습니다: \"" + word + "\". " +
-                "이 단어를 기반으로 해시태그 3개를 생성해주세요. " +
+                "이 단어를 기반으로 꿈 해석 관점으로 해시태그 3개를 생성해주세요. " +
                 "해시태그는 욕설, 선정적 단어, 폭력적 단어, 혐오적 단어를 포함하지 않아야 합니다. \"" +
                 word +
                 "\" 에 해당 하는 단어는 해시태크에서 제외 해주세요" +
