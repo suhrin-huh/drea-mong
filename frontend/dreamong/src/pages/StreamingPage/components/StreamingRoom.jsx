@@ -49,12 +49,11 @@ const StreamingRoom = () => {
     fetchRoomInfo();
 
     const newSocket = io(socketURL, {
-      // transports: ['websocket'],
-      // upgrade: false,
-      // reconnection: true,
-      // reconnectionAttempts: 5,
-      // timeout: 1000,
-      secure: true
+      transports: ['websocket'],
+      upgrade: false,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      timeout: 1000,
     });
     setSocket(newSocket);
 
@@ -109,7 +108,7 @@ const StreamingRoom = () => {
     if (messageContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = messageContainerRef.current;
       // 스크롤이 맨 아래에 있는지 확인
-      const isScrollecToBottom = scrollHeight - scrollTop - clientHeight < 1;
+      const isScrolledToBottom = scrollHeight - scrollTop - clientHeight < 1;
       // 스크롤 위치에 따라 자동 스크롤 상태 업데이트
       setShouldAutoScroll(isScrolledToBottom);
     }
@@ -171,6 +170,7 @@ const StreamingRoom = () => {
                   loop: 1,
                   rel: 0,
                   modestbranding: 1,
+                  origin: 'https://i11c106.p.ssafy.io',
                 },
               }}
               onReady={onReady}
