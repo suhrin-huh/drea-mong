@@ -20,7 +20,7 @@ const StreamingPage = () => {
 
     // sleepTime이 존재할 때만 취침 시간 체크 인터벌 설정
     if (sleepTime) {
-      intervalId = setInterval(checkSleepTime, 10000); // 10초마다 체크
+      intervalId = setInterval(checkSleepTime, 5000); // 5초마다 체크
     }
 
     // localStorage의 sleepTime 변경 감지
@@ -34,7 +34,7 @@ const StreamingPage = () => {
           clearInterval(intervalId);
         }
         if (updatedSleepTime) {
-          intervalId = setInterval(checkSleepTime, 10000); // 10초 간격으로 확인
+          intervalId = setInterval(checkSleepTime, 5000); // 5초 간격으로 확인
         }
       }
     };
@@ -58,6 +58,7 @@ const StreamingPage = () => {
 
     if (currentTime === sleepTime) {
       navigate('/'); // 루트 URL로 이동
+      alert('취침 모드가 실행되었습니다!');
     }
   };
 
