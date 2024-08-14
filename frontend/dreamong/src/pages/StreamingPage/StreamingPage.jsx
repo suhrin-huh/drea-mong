@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import Modal from 'react-modal';
 import Button from '../../components/Button';
@@ -44,7 +44,7 @@ const StreamingPage = () => {
     // localStorage의 sleepTime 변경 감지
     const handleStorageChange = (event) => {
       if (event.key === 'sleepTime') {
-        const updatedSleepTime = localStorage.getItem('sleepTime');
+        const updatedSleepTime = sessionStorage.getItem('sleepTime');
         setSleepTime(updatedSleepTime);
 
         // 인터벌 초기화
