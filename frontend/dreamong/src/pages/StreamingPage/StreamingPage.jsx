@@ -3,6 +3,9 @@ import Modal from 'react-modal';
 import Button from '../../components/Button';
 import { useNavigate, Outlet } from 'react-router-dom';
 
+import { useRecoilValue } from 'recoil';
+import { baseURLState, userState } from '../../../recoil/atoms';
+
 import back from '../../assets/back.svg';
 
 // Make sure to set the app element for accessibility
@@ -14,13 +17,18 @@ const StreamingPage = () => {
   const [modalContentVisible, setModalContentVisible] = useState(false);
   const [sleepTime, setSleepTime] = useState(sessionStorage.getItem('sleepTime') || null);
 
-  // 취침 시간 설정 관련 useEffect
+  const baseURL = useRecoilValue(baseURLState);
+  const setUserState = useSetRecoilState(userState);
+
   useEffect(() => {
+    fetchUserInfo();
+
+    // 취침 시간 설정 관련
     let intervalId;
 
     // sleepTime이 존재할 때만 취침 시간 체크 인터벌 설정
     if (sleepTime) {
-      intervalId = setInterval(checkSleepTime, 5000); // 5초마다 체크
+      intervalId = setInterval(checkSleepTime, 2000);
     }
 
     // localStorage의 sleepTime 변경 감지
@@ -34,7 +42,7 @@ const StreamingPage = () => {
           clearInterval(intervalId);
         }
         if (updatedSleepTime) {
-          intervalId = setInterval(checkSleepTime, 5000); // 5초 간격으로 확인
+          intervalId = setInterval(checkSleepTime, 2000);
         }
       }
     };
@@ -49,6 +57,24 @@ const StreamingPage = () => {
     };
   }, [sleepTime]);
 
+  const fetchUserInfo = () => {
+    const accessToken = localStorage.getItem('accessToken');
+
+    if (!accessToken) {
+      return navigate('/login');
+    }
+
+    axios({
+      method: 'get',
+      url: `${baseURL}/users/info`,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }).then((response) => {
+      setUserState(response.data.data);
+    });
+  };
+
   // 취침 시간 체크 함수
   const checkSleepTime = () => {
     if (!sleepTime) return; // sleepTime이 null이면 함수 종료
@@ -57,7 +83,7 @@ const StreamingPage = () => {
     const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
     if (currentTime === sleepTime) {
-      navigate('/'); // 루트 URL로 이동
+      navigate('/streaming'); // 스트리밍 목록 URL로 이동
       alert('취침 모드가 실행되었습니다!');
     }
   };
