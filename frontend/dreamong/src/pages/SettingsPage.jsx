@@ -70,7 +70,7 @@ const SettingsPage = () => {
   }, [userInfo]);
 
   useEffect(() => {
-    ScrollToDiv();
+    // ScrollToDiv();
     const checkPushStatus = async () => {
       const fcmToken = await getFCMToken();
       console.log(fcmToken);
@@ -106,6 +106,12 @@ const SettingsPage = () => {
   // 닉네임 변경사항 저장
   const handleNicknameSave = (event) => {
     event.preventDefault();
+
+    if (newNickname.length < 1) {
+      alert('닉네임은 1글자 이상이어야 합니다.');
+      return;
+    }
+
     axios({
       method: 'patch',
       url: `${baseURL}/users/nickname`,
@@ -113,7 +119,7 @@ const SettingsPage = () => {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
       data: {
-        nickname: newNickname,
+        nickname: newNickname.trim(),
       },
     })
       .then((response) => {
@@ -235,11 +241,11 @@ const SettingsPage = () => {
             </div>
           </>
         )}
-        {/* <div className="mb-8 flex h-10 items-center justify-between">
+        {/* <div className="flex items-center justify-between h-10 mb-8">
           <p>다크모드 활성화</p>
-          <label className="flex cursor-pointer items-center justify-between">
+          <label className="flex items-center justify-between cursor-pointer">
             <div>
-              <input type="checkbox" checked={darkMode} onChange={handleDarkModeToggle} className="peer sr-only" />
+              <input type="checkbox" checked={darkMode} onChange={handleDarkModeToggle} className="sr-only peer" />
               <div className="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none rtl:peer-checked:after:-translate-x-full"></div>
             </div>
           </label>
