@@ -7,8 +7,6 @@ import io from 'socket.io-client';
 import { useRecoilValue } from 'recoil';
 import { userState, baseURLState, socketURLState } from '../../../recoil/atoms';
 
-import sendImg from '../../../assets/send.svg';
-
 const StreamingRoom = () => {
   const navigate = useNavigate();
 
@@ -35,6 +33,7 @@ const StreamingRoom = () => {
       url: `${baseURL}/rooms/${roomId}`,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        withCredentials: true,
       },
     })
       .then((response) => {
@@ -51,11 +50,12 @@ const StreamingRoom = () => {
     fetchRoomInfo();
 
     const newSocket = io(socketURL, {
-      transports: ['websocket'],
-      upgrade: false,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      timeout: 1000,
+      // transports: ['websocket'],
+      // upgrade: false,
+      // reconnection: true,
+      // reconnectionAttempts: 5,
+      // timeout: 1000,
+      secure: true,
     });
     setSocket(newSocket);
 
@@ -110,7 +110,7 @@ const StreamingRoom = () => {
     if (messageContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = messageContainerRef.current;
       // 스크롤이 맨 아래에 있는지 확인
-      const isScrolledToBottom = scrollHeight - scrollTop - clientHeight < 1;
+      const isScrollecToBottom = scrollHeight - scrollTop - clientHeight < 1;
       // 스크롤 위치에 따라 자동 스크롤 상태 업데이트
       setShouldAutoScroll(isScrolledToBottom);
     }
@@ -172,7 +172,6 @@ const StreamingRoom = () => {
                   loop: 1,
                   rel: 0,
                   modestbranding: 1,
-                  origin: 'https://i11c106.p.ssafy.io',
                 },
               }}
               onReady={onReady}
@@ -216,7 +215,7 @@ const StreamingRoom = () => {
           aria-label="채팅 메시지 입력"
         />
         <button onClick={sendMessage} className="rounded-br-md bg-primary-500 p-3 text-white" aria-label="메시지 전송">
-          <img src={sendImg} />
+          전송
         </button>
       </div>
     </section>

@@ -20,8 +20,17 @@ const StreamingPage = () => {
 
   const baseURL = useRecoilValue(baseURLState);
   const setUser = useSetRecoilState(userState);
+  const mainRef = useRef(null);
+  const ScrollToDiv = () => {
+    // 참조된 div가 있으면 그 위치로 스크롤 이동
+    if (mainRef.current) {
+      mainRef.current.scrollIntoView({ behavior: 'smooth' });
+      console.log(window.scrollY);
+    }
+  };
 
   useEffect(() => {
+    ScrollToDiv();
     fetchUserInfo();
 
     // 취침 시간 설정 관련
@@ -70,6 +79,7 @@ const StreamingPage = () => {
       url: `${baseURL}/users/info`,
       headers: {
         Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
       },
     }).then((response) => {
       setUser(response.data.data);
@@ -134,7 +144,7 @@ const StreamingPage = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-60px)] bg-[#222222] p-2">
+    <div ref={mainRef} className="min-h-[calc(100vh-60px)] bg-[#222222] p-2">
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={toggleModalIsOpen}

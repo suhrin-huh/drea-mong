@@ -45,7 +45,14 @@ const SettingsPage = () => {
   const handleInputChange = (event) => {
     setNewNickname(event.target.value);
   };
-
+  const mainRef = useRef(null);
+  const ScrollToDiv = () => {
+    // 참조된 div가 있으면 그 위치로 스크롤 이동
+    if (mainRef.current) {
+      mainRef.current.scrollIntoView({ behavior: 'smooth' });
+      console.log(window.scrollY);
+    }
+  };
   // 컴포넌트 마운트 시 로컬 스토리지에서 설정 불러오기
   useEffect(() => {
     // const savedDarkMode = localStorage.getItem('darkMode'); // 다크모드
@@ -63,6 +70,7 @@ const SettingsPage = () => {
   }, [userInfo]);
 
   useEffect(() => {
+    ScrollToDiv();
     const checkPushStatus = async () => {
       const fcmToken = await getFCMToken();
       console.log(fcmToken);
@@ -162,7 +170,7 @@ const SettingsPage = () => {
   };
 
   return (
-    <>
+    <div ref={mainRef}>
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={toggleModalIsOpen}
@@ -248,7 +256,7 @@ const SettingsPage = () => {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
 

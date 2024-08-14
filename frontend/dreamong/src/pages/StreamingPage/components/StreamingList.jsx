@@ -32,6 +32,7 @@ const StreamingList = () => {
       url: `${baseURL}/rooms`, // 백엔드 api 명세 관련 논의 후 수정 예정
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        withCredentials: true,
       },
     })
       .then((response) => {
