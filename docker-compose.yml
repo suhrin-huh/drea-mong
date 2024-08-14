@@ -12,7 +12,12 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
-      - spring-mysql-net
+      - dreamong-network
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   backend:
     build:
@@ -28,7 +33,8 @@ services:
       - "8080:8080"
       - "9093:9093"
     networks:
-      - spring-mysql-net
+      - dreamong-network
+    restart: on-failure
 
   frontend:
     build:
@@ -39,7 +45,7 @@ services:
     ports:
       - "5173:80"
     networks:
-      - spring-mysql-net
+      - dreamong-network
 
   nginx:
     image: nginx:latest
@@ -56,13 +62,13 @@ services:
       - /etc/nginx/sites-enabled:/etc/nginx/sites-enabled
       - /etc/letsencrypt:/etc/letsencrypt
       - frontend-dist:/app/dist  # Nginx에 dist 디렉토리를 마운트
-
     networks:
-      - spring-mysql-net
+      - dreamong-network
+    restart: always
 
 volumes:
   mysql-data:
   frontend-dist:  # 프론트엔드 빌드 파일을 저장할 볼륨
 
 networks:
-  spring-mysql-net:
+  dreamong-network:
