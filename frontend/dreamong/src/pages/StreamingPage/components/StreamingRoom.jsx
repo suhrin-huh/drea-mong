@@ -33,6 +33,7 @@ const StreamingRoom = () => {
       url: `${baseURL}/rooms/${roomId}`,
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        withCredentials: true,
       },
     })
       .then((response) => {
@@ -54,7 +55,7 @@ const StreamingRoom = () => {
       // reconnection: true,
       // reconnectionAttempts: 5,
       // timeout: 1000,
-      secure: true
+      secure: true,
     });
     setSocket(newSocket);
 

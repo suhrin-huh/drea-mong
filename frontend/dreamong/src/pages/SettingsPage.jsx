@@ -19,10 +19,10 @@ const SettingsPage = () => {
   const [userInfo, setUserInfo] = useRecoilState(userState);
 
   // useRef를 사용하여 토글 상태를 관리
-  const darkModeRef = useRef(false);
+  // const darkModeRef = useRef(false);
   const pushRef = useRef(false);
 
-  const [darkMode, setDarkMode] = useState(darkModeRef.current);
+  // const [darkMode, setDarkMode] = useState(darkModeRef.current);
   const [push, setPush] = useState(pushRef.current);
   const [isLogin] = useState(localStorage.getItem('accessToken') ? true : false);
   const [isPushEnabled, setIsPushEnabled] = useState(false);
@@ -45,16 +45,23 @@ const SettingsPage = () => {
   const handleInputChange = (event) => {
     setNewNickname(event.target.value);
   };
-
+  const mainRef = useRef(null);
+  const ScrollToDiv = () => {
+    // 참조된 div가 있으면 그 위치로 스크롤 이동
+    if (mainRef.current) {
+      mainRef.current.scrollIntoView({ behavior: 'smooth' });
+      console.log(window.scrollY);
+    }
+  };
   // 컴포넌트 마운트 시 로컬 스토리지에서 설정 불러오기
   useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode'); // 다크모드
+    // const savedDarkMode = localStorage.getItem('darkMode'); // 다크모드
     const savedPush = localStorage.getItem('push'); // 푸시 알림
 
-    if (savedDarkMode !== null) {
-      darkModeRef.current = JSON.parse(savedDarkMode);
-      setDarkMode(darkModeRef.current);
-    }
+    // if (savedDarkMode !== null) {
+    //   darkModeRef.current = JSON.parse(savedDarkMode);
+    //   setDarkMode(darkModeRef.current);
+    // }
 
     if (savedPush !== null) {
       pushRef.current = JSON.parse(savedPush);
@@ -63,8 +70,10 @@ const SettingsPage = () => {
   }, [userInfo]);
 
   useEffect(() => {
+    // ScrollToDiv();
     const checkPushStatus = async () => {
       const fcmToken = await getFCMToken();
+      console.log(fcmToken);
       if (fcmToken) {
         localStorage.setItem('fcmToken', fcmToken);
         const storedPushStatus = localStorage.getItem('isPushEnabled');
@@ -97,6 +106,12 @@ const SettingsPage = () => {
   // 닉네임 변경사항 저장
   const handleNicknameSave = (event) => {
     event.preventDefault();
+
+    if (newNickname.length < 1) {
+      alert('닉네임은 1글자 이상이어야 합니다.');
+      return;
+    }
+
     axios({
       method: 'patch',
       url: `${baseURL}/users/nickname`,
@@ -104,7 +119,7 @@ const SettingsPage = () => {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
       },
       data: {
-        nickname: newNickname,
+        nickname: newNickname.trim(),
       },
     })
       .then((response) => {
@@ -123,19 +138,19 @@ const SettingsPage = () => {
       });
   };
 
-  // 다크 모드 토글 핸들러
-  const handleDarkModeToggle = () => {
-    darkModeRef.current = !darkModeRef.current;
-    setDarkMode(darkModeRef.current);
-    localStorage.setItem('darkMode', JSON.stringify(darkModeRef.current));
+  // // 다크 모드 토글 핸들러
+  // const handleDarkModeToggle = () => {
+  //   darkModeRef.current = !darkModeRef.current;
+  //   setDarkMode(darkModeRef.current);
+  //   localStorage.setItem('darkMode', JSON.stringify(darkModeRef.current));
 
-    // 다크 모드 적용 로직 (예: body에 클래스 추가/제거)
-    if (darkModeRef.current) {
-      document.body.classList.add('dark');
-    } else {
-      document.body.classList.remove('dark');
-    }
-  };
+  //   // 다크 모드 적용 로직 (예: body에 클래스 추가/제거)
+  //   if (darkModeRef.current) {
+  //     document.body.classList.add('dark');
+  //   } else {
+  //     document.body.classList.remove('dark');
+  //   }
+  // };
 
   // 푸시 알림 토글 핸들러
   const handlePushToggle = async () => {
@@ -161,7 +176,7 @@ const SettingsPage = () => {
   };
 
   return (
-    <>
+    <div ref={mainRef}>
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={toggleModalIsOpen}
@@ -226,15 +241,15 @@ const SettingsPage = () => {
             </div>
           </>
         )}
-        <div className="mb-8 flex h-10 items-center justify-between">
+        {/* <div className="flex items-center justify-between h-10 mb-8">
           <p>다크모드 활성화</p>
-          <label className="flex cursor-pointer items-center justify-between">
+          <label className="flex items-center justify-between cursor-pointer">
             <div>
-              <input type="checkbox" checked={darkMode} onChange={handleDarkModeToggle} className="peer sr-only" />
+              <input type="checkbox" checked={darkMode} onChange={handleDarkModeToggle} className="sr-only peer" />
               <div className="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none rtl:peer-checked:after:-translate-x-full"></div>
             </div>
           </label>
-        </div>
+        </div> */}
         {isLogin && (
           <div className="mb-8 flex h-10 items-center justify-between">
             <p>푸시 알림 활성화</p>
@@ -247,7 +262,7 @@ const SettingsPage = () => {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
 

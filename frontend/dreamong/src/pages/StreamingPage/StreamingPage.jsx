@@ -1,7 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import axios from 'axios';
 import Modal from 'react-modal';
 import Button from '../../components/Button';
 import { useNavigate, Outlet } from 'react-router-dom';
+
+import { useSetRecoilState, useRecoilValue } from 'recoil';
+import { baseURLState, userState } from '../../recoil/atoms';
 
 import back from '../../assets/back.svg';
 
@@ -14,19 +18,33 @@ const StreamingPage = () => {
   const [modalContentVisible, setModalContentVisible] = useState(false);
   const [sleepTime, setSleepTime] = useState(sessionStorage.getItem('sleepTime') || null);
 
-  // 취침 시간 설정 관련 useEffect
+  const baseURL = useRecoilValue(baseURLState);
+  const setUser = useSetRecoilState(userState);
+  const mainRef = useRef(null);
+  const ScrollToDiv = () => {
+    // 참조된 div가 있으면 그 위치로 스크롤 이동
+    if (mainRef.current) {
+      mainRef.current.scrollIntoView({ behavior: 'smooth' });
+      console.log(window.scrollY);
+    }
+  };
+
   useEffect(() => {
+    ScrollToDiv();
+    fetchUserInfo();
+
+    // 취침 시간 설정 관련
     let intervalId;
 
     // sleepTime이 존재할 때만 취침 시간 체크 인터벌 설정
     if (sleepTime) {
-      intervalId = setInterval(checkSleepTime, 10000); // 10초마다 체크
+      intervalId = setInterval(checkSleepTime, 2000);
     }
 
     // localStorage의 sleepTime 변경 감지
     const handleStorageChange = (event) => {
       if (event.key === 'sleepTime') {
-        const updatedSleepTime = localStorage.getItem('sleepTime');
+        const updatedSleepTime = sessionStorage.getItem('sleepTime');
         setSleepTime(updatedSleepTime);
 
         // 인터벌 초기화
@@ -34,7 +52,7 @@ const StreamingPage = () => {
           clearInterval(intervalId);
         }
         if (updatedSleepTime) {
-          intervalId = setInterval(checkSleepTime, 10000); // 10초 간격으로 확인
+          intervalId = setInterval(checkSleepTime, 2000);
         }
       }
     };
@@ -49,6 +67,25 @@ const StreamingPage = () => {
     };
   }, [sleepTime]);
 
+  const fetchUserInfo = () => {
+    const accessToken = localStorage.getItem('accessToken');
+
+    if (!accessToken) {
+      return navigate('/login');
+    }
+
+    axios({
+      method: 'get',
+      url: `${baseURL}/users/info`,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        withCredentials: true,
+      },
+    }).then((response) => {
+      setUser(response.data.data);
+    });
+  };
+
   // 취침 시간 체크 함수
   const checkSleepTime = () => {
     if (!sleepTime) return; // sleepTime이 null이면 함수 종료
@@ -57,7 +94,8 @@ const StreamingPage = () => {
     const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
     if (currentTime === sleepTime) {
-      navigate('/'); // 루트 URL로 이동
+      navigate('/streaming'); // 스트리밍 목록 URL로 이동
+      alert('취침 모드가 실행되었습니다!');
     }
   };
 
@@ -106,7 +144,7 @@ const StreamingPage = () => {
   };
 
   return (
-    <div className="h-full p-2">
+    <div ref={mainRef} className="min-h-[calc(100vh-60px)] bg-[#222222] p-2">
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={toggleModalIsOpen}

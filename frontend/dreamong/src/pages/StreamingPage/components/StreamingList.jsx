@@ -32,6 +32,7 @@ const StreamingList = () => {
       url: `${baseURL}/rooms`, // 백엔드 api 명세 관련 논의 후 수정 예정
       headers: {
         Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        withCredentials: true,
       },
     })
       .then((response) => {
@@ -203,7 +204,7 @@ const StreamingList = () => {
           <div key={room.roomId} className="flex flex-col">
             <button
               onClick={() => handleNavigate(room.roomId)}
-              className="mb-4 flex h-full w-full flex-col rounded-lg bg-black bg-opacity-50 bg-clip-padding p-4 backdrop-blur-sm backdrop-filter"
+              className="mb-4 flex h-full w-full flex-col rounded-lg bg-slate-700 bg-opacity-50 bg-clip-padding p-4 backdrop-blur-sm backdrop-filter"
             >
               <img src={room.thumbnail} alt={room.title} className="mb-3 h-48 w-full rounded-md object-cover" />
               <div className="mb-3 flex w-full justify-between">
