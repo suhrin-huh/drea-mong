@@ -4,7 +4,7 @@ import Button from '../../components/Button';
 import { useNavigate, Outlet } from 'react-router-dom';
 
 import { useRecoilValue } from 'recoil';
-import { baseURLState, userState } from '../../../recoil/atoms';
+import { baseURLState, userState } from '../../recoil/atoms';
 
 import back from '../../assets/back.svg';
 
