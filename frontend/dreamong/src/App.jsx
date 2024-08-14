@@ -16,6 +16,7 @@ import SquarePage from './pages/SquarePage';
 import SquareDetailPage from './pages/SquareDetailPage';
 import StatisticsSkeletonPage from './pages/SkeletonPage/StatisticsSkeletonPage';
 import StatisticsPage from './pages/StatisticsPage';
+import ErrorPage from './pages/ErrorPage';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState();
@@ -55,6 +56,8 @@ function App() {
                     path="/callback"
                     element={<LoginSuccess isLoggedIn={isLoggedIn} toggleLoginStatus={toggleLoginStatus} />}
                   />
+                  <Route path="*" element={<ErrorPage />} /> {/* 존재하지 않는 경로 처리 */}
+                  <Route path="/error" element={<ErrorPage />} /> {/* /error 경로 처리 */}
                 </Routes>
               </div>
             </main>

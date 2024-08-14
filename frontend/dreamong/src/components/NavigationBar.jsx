@@ -49,34 +49,11 @@ const NavigationBar = () => {
       setIsListening(true);
     }
   };
-  const accessToken = localStorage.getItem('accessToken');
-  const fetchData = async () => {
-    if (accessToken) {
-      try {
-        const response = await axios.get(`${baseURL}/users/info`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        console.log(response.data.data);
-        setUser(response.data.data);
-        // 오류 발생시에는 로그인페이지로 이동
-      } catch (err) {
-        console.log('navbar error:', err);
-        handleError('/login');
-      }
-      // 토큰이 없을 경우에는 login 페이지로 이동
-    } else {
-      navigate('/login');
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   // path에 따라서 렌더링되는 내용이 바뀌도록 설정
   return location.pathname == '/login' ? null : (
-    <div className="fixed bottom-0 z-50 h-[60px] max-w-[600px] bg-white text-white last:w-full">
-      <div className="mx-4 my-3 flex justify-between">
+    <div className="fixed bottom-0 z-50 max-w-[600px] bg-white py-1 text-white last:w-full">
+      <div className="mx-5 my-3 flex justify-between">
         {paths.map(({ pathname, icon }) => {
           const isCurrentPath = location.pathname === pathname;
           const iconColor = isCurrentPath ? MAIN_COLOR : SECONDARY_COLOR;
@@ -88,13 +65,13 @@ const NavigationBar = () => {
           // STTIcon 사용시에는 Link 연결 X
           if (isSTTActive) {
             return (
-              <div className="relative" key={pathname}>
+              <div className="relative w-[35px]" key={pathname}>
                 <STTIcon handleSTT={handleSTT}></STTIcon>;
               </div>
             );
           }
           return (
-            <Link key={pathname} to={pathname} className="relative">
+            <Link key={pathname} to={pathname} className="relative w-[35px]">
               {icon(iconColor)}
             </Link>
           );
