@@ -1,6 +1,6 @@
 self.importScripts(
-  'https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js',
-  'https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js',
+  'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js',
 );
 
 // Firebase 앱 초기화 함수
