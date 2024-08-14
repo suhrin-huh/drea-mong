@@ -82,7 +82,7 @@ export const unsubscribeFromTopic = async (token, topic) => {
       method: 'delete',
       url: `https://iid.googleapis.com/iid/v1/${token}/rel/topics/${topic}`,
       headers: {
-        Authorization: `key=BDtrsBZFH9cOTh1MxRcyggaJnYeXDt2JaBo1dE2mIJAGTowdHap5MgejbebcKsaBQUSAtB2Q1vmun-db19YSJJg`,
+        Authorization: `key=a0c20c2e459b5cc5334cdb3961a0be4edf51a16f`,
         'Content-Type': 'application/json',
       },
     });
