@@ -11,7 +11,7 @@ export default defineConfig({
       // PWA 플러그인 설정
       strategies: 'injectManifest', // 서비스 워커 전략: 사용자 정의 서비스 워커 사용
       srcDir: 'public', // 서비스 워커 파일 위치
-      filename: './firebase-messaging-sw.js', // 서비스 워커 파일명
+      filename: './firebase-message-sw.js', // 서비스 워커 파일명
       injectManifest: {
         injectionPoint: undefined,
       },
