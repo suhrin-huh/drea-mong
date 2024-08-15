@@ -11,16 +11,20 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "room")
 public class Room extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "room_id")
     private Integer id;
+
     @Column(name = "title", nullable = false)
     private String title;
+
     @Column(name = "youtube_link", nullable = false, length = 1000)
     private String youtubeLink;
+
     @Column(name = "thumbnail", nullable = false)
     private String thumbnail;
 
