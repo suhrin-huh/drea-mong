@@ -97,8 +97,9 @@ public class CategoryService {
     private List<String> parseHashTags(String aiResponse) {
         List<String> hashTags = new ArrayList<>();
         try {
+            String cleanedResponse = cleanAIResponse(aiResponse); // 응답 정제
             ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(aiResponse);
+            JsonNode root = mapper.readTree(cleanedResponse);
             JsonNode hashTagsNode = root.path("hashtags");
             if (hashTagsNode.isArray()) {
                 for (JsonNode tag : hashTagsNode) {
@@ -113,5 +114,10 @@ public class CategoryService {
             throw new ServerErrorException("Failed to parse AI response: " + e.getMessage());
         }
         return hashTags;
+    }
+
+    private String cleanAIResponse(String aiResponse) {
+        // 불필요한 특수 문자 또는 공백 제거
+        return aiResponse.replaceAll("json<EOL>", "").trim();
     }
 }
