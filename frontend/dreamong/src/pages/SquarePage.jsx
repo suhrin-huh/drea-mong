@@ -136,8 +136,6 @@ const SquarePage = () => {
           ></div>
         ))}
       </div>
-      {loading && <p className="text-white">Loading more dreams...</p>}
-      {!hasMore && <p>No more dreams to load</p>}
     </div>
   );
 };
