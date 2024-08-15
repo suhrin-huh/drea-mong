@@ -214,7 +214,11 @@ const StreamingRoom = () => {
           placeholder="메시지를 입력하세요..."
           aria-label="채팅 메시지 입력"
         />
-        <button onClick={sendMessage} className="rounded-br-md bg-primary-500 p-3 text-white" aria-label="메시지 전송">
+        <button
+          onClick={sendMessage}
+          className="min-w-[32px] rounded-br-md bg-primary-500 p-3 text-white"
+          aria-label="메시지 전송"
+        >
           전송
         </button>
       </div>
