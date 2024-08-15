@@ -95,7 +95,7 @@ const DreamRegisterPage = () => {
         setContent(responseData.content);
         setImage(responseData.image);
         setInterpretation(responseData.interpretation);
-        setIsShared(responseData.isShared);
+        setIsShared(responseData.shared);
         const writeTime = responseData.writeTime;
         const formattedDate = `${writeTime.slice(0, 4)}-${writeTime.slice(4, 6)}-${writeTime.slice(6, 8)}`;
         setDate(formattedDate);
@@ -189,7 +189,7 @@ const DreamRegisterPage = () => {
           withCredentials: true,
         },
       );
-
+      // updateResponse();
       // 성공 시 알림 및 페이지 이동
       Swal.fire({
         icon: 'success',

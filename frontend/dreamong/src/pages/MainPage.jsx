@@ -246,7 +246,7 @@ const MainPage = () => {
                         : null
                     }
                   >
-                    <div className="m-1 truncate">{dream.content}</div>
+                    <div className="m-3 truncate">{dream.content}</div>
                   </div>
                 </div>
               );
