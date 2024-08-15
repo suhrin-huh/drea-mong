@@ -36,7 +36,7 @@ const SquarePage = () => {
     ScrollToDiv();
     if (!accessToken) return navigate('/login');
 
-    // 1초 후에 로딩 상태를 false로 변경
+    // 1.5초 후에 로딩 상태를 false로 변경
     const timer = setTimeout(() => setLoading(false), 1500);
 
     fetchDreams();
