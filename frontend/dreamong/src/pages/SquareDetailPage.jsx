@@ -250,7 +250,7 @@ const SquareDetailPage = () => {
           <textarea
             id="newComment"
             name="newComment"
-            className="h-12 w-full rounded-lg border p-2"
+            className="h-12 w-full resize-none rounded-lg border p-2"
             placeholder="댓글을 입력하세요..."
             value={newComment}
             onChange={handleCommentChange}
