@@ -21,6 +21,10 @@ const StreamingPage = () => {
   const baseURL = useRecoilValue(baseURLState);
   const setUser = useSetRecoilState(userState);
   const mainRef = useRef(null);
+
+  // 취침 모드 interval을 관리하기 위한 ref
+  const intervalRef = useRef(null);
+
   const ScrollToDiv = () => {
     // 참조된 div가 있으면 그 위치로 스크롤 이동
     if (mainRef.current) {
@@ -34,25 +38,27 @@ const StreamingPage = () => {
     fetchUserInfo();
 
     // 취침 시간 설정 관련
-    let intervalId;
-
-    // sleepTime이 존재할 때만 취침 시간 체크 인터벌 설정
     if (sleepTime) {
-      intervalId = setInterval(checkSleepTime, 2000);
+      // 기존 interval 제거
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+      // 새로운 interval 설정
+      intervalRef.current = setInterval(checkSleepTime, 2000);
     }
 
-    // localStorage의 sleepTime 변경 감지
+    // sessionStorage의 sleepTime 변경 감지
     const handleStorageChange = (event) => {
       if (event.key === 'sleepTime') {
         const updatedSleepTime = sessionStorage.getItem('sleepTime');
         setSleepTime(updatedSleepTime);
 
         // 인터벌 초기화
-        if (intervalId) {
-          clearInterval(intervalId);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
         }
         if (updatedSleepTime) {
-          intervalId = setInterval(checkSleepTime, 2000);
+          intervalRef.current = setInterval(checkSleepTime, 2000);
         }
       }
     };
@@ -60,8 +66,8 @@ const StreamingPage = () => {
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
       }
       window.removeEventListener('storage', handleStorageChange);
     };
@@ -94,8 +100,13 @@ const StreamingPage = () => {
     const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
     if (currentTime === sleepTime) {
-      navigate('/streaming'); // 스트리밍 목록 URL로 이동
+      navigate('/'); // 스트리밍 목록 URL로 이동
       alert('취침 모드가 실행되었습니다!');
+      // interval 중지 및 sleepTime 초기화
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+      setSleepTime(null);
+      sessionStorage.removeItem('sleepTime');
     }
   };
 
