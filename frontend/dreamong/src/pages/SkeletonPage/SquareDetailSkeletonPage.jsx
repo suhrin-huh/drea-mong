@@ -1,28 +1,27 @@
-const DreamSquareDetailSkeletonPage = () => {
+const SquareDetailSkeletonPage = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-[#222222]">
-        <div className="relative w-4/5 mt-12 mb-4">
-            <div className="w-full pt-[100%]"></div>
-            <div className="absolute top-0 left-0 w-full h-full bg-gray-500 rounded-[30px] animate-pulse"></div>
-        </div>
-        <div className="relative w-4/5 mb-4">
-            <div className="w-full pt-[18%]"></div>
-            <div className="absolute top-0 left-0 w-full h-full bg-gray-500 rounded-[20px] animate-pulse"></div>
-        </div>
-        <div className="w-full h-full p-4 bg-white rounded-t-lg">
-            {/* 댓글 SkeletonUI */}
-            {[...Array(5)].map((_, index) => (
-            <div key={index} className="flex items-center m-4">
-                <div className="w-10 h-10 bg-gray-300 rounded-full animate-pulse"></div>
-                <div className="flex flex-col w-full ml-4">
-                <div className="w-1/3 h-4 mb-2 bg-gray-300 rounded-full animate-pulse"></div>
-                <div className="w-full h-4 bg-gray-300 rounded-full animate-pulse"></div>
-                </div>
+    <div className="flex h-screen flex-col items-center justify-center bg-[#222222]">
+      <div className="relative mb-4 mt-12 w-4/5">
+        <div className="w-full pt-[100%]"></div>
+        <div className="absolute left-0 top-0 h-full w-full animate-pulse rounded-[30px] bg-gray-500"></div>
+      </div>
+      <div className="relative mb-4 h-20 w-4/5">
+        <div className="w-full pt-[18%]"></div>
+        <div className="absolute left-0 top-0 h-full w-full animate-pulse rounded-[20px] bg-gray-500"></div>
+      </div>
+      <div className="h-full w-full flex-grow rounded-t-3xl bg-white p-4">
+        {/* 댓글 SkeletonUI */}
+        {[...Array(5)].map((_, index) => (
+          <div key={index} className="m-4 flex items-center">
+            <div className="ml-4 flex w-full flex-col">
+              <div className="mb-2 h-4 w-1/3 animate-pulse rounded-full bg-gray-300"></div>
+              <div className="h-4 w-full animate-pulse rounded-full bg-gray-300"></div>
             </div>
-            ))}
-        </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
 
-export default DreamSquareDetailSkeletonPage;
+export default SquareDetailSkeletonPage;

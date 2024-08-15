@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRecoilValue, useRecoilState } from 'recoil';
 import { baseURLState, userState } from '../recoil/atoms';
+import SkeletonSquareDetailPage from './SkeletonPage/SquareDetailSkeletonPage';
 
 const SquareDetailPage = () => {
   const { dreamId } = useParams();
@@ -13,36 +14,31 @@ const SquareDetailPage = () => {
   const [image, setImage] = useState('');
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [loading, setLoading] = useState(true);
   const baseURL = useRecoilValue(baseURLState);
   const [user, setUser] = useRecoilState(userState);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchDreamDetail();
   }, []);
 
-  ///////////////////////////////
-  const accessToken = localStorage.getItem('accessToken');
-  const navigate = useNavigate();
-
   const fetchDreamDetail = () => {
-    // 토큰이 존재하지 않을 경우 로그인 페이지로 이동
+    const accessToken = localStorage.getItem('accessToken');
+
     if (!accessToken) {
       console.error('토큰이 없습니다. 로그인 페이지로 이동합니다.');
       return navigate('/login');
     }
 
-    // 유저정보 가져오기
     axios
       .get(`${baseURL}/users/info`, {
         headers: { Authorization: `Bearer ${accessToken}` },
         withCredentials: true,
       })
-      // 유저정보 가져와서 userState 갱신하기
       .then((userInfoResponse) => {
-        console.log('유저정보 가져왔어!', userInfoResponse);
         const userInfo = userInfoResponse.data.data;
         setUser(userInfo);
-        // userInfo를 이용해 꿈 상세 정보 가져오기
         return axios.get(`${baseURL}/square/${dreamId}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
           withCredentials: true,
@@ -51,12 +47,11 @@ const SquareDetailPage = () => {
       })
       .then((dreamDetailResponse) => {
         const data = dreamDetailResponse.data.data;
-        console.log(data);
-        const updatedComments = data.comments;
         setSummary(data.summary);
         setContent(data.content);
         setImage(data.image);
-        setComments(updatedComments);
+        setComments(data.comments);
+        setTimeout(() => setLoading(false), 1000); // 1초 후에 로딩 상태 변경
       })
       .catch((error) => {
         if (error.response && error.response.status === 401) {
@@ -84,13 +79,12 @@ const SquareDetailPage = () => {
         },
       );
 
-      // 좋아요 토글 로직
       setComments((prevComments) =>
         prevComments.map((comment) =>
           comment.id === commentId
             ? {
                 ...comment,
-                likedByUser: response.data.status === 'like' ? true : false,
+                likedByUser: response.data.status === 'like',
                 likesCount: response.data.status === 'like' ? comment.likesCount + 1 : comment.likesCount - 1,
               }
             : comment,
@@ -149,6 +143,7 @@ const SquareDetailPage = () => {
         headers: { Authorization: `Bearer ${accessToken}` },
         withCredentials: true,
       });
+
       if (response.data.status === 'success') {
         Swal.fire({
           title: '삭제 완료',
@@ -170,13 +165,17 @@ const SquareDetailPage = () => {
     }
   };
 
+  if (loading) {
+    return <SkeletonSquareDetailPage />; // 로딩 상태일 때 SkeletonSquareDetailPage 렌더링
+  }
+
   return (
     <div className="flex h-screen flex-col items-center justify-center bg-[#222222]">
       {/* 꿈 이미지 */}
       <div className="mx-auto mb-4 mt-12 flex w-4/5">
         <div className="relative w-full pt-[100%]">
           <div
-            className="absolute left-0 top-0 h-full w-full rounded-[30px] bg-gray-500"
+            className="absolute left-0 top-0 h-full w-full rounded-[30px]"
             style={{ backgroundImage: `url(${image})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
           ></div>
         </div>
@@ -262,7 +261,7 @@ const SquareDetailPage = () => {
               width="20"
               height="20"
               fill="currentColor"
-              class="bi bi-send"
+              className="bi bi-send"
               viewBox="0 0 16 16"
             >
               <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z" />
