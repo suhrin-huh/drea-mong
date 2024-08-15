@@ -108,6 +108,15 @@ public class JWTFilter extends OncePerRequestFilter {
                     } else {
                         // 리프레시 토큰도 만료된 경우 처리
                         log.info("Refresh token expired");
+
+                        // 쿠키 삭제
+                        Cookie cookie = new Cookie("RefreshToken", null);
+                        cookie.setMaxAge(0);
+                        cookie.setPath("/");
+                        cookie.setHttpOnly(true);
+                        cookie.setSecure(true); // HTTPS 환경에서 동작
+                        response.addCookie(cookie);
+
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         response.getWriter().write("Refresh token expired. Please login again.");
                         return;
