@@ -130,7 +130,7 @@ const SettingsPage = () => {
       .then((response) => {
         setModalContentVisible(false);
         setTimeout(() => setModalIsOpen(false), 300);
-        alert('닉네임 변경이 왼료되었습니다!');
+        alert('닉네임 변경이 완료되었습니다!');
       })
       .catch((error) => {
         console.error('닉네임 변경 오류!', error);
