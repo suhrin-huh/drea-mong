@@ -1,6 +1,6 @@
 const SquareDetailSkeletonPage = () => {
   return (
-    <div className="flex h-full flex-col items-center justify-center bg-[#222222]">
+    <div className="flex h-screen flex-col items-center justify-center bg-[#222222]">
       <div className="relative mb-4 mt-12 w-4/5">
         <div className="w-full pt-[100%]"></div>
         <div className="absolute left-0 top-0 h-full w-full animate-pulse rounded-[30px] bg-gray-500"></div>

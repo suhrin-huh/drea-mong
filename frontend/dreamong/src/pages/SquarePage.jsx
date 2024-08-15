@@ -5,7 +5,7 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { useRecoilValue } from 'recoil';
 import Swal from 'sweetalert2';
 import { baseURLState } from '../recoil/atoms';
-import SquareSkeletonPage from './SkeletonPage/SquareSkeletonPage'; // SquareSkeletonPage 컴포넌트 import
+import SquareSkeletonPage from './SkeletonPage/SquareSkeletonPage';
 
 const SquarePage = () => {
   const navigate = useNavigate();
@@ -36,7 +36,6 @@ const SquarePage = () => {
     ScrollToDiv();
     if (!accessToken) return navigate('/login');
 
-    // 1.5초 후에 로딩 상태를 false로 변경
     const timer = setTimeout(() => setLoading(false), 1500);
 
     fetchDreams();
@@ -82,7 +81,7 @@ const SquarePage = () => {
   }
 
   return (
-    <div ref={mainRef} className="h-screen bg-[#222222] p-6">
+    <div ref={mainRef} className="h-lvh bg-[#222222] p-6">
       <InfiniteScroll
         dataLength={dreams.length}
         next={fetchDreams}
