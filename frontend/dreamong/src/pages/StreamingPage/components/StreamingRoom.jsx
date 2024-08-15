@@ -154,7 +154,7 @@ const StreamingRoom = () => {
   );
 
   return (
-    <section className="mx-2 flex h-[calc(100dvh-130px)] flex-col">
+    <section className="mx-2 flex h-[calc(100dvh-148px)] flex-col">
       <div className="mb-5">
         {/* YouTube 플레이어 */}
         <div className="my-3 w-full overflow-hidden rounded-md bg-slate-600 text-white">
