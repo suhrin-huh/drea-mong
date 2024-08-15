@@ -175,7 +175,7 @@ const SquareDetailPage = () => {
       <div className="mx-auto mb-4 mt-12 flex w-4/5">
         <div className="relative w-full pt-[100%]">
           <div
-            className="absolute left-0 top-0 h-full w-full rounded-[30px] bg-gray-500"
+            className="absolute left-0 top-0 h-full w-full rounded-[30px]"
             style={{ backgroundImage: `url(${image})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
           ></div>
         </div>
