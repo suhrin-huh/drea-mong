@@ -7,17 +7,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @Slf4j
 public class SocketIOEventHandler {
 
     private final SocketIOServer server;
     private final RoomService roomService;
+    private final ChatService chatService;
 
     @Autowired
-    public SocketIOEventHandler(SocketIOServer server, RoomService roomService) {
+    public SocketIOEventHandler(SocketIOServer server, RoomService roomService, ChatService chatService) {
         this.server = server;
         this.roomService = roomService;
+        this.chatService = chatService;
 
         init();
     }
@@ -29,6 +33,11 @@ public class SocketIOEventHandler {
 
         server.addEventListener("join-room", String.class, (client, roomId, ackRequest) -> {
             log.info("Received join-room event for room: {}", roomId);
+
+            // Redis에서 이전 메시지 가져와 클라이언트에게 전송
+            List<Object> previousMessages = chatService.getMessages(roomId);
+            client.sendEvent("previousMessages", previousMessages);
+
 
             RoomDetailsResponse room = roomService.getRoomDetailsById(Integer.parseInt(roomId));
             if (room == null) {
@@ -45,6 +54,10 @@ public class SocketIOEventHandler {
 
         server.addEventListener("chat-message", ChatMessage.class, (client, data, ackRequest) -> {
             log.info("Received chat-message event: {}", data.getMessage());
+
+            // 메시지를 Redis에 저장
+            chatService.saveMessage(data.getRoomId(), data);
+
             server.getRoomOperations(data.getRoomId()).sendEvent("chat-message", data);
         });
 
