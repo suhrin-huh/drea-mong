@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "notification")
 public class Notification extends BaseTimeEntity {
 
     @Id
@@ -24,9 +25,13 @@ public class Notification extends BaseTimeEntity {
     private User user;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "notification_type")
     private NotificationType notificationType;
 
+    @Column(name = "schedule_time")
     private LocalDateTime scheduleTime;
+
+    @Column(name = "sent")
     private Boolean sent = false;
 
     @Builder
