@@ -72,6 +72,7 @@ public class UserController {
         return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
     }
 
+    @Operation(summary = "FCM 토큰 업데이트", description = "사용자의 FCM 토큰을 업데이트합니다.")
     @PostMapping("/fcm-token")
     public ResponseEntity<ApiResponse<Void>> updateFcmToken(@AuthenticationPrincipal CustomOAuth2User oAuth2User, @RequestParam String fcmToken) {
         Integer userId = oAuth2User.getUserId();
@@ -79,6 +80,7 @@ public class UserController {
         return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
     }
 
+    @Operation(summary = "수면 알림 예약", description = "사용자의 수면 알림을 예약합니다.")
     @PostMapping("/schedule-sleep-reminder")
     public ResponseEntity<ApiResponse<Void>> scheduleSleepReminder(@AuthenticationPrincipal CustomOAuth2User oAuth2User,
                                                                    @RequestParam LocalDateTime bedtime) {
@@ -86,6 +88,7 @@ public class UserController {
         return new ResponseEntity<>(ApiResponse.success(), HttpStatus.OK);
     }
 
+    @Operation(summary = "아침 기상 알림 예약", description = "사용자의 아침 기상 알림을 예약합니다.")
     @PostMapping("/schedule-morning-wakeup")
     public ResponseEntity<ApiResponse<Void>> scheduleMorningWakeup(@AuthenticationPrincipal CustomOAuth2User oAuth2User,
                                                                    @RequestParam LocalDateTime wakeupTime) {
