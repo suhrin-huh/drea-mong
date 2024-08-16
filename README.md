@@ -162,7 +162,7 @@
 <img src="https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white">
 
 ## 🌝[기술]
-![사용된 기술](README_asset/사용된%20기술.png)
+![사용된 기술](README_asset/사용된%20기술.PNG)
 
 **[ BACK END ]**
 
@@ -208,7 +208,7 @@
 
 ## 🌝 시스템 아키텍쳐
 
-![시스템 아키텍쳐](README_asset/아키텍쳐.png)
+![시스템 아키텍쳐](README_asset/아키텍쳐.PNG)
 
 ## 🌝 ERD
 
