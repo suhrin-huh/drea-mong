@@ -11,10 +11,7 @@ DROP TABLE IF EXISTS dream;
 DROP TABLE IF EXISTS category;
 DROP TABLE IF EXISTS users;
 
--- 외래 키 제약 조건을 다시 활성화
-SET FOREIGN_KEY_CHECKS = 1;
-
-
+-- 테이블 생성
 CREATE TABLE category (
                           category_id INTEGER NOT NULL AUTO_INCREMENT,
                           word VARCHAR(255),
@@ -26,7 +23,7 @@ CREATE TABLE users (
                        user_id INTEGER NOT NULL AUTO_INCREMENT,
                        created_date DATETIME DEFAULT CURRENT_TIMESTAMP,
                        last_modified_date DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                       email VARCHAR(255) NOT NULL,
+                       email VARCHAR(100) NOT NULL,
                        fcm_token VARCHAR(255),
                        name VARCHAR(255) NOT NULL,
                        nickname VARCHAR(255),
@@ -95,34 +92,37 @@ CREATE TABLE notification (
                               PRIMARY KEY (id)
 ) ENGINE=InnoDB;
 
-
-
+-- 외래 키 제약 조건 추가 및 인덱스 생성
 ALTER TABLE users
     ADD CONSTRAINT UK_provider_user_id UNIQUE (provider_user_id);
 
-ALTER TABLE comment
-    ADD CONSTRAINT FK_comment_dream_id
-        FOREIGN KEY (dream_id) REFERENCES dream (dream_id);
+ALTER TABLE dream
+    ADD CONSTRAINT FK_dream_user_id
+        FOREIGN KEY (user_id) REFERENCES users (user_id)
+            ON DELETE CASCADE;
 
 ALTER TABLE comment
+    ADD CONSTRAINT FK_comment_dream_id
+        FOREIGN KEY (dream_id) REFERENCES dream (dream_id)
+            ON DELETE CASCADE,
     ADD CONSTRAINT FK_comment_user_id
-        FOREIGN KEY (user_id) REFERENCES users (user_id);
+        FOREIGN KEY (user_id) REFERENCES users (user_id)
+            ON DELETE CASCADE;
 
 ALTER TABLE comment_like
     ADD CONSTRAINT FK_comment_like_comment_id
-        FOREIGN KEY (comment_id) REFERENCES comment (comment_id);
-
-ALTER TABLE comment_like
+        FOREIGN KEY (comment_id) REFERENCES comment (comment_id)
+            ON DELETE CASCADE,
     ADD CONSTRAINT FK_comment_like_user_id
-        FOREIGN KEY (user_id) REFERENCES users (user_id);
+        FOREIGN KEY (user_id) REFERENCES users (user_id)
+            ON DELETE CASCADE;
 
 ALTER TABLE dream_category
     ADD CONSTRAINT FK_dream_category_category_id
-        FOREIGN KEY (category_id) REFERENCES category (category_id);
-
-ALTER TABLE dream_category
+        FOREIGN KEY (category_id) REFERENCES category (category_id),
     ADD CONSTRAINT FK_dream_category_dream_id
-        FOREIGN KEY (dream_id) REFERENCES dream (dream_id);
+        FOREIGN KEY (dream_id) REFERENCES dream (dream_id)
+        ON DELETE CASCADE;
 
 ALTER TABLE notification
     ADD CONSTRAINT FK_notification_user_id
@@ -131,3 +131,6 @@ ALTER TABLE notification
 ALTER TABLE room
     ADD CONSTRAINT FK_room_user_id
         FOREIGN KEY (user_id) REFERENCES users (user_id);
+
+-- 외래 키 제약 조건을 다시 활성화
+SET FOREIGN_KEY_CHECKS = 1;
