@@ -7,12 +7,12 @@ self.importScripts(
 function initializeFirebase() {
   if (!firebase.apps.length) {
     firebase.initializeApp({
-      apiKey: 'AIzaSyA235r3rrXeSNznE0LnIWfZqF4bVXPk4Qs',
-      authDomain: 'drea-mong.firebaseapp.com',
-      projectId: 'drea-mong',
-      storageBucket: 'drea-mong.appspot.com',
-      messagingSenderId: '299128370529',
-      appId: '1:299128370529:web:cc4cbe81ebe8c3e0b4c120',
+      apiKey: '',
+      authDomain: '',
+      projectId: '',
+      storageBucket: '',
+      messagingSenderId: '',
+      appId: '',
     });
   }
   return firebase.messaging();

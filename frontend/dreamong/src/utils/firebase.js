@@ -3,12 +3,12 @@ import { getMessaging, getToken, isSupported } from 'firebase/messaging';
 import axios from 'axios';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyA235r3rrXeSNznE0LnIWfZqF4bVXPk4Qs',
-  authDomain: 'drea-mong.firebaseapp.com',
-  projectId: 'drea-mong',
-  storageBucket: 'drea-mong.appspot.com',
-  messagingSenderId: '299128370529',
-  appId: '1:299128370529:web:cc4cbe81ebe8c3e0b4c120',
+  apiKey: '',
+  authDomain: '',
+  projectId: '',
+  storageBucket: '',
+  messagingSenderId: '',
+  appId: '',
 };
 
 // Firebase 앱 초기화
@@ -41,7 +41,7 @@ export const getFCMToken = async () => {
 
   try {
     const currentToken = await getToken(messaging, {
-      vapidKey: 'BDtrsBZFH9cOTh1MxRcyggaJnYeXDt2JaBo1dE2mIJAGTowdHap5MgejbebcKsaBQUSAtB2Q1vmun-db19YSJJg',
+      vapidKey: '',
     });
     if (currentToken) {
       console.log('FCM token:', currentToken);
@@ -63,7 +63,7 @@ export const subscribeToTopic = async (token, topic) => {
       method: 'post',
       url: `https://iid.googleapis.com/iid/v1/${token}/rel/topics/${topic}`,
       headers: {
-        Authorization: `key=AIzaSyA235r3rrXeSNznE0LnIWfZqF4bVXPk4Qs`,
+        Authorization: `key=sample`,
         'Content-Type': 'application/json',
       },
     });
@@ -82,7 +82,7 @@ export const unsubscribeFromTopic = async (token, topic) => {
       method: 'delete',
       url: `https://iid.googleapis.com/iid/v1/${token}/rel/topics/${topic}`,
       headers: {
-        Authorization: `key=AIzaSyA235r3rrXeSNznE0LnIWfZqF4bVXPk4Qs`,
+        Authorization: `key=sample`,
         'Content-Type': 'application/json',
       },
     });
