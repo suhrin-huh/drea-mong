@@ -1,23 +1,22 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StatisticsIcon, ScrollButton } from '../assets/icons';
+import { StatisticsIcon, ScrollButton } from '../../assets/icons';
 import axios from 'axios';
-import { baseURLState } from '../recoil/atoms';
-import { userState } from '../recoil/atoms';
+import { baseURLState, userState } from '../../recoil/atoms';
 import { useRecoilValue, useRecoilState } from 'recoil';
 
 // Import Swiper React components
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination } from 'swiper/modules';
+import { Pagination } from 'swiper/modules';
 import Swal from 'sweetalert2';
-import { useHandleError } from '../utils/utils';
+import { useHandleError } from '../../utils/utils';
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 
-import { HeaderContent } from '../assets/icons';
+import { mainDummy } from '../../assets/dummy';
 
 const MainPage = () => {
   // dreams : 꿈리스트 / year, month : 년월 /
@@ -38,9 +37,9 @@ const MainPage = () => {
   const accessToken = localStorage.getItem('accessToken');
 
   const getDreams = () => {
-    if (!accessToken) {
-      return navigate('/login');
-    }
+    // if (!accessToken) {
+    //   return navigate('/login');
+    // }
     axios
       .get(`${baseURL}/users/info`, {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -61,11 +60,12 @@ const MainPage = () => {
         console.log(responseData);
       })
       .catch((error) => {
-        if (error.response && error.response.status === 401) {
-          navigate('/login');
-        } else {
-          navigate('/error');
-        }
+        setDreams(mainDummy.dreams);
+        // if (error.response && error.response.status === 401) {
+        //   navigate('/login');
+        // } else {
+        //   navigate('/error');
+        // }
       });
   };
 

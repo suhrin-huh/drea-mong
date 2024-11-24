@@ -3,7 +3,7 @@ import { RecoilRoot } from 'recoil';
 import { useState } from 'react';
 
 import NavigationBar from './components/NavigationBar';
-import MainPage from './pages/MainPage';
+import MainPage from './pages/MainPage/MainPage';
 import LoginPage from './pages/LoginPage/LoginPage';
 import LoginSuccess from './pages/LoginPage/components/LoginSuccess';
 import DreamRegisterPage from './pages/DreamPage/DreamRegisterPage';
