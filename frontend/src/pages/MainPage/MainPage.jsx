@@ -5,18 +5,10 @@ import axios from 'axios';
 import { baseURLState, userState } from '../../recoil/atoms';
 import { useRecoilValue, useRecoilState } from 'recoil';
 
-// Import Swiper React components
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
-import Swal from 'sweetalert2';
 import { useHandleError } from '../../utils/utils';
 
-// Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
-
 import { mainDummy } from '../../assets/dummy';
+import DateSelector from './components/DateSelector';
 
 const MainPage = () => {
   // dreams : 꿈리스트 / year, month : 년월 /
@@ -26,14 +18,10 @@ const MainPage = () => {
   // 달은 현재의 달에서 -1이 된 값이 전달
   const [month, setMonth] = useState(current.getMonth() + 1);
   const [user, setUser] = useRecoilState(userState);
-  const [totalCount, setTotalCount] = useState(0);
-  // 월에 포커스를 맞추기 위해서
-  const swiperRef = useRef(null);
+  const [totalCount, setTotalCount] = useState(null);
   const baseURL = useRecoilValue(baseURLState);
   const navigate = useNavigate();
-  const handleError = useHandleError();
 
-  /** - 데이터를 가져오는 함수, 날짜 변동에 따라 계속 호출되므로 함수로 처리 */
   const accessToken = localStorage.getItem('accessToken');
 
   const getDreams = () => {
@@ -69,31 +57,14 @@ const MainPage = () => {
       });
   };
 
-  // useEffect
   useEffect(() => {
-    swiperRef.current?.swiper.slideTo(month - 1, 0);
     getDreams();
   }, []);
-
-  // 선택한 달에 따라서 swiper 이동
-  useEffect(() => {
-    if (swiperRef.current) {
-      swiperRef.current.swiper.slideTo(month - 1, 0);
-    }
-  }, [month]);
 
   // 날짜 변동에 따라 데이터 새로 호출
   useEffect(() => {
     getDreams();
   }, [year, month]);
-
-  const handleYear = (number) => {
-    setYear((prev) => Math.max(prev + number, 1900));
-  };
-
-  const handleMonth = (number) => {
-    setMonth(number + 1);
-  };
 
   // 요일을 나타내기 위한 함수
   const getWeekDay = (dateStr) => {
@@ -104,10 +75,8 @@ const MainPage = () => {
 
   const headerRef = useRef(null);
   const ScrollToHeader = () => {
-    // 참조된 div가 있으면 그 위치로 스크롤 이동
     if (headerRef.current) {
       headerRef.current.scrollIntoView({ behavior: 'smooth' });
-      console.log(window.scrollY);
     }
   };
 
@@ -155,18 +124,15 @@ const MainPage = () => {
     // 참조된 div가 있으면 그 위치로 스크롤 이동
     if (mainRef.current) {
       mainRef.current.scrollIntoView({ behavior: 'smooth' });
-      console.log(window.scrollY);
     }
   };
 
   return (
     <div ref={headerRef} className="relative h-dvh">
       <header className="inline-flex h-[700px] w-full flex-col items-center justify-center gap-2.5 text-center text-white transition delay-150 ease-in-out">
-        {/* 닉네임 여부에 따라 다르게 표시 */}
-        <p className="text-3xl font-bold">안녕하세요{user.nickname ? `, ${user.nickname}님!` : '!'}</p>
-        {/* 꿈 작성 개수에 따라 다르게 표시 */}
+        <p className="text-3xl font-bold">{user.nickname ? `안녕하세요, ${user.nickname}님!` : '안녕하세요!'}</p>
         <p className="text-sm">
-          {totalCount == 0 ? '첫번째 꿈을 기록해주세요!' : `${totalCount + 1}번째 꿈을 기록해주세요.`}
+          {totalCount ? `${totalCount + 1}번째 꿈을 기록해주세요.` : '첫번째 꿈을 기록해주세요!'}
         </p>
         {!isButtonVisible ? <ScrollButton scrollDown={() => ScrollToDiv()} /> : null}
       </header>
@@ -182,45 +148,7 @@ const MainPage = () => {
           <div className="flex justify-center">
             <div className="mb-3 h-2 w-24 rounded-full bg-primary-500"></div>
           </div>
-          {/* 날짜 선택 */}
-          {/* 연도 선택 */}
-          <div className="flex items-center justify-center gap-12 px-2.5 py-1 text-xl">
-            <button onClick={() => handleYear(-1)}>{'<'}</button>
-            <p className="md:text-lg lg:text-xl">{year}</p>
-            <button onClick={() => handleYear(1)}>{'>'}</button>
-          </div>
-          {/* 월 선택 */}
-          <div className="align-center my-3 flex items-center justify-center gap-1 text-base">
-            <Swiper
-              ref={swiperRef}
-              slidesPerView={6}
-              centeredSlides={true}
-              spaceBetween={10}
-              grabCursor={true}
-              modules={[Pagination]}
-              slideToClickedSlide={true}
-              //Swiper 컴포넌트에서 슬라이드를 클릭하면 해당 슬라이드가 중심에 오도록 설정하려면, Swiper 컴포넌트의 slideToClickedSlide 속성을 사용해야 합니다. 이 속성은 클릭한 슬라이드로 자동으로 이동하게 합니다.
-              className="mySwiper h-full"
-            >
-              {/* 1월부터 12월까지 */}
-              {Array.from({ length: 12 }).map((_, i) => (
-                <SwiperSlide
-                  key={i}
-                  onClick={() => handleMonth(i)}
-                  // className={`m-auto ${i == month ? 'rounded-lg bg-primary-500' : null}`}
-                >
-                  <div className="flex justify-center">
-                    {/* {`${i + 1}월`}  => index번호로 월을 설정하고 있기 때문에 i == month*/}
-                    <p
-                      className={`m-auto p-2 ${i + 1 == month ? 'rounded-lg bg-primary-500 text-white' : 'text-slate-600'}`}
-                    >
-                      {`${i + 1}`}월
-                    </p>
-                  </div>
-                </SwiperSlide>
-              ))}
-            </Swiper>
-          </div>
+          <DateSelector year={year} month={month} setMonth={setMonth} setYear={setYear} />
         </div>
 
         {/* 이부분에 일기 들어가기 */}
