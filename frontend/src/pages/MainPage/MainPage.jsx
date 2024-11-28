@@ -1,9 +1,9 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatisticsIcon, ScrollButton } from '../../assets/icons';
-import axios from 'axios';
-import { baseURLState, userState } from '../../recoil/atoms';
-import { useRecoilValue, useRecoilState } from 'recoil';
+import api from '../../utils/api';
+import { userState } from '../../recoil/atoms';
+import { useRecoilState } from 'recoil';
 import DateSelector from './components/DateSelector';
 import DreamList from './components/DreamList';
 
@@ -16,43 +16,21 @@ const MainPage = () => {
   const [month, setMonth] = useState(current.getMonth() + 1);
   const [user, setUser] = useRecoilState(userState);
   const [totalCount, setTotalCount] = useState(null);
-  const baseURL = useRecoilValue(baseURLState);
   const navigate = useNavigate();
-
-  const accessToken = localStorage.getItem('accessToken');
-
-  const getDreams = () => {
+  const getDreams = async () => {
     // if (!accessToken) {
     //   return navigate('/login');
     // }
-    axios
-      .get(`${baseURL}/users/info`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        withCredentials: true,
-      })
-      .then((response) => {
-        console.log('유저정보 가져왔어!', response);
-        setUser(response.data.data);
-        return axios.get(`${baseURL}/dream/${response.data.data.userId}/${year}${String(month).padStart(2, '0')}01`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          withCredentials: true,
-        });
-      })
-      .then((response) => {
-        const responseData = response.data.data;
-        setDreams(responseData.dreamMainResponsesList);
-        setTotalCount(responseData.totalCount);
-        console.log(responseData);
-      })
-      .catch((error) => {
-        setDreams(mainDummy.dreams);
-        setTotalCount(mainDummy.totalCount);
-        // if (error.response && error.response.status === 401) {
-        //   navigate('/login');
-        // } else {
-        //   navigate('/error');
-        // }
-      });
+    try {
+      const userInfo = await api.get('api/users/info').data.data;
+      setUser(userInfo);
+      const dreamInfo = await api.get(`api/dream/${user.userId}/${year}${String(month).padStart(2, '0')}01`);
+      etDreams(dreamInfo.dreamMainResponsesList);
+      setTotalCount(dreamInfo.totalCount);
+    } catch {
+      setDreams(mainDummy.dreams);
+      setTotalCount(mainDummy.totalCount);
+    }
   };
 
   useEffect(() => {
