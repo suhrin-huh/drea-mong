@@ -2,23 +2,25 @@
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import 'sweetalert2/src/sweetalert2.scss';
 
-// 앱 내부의 컴포넌트/아이콘
+import { dateState } from '../../../recoil/dream/atom';
+import { useRecoilState } from 'recoil';
+import { replaceDateType } from '../../../utils/formatter';
 
-/** - 미래의 날짜 선택시 오류 반환
- * - 선택되는 날짜는 Date 형식이므로 yyyy-mm-dd로 변경
- */
-const DatePicker = ({ date, setDate, replaceDateType }) => {
+const DatePicker = () => {
+  const [date, setDate] = useRecoilState(dateState);
   const handleDate = (event) => {
     const current = replaceDateType(new Date());
     const selected = event.target.value;
-    selected <= current
-      ? setDate(selected)
-      : Swal.fire({
-          title: 'ERROR',
-          text: '일기는 현재 또는 과거의 날짜에 대해서만 작성할 수 있습니다.',
-          icon: 'error',
-          confirmButtonText: '확인',
-        });
+    if (selected > current) {
+      Swal.fire({
+        title: 'ERROR',
+        text: '일기는 현재 또는 과거의 날짜에 대해서만 작성할 수 있습니다.',
+        icon: 'error',
+        confirmButtonText: '확인',
+      });
+      return;
+    }
+    setDate(selected);
   };
 
   return (
