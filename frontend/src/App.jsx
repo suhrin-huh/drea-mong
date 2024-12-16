@@ -3,8 +3,8 @@ import { RecoilRoot } from 'recoil';
 import { useState, Suspense, lazy } from 'react';
 
 import NavigationBar from './components/NavigationBar';
-import ErrorPage from './pages/ErrorPage';
 
+const ErrorPage = lazy(() => import('./pages/ErrorPage'));
 const MainPage = lazy(() => import('./pages/MainPage/MainPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage/LoginPage'));
 const LoginSuccess = lazy(() => import('./pages/LoginPage/components/LoginSuccess'));
@@ -20,7 +20,6 @@ const StatisticsPage = lazy(() => import('./pages/StatisticsPage'));
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState();
-
   const toggleLoginStatus = () => {
     setIsLoggedIn((prevState) => !prevState);
   };
