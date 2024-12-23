@@ -2,8 +2,9 @@
 import { useNavigate } from 'react-router-dom';
 
 // 앱 내부의 상태 관리와 관련된 파일
-import { useRecoilValue } from 'recoil';
-import { baseURLState, userState } from '../../../recoil/atoms';
+import { useRecoilValue, useRecoilCallback } from 'recoil';
+import { baseURLState } from '../../../recoil/atoms';
+import { dateState, contentState, interpState, imageState, isSharedState } from '../../../recoil/dream/atom';
 
 // 외부 라이브러리
 import Swal from 'sweetalert2/dist/sweetalert2.js';
@@ -13,10 +14,7 @@ import axios from 'axios';
 // 앱 내부의 컴포넌트/아이콘
 import { useHandleError } from '../../../utils/utils';
 
-/** - mode에 따라 임시저장(create) / 삭제(detail)
- * - 현재 오류 경로 : login*/
-const UpperBar = ({ content = '', image = '', interpretation = '', date = '', dreamId = '', mode }) => {
-  const user = useRecoilValue(userState);
+const UpperBar = ({ mode }) => {
   const baseURL = useRecoilValue(baseURLState);
   const accessToken = localStorage.getItem('accessToken');
   const navigate = useNavigate();
@@ -33,59 +31,68 @@ const UpperBar = ({ content = '', image = '', interpretation = '', date = '', dr
     });
   };
   /** 임시저장 : 공백만 입력, 내용 미입력시에는 모달 표시 */
-  const saveDraft = async () => {
-    if (content.replace(/ /g, '') == '') {
-      Swal.fire({
-        title: 'ERROR',
-        icon: 'error',
-        text: '공백은 저장이 불가능합니다.',
-      });
-      return;
-    }
-    const result = await Swal.fire({
-      title: '임시저장하시겠습니까?',
-      text: '임시저장된 일기는 통계에 포함되지 않습니다.',
-      icon: 'warning',
-      confirmButtonText: '확인',
-      showCancelButton: true, // 취소 버튼을 추가하여 사용자가 선택할 수 있게 함
-    });
+  const saveDraft = useRecoilCallback(
+    ({ snapshot }) =>
+      async () => {
+        const content = await snapshot.getPromise(contentState);
+        const image = await snapshot.getPromise(imageState);
+        const interpretation = await snapshot.getPromise(interpState);
+        const userId = (await snapshot.getPromise(userState)?.userId) || null;
+        const isShared = await snapshot.getPromise(isSharedState);
+        const writeTime = await snapshot.getPromise(dateState);
 
-    if (result.isConfirmed) {
-      if (content.length !== 0) {
-        try {
-          const requestData = {
-            content: content,
-            image: image,
-            interpretation: interpretation,
-            userId: user.userId,
-            writeTime: date.replace(/-/g, ''),
-          };
-          axios.post(`${baseURL}/dream/temporary`, requestData, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-            withCredentials: true,
+        if (content.replace(/ /g, '') == '') {
+          Swal.fire({
+            title: 'ERROR',
+            icon: 'error',
+            text: '공백은 저장이 불가능합니다.',
           });
-          setTimeout(() => {
+          return;
+        }
+
+        const result = await Swal.fire({
+          title: '임시저장하시겠습니까?',
+          text: '임시저장된 일기는 통계에 포함되지 않습니다.',
+          icon: 'warning',
+          confirmButtonText: '확인',
+          showCancelButton: true,
+        });
+
+        if (result.isConfirmed) {
+          try {
+            const requestData = {
+              content: content,
+              image: image,
+              isShared: isShared,
+              interpretation: interpretation,
+              userId: userId,
+              writeTime: writeTime.replace(/-/g, ''),
+            };
+            const res = await axios.post(`${baseURL}/dream/temporary`, requestData, {
+              headers: { Authorization: `Bearer ${accessToken}` },
+              withCredentials: true,
+            });
+            console.log(res);
             navigate('/');
-          }, 500);
-        } catch (error) {
-          if (error.response && error.response.status === 401) {
-            navigate('/login');
-          } else {
-            navigate('/error');
+          } catch (error) {
+            if (error.response && error.response.status === 401) {
+              // navigate('/login');
+            } else {
+              // navigate('/error');
+            }
           }
         }
-      }
-    }
-  };
+      },
+    [],
+  );
 
   const deleteDream = async () => {
     try {
       const { value: confirmed } = await Swal.fire({
         title: '일기를 삭제하시겠습니까?',
-        // text: '변경된 내용은 통계에 포함되지 않습니다.',
         icon: 'warning',
         confirmButtonText: '확인',
-        showCancelButton: true, // 취소 버튼을 추가하여 사용자가 선택할 수 있게 함,
+        showCancelButton: true,
         denyButtonText: '취소',
       });
       if (confirmed) {
@@ -98,9 +105,9 @@ const UpperBar = ({ content = '', image = '', interpretation = '', date = '', dr
       }
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        navigate('/login');
+        // navigate('/login');
       } else {
-        navigate('/error');
+        // navigate('/error');
       }
     }
   };

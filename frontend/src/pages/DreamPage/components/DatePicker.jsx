@@ -1,15 +1,25 @@
 // 외부 라이브러리
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import 'sweetalert2/src/sweetalert2.scss';
+import { useEffect } from 'react';
 
 import { dateState } from '../../../recoil/dream/atom';
 import { useRecoilState } from 'recoil';
 import { replaceDateType } from '../../../utils/formatter';
 
-const DatePicker = () => {
+const DatePicker = ({ initial }) => {
   const [date, setDate] = useRecoilState(dateState);
-  const handleDate = (event) => {
+
+  useEffect(() => {
     const current = replaceDateType(new Date());
+    if (initial) {
+      setDate(initial);
+    } else {
+      setDate(current);
+    }
+  }, []);
+
+  const handleDate = (event) => {
     const selected = event.target.value;
     if (selected > current) {
       Swal.fire({

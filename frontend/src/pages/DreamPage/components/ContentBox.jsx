@@ -5,28 +5,26 @@ import { useEffect, useRef } from 'react';
 import { useRecoilState } from 'recoil';
 import { isListeningState } from '../../../recoil/atoms';
 
-// 외부 라이브러리
-
-// 앱 내부의 컴포넌트/아이콘
-
 import { useHandleError } from '../../../utils/utils';
+import { contentState } from '../../../recoil/dream/atom';
 
-/** - 꿈 내용 작성 textarea / STT
- * - 내용 작성시에 isInterpVisible = false
- * - 오류 발생시 현재 페이지
- * - webkitSpeechRecognition 사용 */
-const ContentBox = ({ content, setContent, MAX_LENGTH, setIsInterpVisible, classList }) => {
+const ContentBox = ({ initial, MAX_LENGTH, classList }) => {
   const [isListening, setIsListening] = useRecoilState(isListeningState);
   const contentRef = useRef(null);
   const handleError = useHandleError();
+  const [content, setContent] = useRecoilState(contentState);
+
+  useEffect(() => {
+    setContent(initial);
+  }, []);
 
   const recognition = new window.webkitSpeechRecognition();
+
   recognition.lang = 'ko-KR';
   recognition.interimResults = false; // 중간 결과 포함여부
 
   useEffect(() => {
     if (isListening) {
-      // 녹음이 시작하면
       recognition.start();
     }
   }, [isListening]);
@@ -70,7 +68,6 @@ const ContentBox = ({ content, setContent, MAX_LENGTH, setIsInterpVisible, class
   };
 
   const handleContent = (e) => {
-    setIsInterpVisible(false);
     if (e.target.value.length <= MAX_LENGTH) {
       setContent(e.target.value);
     } else {

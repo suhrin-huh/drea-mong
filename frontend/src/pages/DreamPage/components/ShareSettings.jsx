@@ -2,18 +2,35 @@
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import 'sweetalert2/src/sweetalert2.scss';
 
+import { useState, useEffect } from 'react';
+
+// 앱 내부의 상태 관리와 관련된 파일
+import { useRecoilCallback } from 'recoil';
+import { interpState, imageState, isSharedState } from '../../../recoil/dream/atom';
+
 // 앱 내부의 컴포넌트/아이콘
-const ShareSettings = ({ isShared, setIsShared, interpretation, image }) => {
-  const toggle = () => {
-    if (image == null || interpretation == null) {
-      Swal.fire({
-        icon: 'warning',
-        text: '꿈을 공유하기 위해서는 해몽과 그림이 필요해요',
-      });
-      return;
-    }
-    setIsShared(!isShared);
-  };
+const ShareSettings = ({ initial }) => {
+  const [isShared, setIsShared] = useState(isSharedState);
+
+  useEffect(() => {
+    setIsShared(initial);
+  });
+  const toggle = useRecoilCallback(
+    ({ snapshot }) =>
+      async () => {
+        const image = snapshot.getPromise(imageState);
+        const interpretation = snapshot.getPromise(interpState);
+        if (image == null || interpretation == null) {
+          Swal.fire({
+            icon: 'warning',
+            text: '꿈을 공유하기 위해서는 해몽과 그림이 필요해요',
+          });
+          return;
+        }
+        setIsShared(!isShared);
+      },
+    [],
+  );
 
   return (
     <div className="mx-2 flex justify-between">
