@@ -1,6 +1,6 @@
 # README.md
 
-# 🌜 Dreamong - 꿈을 기록하고 싶은 사람들을 위한 서비스
+# 🌜 Dreamong - 생성형 AI를 활용한 꿈을 기록하고 공유하는 서비스
 
 ![메인](README_asset/드리몽.jpg)
 
