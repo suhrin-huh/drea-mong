@@ -1,9 +1,13 @@
+import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 // import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig({
+  resolve: {
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
   plugins: [
     react(),
     // mkcert(),
@@ -34,12 +38,12 @@ export default defineConfig({
         theme_color: '#737DFE',
         icons: [
           {
-            src: '/drea-mong_192px.png',
+            src: '/drea-mong-192.png',
             type: 'image/png',
             sizes: '192x192',
           },
           {
-            src: '/drea-mong_512px.png',
+            src: '/drea-mong-512.png',
             type: 'image/png',
             sizes: '512x512',
           },

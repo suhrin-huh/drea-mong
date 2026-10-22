@@ -228,77 +228,19 @@
 
 ### 🌞[FE]
 
+```text
+frontend/src/
+├── app/        # 앱 설정·라우팅·레이아웃
+├── pages/      # home, login, auth-callback, dream, square,
+│               # streaming, statistics, settings, error
+├── features/   # dream-editor, manage-notifications
+├── entities/   # user, dream
+├── shared/     # api, config, lib, ui, assets
+└── main.jsx
 ```
-📦src
- ┣ 📂assets
- ┃ ┣ 📂logoSVG
- ┃ ┃ ┣ 📜btn_apple.svg
- ┃ ┃ ┣ 📜btn_gmail.svg
- ┃ ┃ ┣ 📜btn_google.svg
- ┃ ┃ ┣ 📜btn_kakao.svg
- ┃ ┃ ┗ 📜btn_naver.svg
- ┃ ┣ 📜404.png
- ┃ ┣ 📜500.png
- ┃ ┣ 📜back.svg
- ┃ ┣ 📜background.svg
- ┃ ┣ 📜censoredImg.png
- ┃ ┣ 📜detailBG.jpg
- ┃ ┣ 📜icons.jsx
- ┃ ┣ 📜img_generator.png
- ┃ ┣ 📜login.svg
- ┃ ┣ 📜logout.svg
- ┃ ┣ 📜react.svg
- ┃ ┣ 📜send.svg
- ┃ ┗ 📜user.svg
- ┣ 📂components
- ┃ ┣ 📜Button.jsx
- ┃ ┗ 📜NavigationBar.jsx
- ┣ 📂pages
- ┃ ┣ 📂DreamPage
- ┃ ┃ ┣ 📂components
- ┃ ┃ ┃ ┣ 📜ContentBox.jsx
- ┃ ┃ ┃ ┣ 📜DatePicker.jsx
- ┃ ┃ ┃ ┣ 📜ImageGenerator.jsx
- ┃ ┃ ┃ ┣ 📜InterpretationBox.jsx
- ┃ ┃ ┃ ┣ 📜ShareSettings.jsx
- ┃ ┃ ┃ ┗ 📜UpperBar.jsx
- ┃ ┃ ┣ 📜DreamDetailPage.jsx
- ┃ ┃ ┗ 📜DreamRegisterPage.jsx
- ┃ ┣ 📂LoginPage
- ┃ ┃ ┣ 📂components
- ┃ ┃ ┃ ┣ 📜FadeInText.jsx
- ┃ ┃ ┃ ┗ 📜LoginSuccess.jsx
- ┃ ┃ ┗ 📜LoginPage.jsx
- ┃ ┣ 📂SkeletonPage
- ┃ ┃ ┣ 📂components
- ┃ ┃ ┃ ┗ 📜SkeletonBlock.jsx
- ┃ ┃ ┣ 📜SquareDetailSkeletonPage.jsx
- ┃ ┃ ┣ 📜SquareSkeletonPage.jsx
- ┃ ┃ ┗ 📜StatisticsSkeletonPage.jsx
- ┃ ┣ 📂StreamingPage
- ┃ ┃ ┣ 📂components
- ┃ ┃ ┃ ┣ 📂legacy
- ┃ ┃ ┃ ┃ ┣ 📜StreamingList_WebRTC.jsx
- ┃ ┃ ┃ ┃ ┗ 📜StreamingRoom_WebRTC.jsx
- ┃ ┃ ┃ ┣ 📜StreamingList.jsx
- ┃ ┃ ┃ ┗ 📜StreamingRoom.jsx
- ┃ ┃ ┗ 📜StreamingPage.jsx
- ┃ ┣ 📜ErrorPage.jsx
- ┃ ┣ 📜MainPage.jsx
- ┃ ┣ 📜SettingsPage.jsx
- ┃ ┣ 📜SquareDetailPage.jsx
- ┃ ┣ 📜SquarePage.jsx
- ┃ ┗ 📜StatisticsPage.jsx
- ┣ 📂recoil
- ┃ ┗ 📜atoms.js
- ┣ 📂utils
- ┃ ┣ 📜api.js
- ┃ ┣ 📜firebase.js
- ┃ ┗ 📜utils.js
- ┣ 📜App.jsx
- ┣ 📜index.css
- ┗ 📜main.jsx
-```
+
+FSD의 계층 의존 규칙과 slice 공개 API를 사용합니다. 이미지도 소유 기능과 용도에 따라 배치합니다.
+자세한 실행·명명·자산 배치 기준은 [Frontend README](frontend/README.md), 전체 파일 이동 내역은 [개편 계획서](docs/frontend-restructure-plan.md)를 참고하세요.
 
 ### 🌚[BE]
 
