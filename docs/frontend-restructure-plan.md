@@ -1,6 +1,6 @@
 # Frontend 폴더 구조 및 명명규칙 개편 계획
 
-작성일: 2026-10-22. 현재 작업 트리 기준이며 구현 전 검토 문서이다.
+작성일: 2026-10-22. 조사 당시 작업 트리를 기준으로 계획을 작성했으며, FSD·자산 분류 변경을 반영해 구현을 완료했다.
 
 ## 1. 조사 범위와 현재 상태
 
@@ -92,7 +92,7 @@ alias `@/`는 src에 대응한다. Vite/jsconfig/ESLint에서 일치시키며, �
 
 ## 5. 전체 파일별 이동·수정 계획
 
-총 80개이며 모든 경로는 frontend 기준이다. 아래 표는 기존 파일을 기준으로 작성했다. 분할되는 새 파일은 별도로 설명한다. 삭제 후보는 실제 적용 시 참조를 재확인한다.
+총 80개이며 모든 경로는 frontend 기준이다. 아래 표는 기존 파일을 기준으로 작성했다. 분할되는 새 파일은 별도로 설명한다. 삭제 대상은 적용 전 참조를 재확인했다.
 
 | 현재 경로 | 권장 경로 / 조치 | 근거·주의사항 |
 | --- | --- | --- |
@@ -119,7 +119,7 @@ alias `@/`는 src에 대응한다. Vite/jsconfig/ESLint에서 일치시키며, �
 | `src/pages/DreamPage/components/InterpretationBox.jsx` | `src/features/dream-editor/ui/DreamInterpretationPanel.jsx` | 해몽 생성과 표시 |
 | `src/pages/DreamPage/components/ShareSettings.jsx` | `src/features/dream-editor/ui/DreamShareToggle.jsx` | 공유 토글 |
 | `src/pages/DreamPage/components/UpperBar.jsx` | `src/features/dream-editor/ui/DreamEditorHeader.jsx` | 뒤로가기·하단이 아닌 상단 저장/삭제 동작 |
-| `src/pages/DreamPage/components/SavaButton.jsx` | 삭제 후보 | 삭제 후보: 미사용이며 없는 contentState 참조. 이름만 고쳐 남기지 않음 |
+| `src/pages/DreamPage/components/SavaButton.jsx` | 삭제 완료 | 삭제 완료: 미사용이며 없는 contentState 참조. 이름만 고쳐 남기지 않음 |
 | `src/pages/SquarePage.jsx` | `src/pages/square/ui/SquarePage.jsx` | 광장과 cursor 페이지네이션 |
 | `src/pages/SquareDetailPage.jsx` | `src/pages/square/ui/SquareDetailPage.jsx` | 공유 꿈·댓글·좋아요 |
 | `src/pages/SkeletonPage/SquareSkeletonPage.jsx` | `src/pages/square/ui/SquareSkeleton.jsx` | 내부 DreamSquareSkeletonPage 선언도 일치시킴 |
@@ -149,12 +149,12 @@ alias `@/`는 src에 대응한다. Vite/jsconfig/ESLint에서 일치시키며, �
 | `src/assets/logoSVG/btn_google.svg` | `src/pages/login/assets/logos/google-logo.svg` | 로그인 로고 |
 | `src/assets/logoSVG/btn_naver.svg` | `src/pages/login/assets/logos/naver-logo.svg` | 로그인 로고 |
 | `src/assets/logoSVG/btn_kakao.svg` | `src/pages/login/assets/logos/kakao-logo.svg` | 로그인 로고 |
-| `src/assets/logoSVG/btn_apple.svg` | 삭제 후보 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
-| `src/assets/logoSVG/btn_gmail.svg` | 삭제 후보 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
-| `src/assets/detailBG.jpg` | 삭제 후보 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
-| `src/assets/react.svg` | 삭제 후보 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
-| `src/assets/send.svg` | 삭제 후보 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
-| `src/assets/test.jfif` | 삭제 후보 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
+| `src/assets/logoSVG/btn_apple.svg` | 삭제 완료 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
+| `src/assets/logoSVG/btn_gmail.svg` | 삭제 완료 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
+| `src/assets/detailBG.jpg` | 삭제 완료 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
+| `src/assets/react.svg` | 삭제 완료 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
+| `src/assets/send.svg` | 삭제 완료 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
+| `src/assets/test.jfif` | 삭제 완료 | 앱 내 참조 없음. 루트 README의 과거 구조도는 정리 필요 |
 | `public/apple-touch-icon.png` | 유지 | 고정 공개 URL 유지. SW는 앱 기능 폴더로 옮기지 않음 |
 | `public/drea-mong.svg` | 유지 | 고정 공개 URL 유지. SW는 앱 기능 폴더로 옮기지 않음 |
 | `public/firebase-messaging-sw.js` | 유지 | 고정 공개 URL 유지. SW는 앱 기능 폴더로 옮기지 않음 |
@@ -162,12 +162,12 @@ alias `@/`는 src에 대응한다. Vite/jsconfig/ESLint에서 일치시키며, �
 | `public/robots.txt` | 유지 | 고정 공개 URL 유지. SW는 앱 기능 폴더로 옮기지 않음 |
 | `public/drea-mong_192px.png` | `public/drea-mong-192.png` | Vite manifest와 SW 알림 아이콘 참조 함께 갱신 |
 | `public/drea-mong_512px.png` | `public/drea-mong-512.png` | Vite manifest와 SW 알림 아이콘 참조 함께 갱신 |
-| `public/vite.svg` | 삭제 후보 | 템플릿 이미지, 앱 참조 없음 |
-| `dev-dist/registerSW.js` | 생성물로 추적 해제·ignore | 직접 수정하지 않음 |
+| `public/vite.svg` | 삭제 완료 | 템플릿 이미지, 앱 참조 없음 |
+| `dev-dist/registerSW.js` | 생성물로 추적 해제·ignore 완료 | 직접 수정하지 않음 |
 | `.eslintrc.cjs` | 루트 유지 | alias resolver, archive/dev-dist 제외, 설정파일·SW의 실행 환경별 override 정리 |
 | `.prettierrc.json` | 루트 유지 | 기존 규칙 유지 |
 | `.gitignore` | 루트 유지 | dev-dist 생성물 제외 추가 |
-| `package.json` | 루트 유지 | 기존 사용자 변경 보존. alias resolver 등 필요한 개발 의존성만 추가 |
+| `package.json` | 루트 유지 | 기존 사용자 변경 보존. 신규 의존성 추가 없이 기존 ESLint node resolver로 alias 지원 |
 | `package-lock.json` | 루트 유지 | 기존 변경 보존. 의존성 변경 시 npm으로만 동기화 |
 | `vite.config.js` | 루트 유지 | alias와 PWA 이미지 경로 갱신. proxy 동작 수정은 별도 |
 | `tailwind.config.js` | 루트 유지 | src glob이 새 구조를 포함하므로 유지 |
@@ -175,7 +175,7 @@ alias `@/`는 src에 대응한다. Vite/jsconfig/ESLint에서 일치시키며, �
 | `index.html` | 루트 유지 | main.jsx 진입점 유지, public 링크 검증 |
 | `Dockerfile` | 루트 유지 | 루트 유지, src 내부 이동은 COPY 경로에 영향 없음 |
 | `nginx.conf` | 루트 유지 | 현행 Dockerfile은 serve 사용. 실제 배포 사용 여부 확인 전 삭제하지 않음 |
-| `README.md` | 루트 유지 | 현재 빈 문서. 구조·명명·환경변수·실행·검증 절차 작성 |
+| `README.md` | 루트 유지 | 구조·명명·기존 설정 위치·실행·검증 절차 작성 완료 |
 
 ### 혼재 UI·상태 분리
 
@@ -226,3 +226,32 @@ alias `@/`는 src에 대응한다. Vite/jsconfig/ESLint에서 일치시키며, �
 - 이전 src/assets 문자열과 오래된 import를 제거하고, asset 파일명은 kebab-case로 통일한다.
 - public 아이콘 manifest·SW 참조, 배포 산출물의 이미지 포함 여부를 확인한다.
 - README에 FSD 계층·segment·공개 API·자산 배치·실행/검증 절차를 기록한다.
+
+## 9. 구현 결과
+
+2026-10-22에 이번 범위의 구현을 완료했다.
+
+- 계획 반영 → FSD 소스 이동 → 자산 정리 → 구조 검사·import 규칙 정리 → 문서 갱신 순으로 커밋했다.
+- 9개 page slice, 2개 feature slice, 2개 entity slice를 배치했다. app/shared는 역할 segment로 구성했다.
+- 전체 80개 원본 파일의 이동·유지·분할·제거 결정을 위 표에 기록했다. 구조 검사 기준 현재 src는 JS/JSX 71개, 스타일·이미지 14개다.
+- 사용 중인 이미지 13개를 소유 영역과 용도별로 이동했고, 미사용 src 자산 6개와 public 템플릿 자산 1개를 제거했다. public PWA 아이콘 2개는 kebab-case로 이름을 바꿨다.
+- 이미지 문자열을 import로 바꿔 앱 배경과 더미 이미지가 프로덕션 산출물에 포함되도록 했다. 이미지의 시각적 변경은 없다.
+- JSX 혼재 icons와 상태 모듈을 분리했고, 미사용 SavaButton과 미사용 icon export를 제거했다. WebRTC 코드는 archive로 보존했다.
+- 전체 일괄 포맷은 하지 않았다. 변경한 import 헤더와 새로 분리한 앱·UI 모듈을 중심으로 규칙을 정리했다.
+- 상위 ignore의 lib 제외 규칙에 src 소스 예외를 두고, dev-dist는 로컬 생성물로 남긴 채 Git 추적을 해제했다.
+- 기존 package.json/package-lock.json의 Sass 관련 사용자 변경은 수정하거나 커밋에 포함하지 않았다.
+
+| 최종 검사 | 결과 |
+| --- | --- |
+| `npm run build` | 프로덕션·PWA 빌드 성공 |
+| `node scripts/check-structure.mjs` | 계층·공개 API·명명·경로·순환 의존 검사 성공 |
+| 검사 도구의 위반 사례 | 상위 계층, 같은 계층 slice, 공개 API 우회, 대소문자, 선언명, 순환 의존 6종 거부 확인 |
+| Chrome 모바일 스모크 검사 | 13개 경로, 런타임 예외 0, 이미지 HTTP 실패 0 |
+| `npm run lint` | 오류 341건·경고 78건으로 실패 |
+| `git diff --check` | 통과 |
+
+브라우저에서 `/`, `/login`, `/error`, 알 수 없는 URL의 렌더링과 이미지, 비로그인 `/settings` 화면을 확인했다. 꿈 작성/편집·광장 목록/상세·통계·스트리밍 목록/방은 로그인 이동을 확인했고, `/callback`은 인증 실패 후 로그인 복귀를 확인했다. 외부 API는 차단했으므로 실제 인증 성공·CRUD·소켓·FCM은 완료 검증 범위에 포함하지 않는다. 배경과 더미 이미지의 빌드 URL, 로그인 로고·오류 삽화도 확인했다.
+
+lint 감소는 레거시 격리, 미사용 export/import 제거, 공개 API의 named export 및 기존 함수 선언 스타일에 맞춘 설정, import 정리의 결과도 포함한다. 모든 기존 버그를 수정했다는 의미는 아니다. 기존 props/접근성/미사용 변수/미정의 참조와 패키지 resolver 이슈 등이 남고, 새 Provider/Layout의 children props 검증도 후속 정리 대상이다.
+
+구조 검사는 import 구문과 파일 경계를 검사하며 임의의 런타임 URL·서버 응답을 보장하지 않는다. 상세 구조와 유지 규칙은 [Frontend README](../frontend/README.md)에 기록했다.
