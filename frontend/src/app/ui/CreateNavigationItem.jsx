@@ -1,4 +1,4 @@
-const CreateNavigationItem = ({ color }) => (
+const CreateNavigationItem = () => (
   <svg
     className="absolute left-[-10px] top-[-25px]"
     width="55"

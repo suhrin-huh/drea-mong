@@ -1,1 +1,1 @@
-export { getFCMToken, subscribeToTopic, unsubscribeFromTopic } from './lib/push-notifications';
+export { getFcmToken, subscribeToTopic, unsubscribeFromTopic } from './lib/push-notifications';

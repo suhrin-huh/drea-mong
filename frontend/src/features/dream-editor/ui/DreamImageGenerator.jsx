@@ -1,20 +1,13 @@
-// React 관련 패키지
 import { useState } from 'react';
-
-// 앱 내부의 상태 관리와 관련된 파일
 import { useRecoilValue } from 'recoil';
-import { baseURLState } from '@/shared/config/server';
-
-// 외부 라이브러리
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-import 'sweetalert2/src/sweetalert2.scss';
 import axios from 'axios';
-
-// 앱 내부의 컴포넌트/아이콘
+import { baseURLState } from '@/shared/config/server.atoms';
 import { useHandleError } from '@/shared/lib/error';
 import RegenerateIcon from '@/shared/ui/icons/RegenerateIcon';
 import imgGenerator from '../assets/images/image-generator.png';
 import censoredImage from '../assets/images/censored-image.png';
+import 'sweetalert2/src/sweetalert2.scss';
 
 /** - 이미지 생성 오류 발생시 현재위치
  * - 검열이미지 대체할 요소 고려 필요!

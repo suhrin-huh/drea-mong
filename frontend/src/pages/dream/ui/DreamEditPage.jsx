@@ -1,32 +1,27 @@
-import { DREAM_MIN_LENGTH, DREAM_MAX_LENGTH, formatDreamDate } from '@/entities/dream';
-// React 관련 패키지
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
-// 앱 내부의 상태 관리와 관련된 파일
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { baseURLState } from '@/shared/config/server';
-import { isListeningState } from '@/features/dream-editor';
-import { userState } from '@/entities/user';
-
-// 외부 라이브러리
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-import 'sweetalert2/src/sweetalert2.scss';
 import axios from 'axios';
-
-// 앱 내부의 컴포넌트/아이콘
+import { DREAM_MIN_LENGTH, DREAM_MAX_LENGTH, formatDreamDate } from '@/entities/dream';
+import { baseURLState } from '@/shared/config/server.atoms';
+import {
+  isListeningState,
+  SpeechListeningOverlay,
+  DreamSavingOverlay,
+  DreamEditorHeader,
+  DreamDatePicker,
+  DreamContentInput,
+  DreamInterpretationPanel,
+  DreamImageGenerator,
+  DreamShareToggle,
+} from '@/features/dream-editor';
+import { userState } from '@/entities/user';
 import { Button } from '@/shared/ui/button';
 import { useHandleError } from '@/shared/lib/error';
 import RegenerateIcon from '@/shared/ui/icons/RegenerateIcon';
 import { LoadingSpinner } from '@/shared/ui/loading-spinner';
-import { SpeechListeningOverlay } from '@/features/dream-editor';
-import { DreamSavingOverlay } from '@/features/dream-editor';
-import { DreamEditorHeader } from '@/features/dream-editor';
-import { DreamDatePicker } from '@/features/dream-editor';
-import { DreamContentInput } from '@/features/dream-editor';
-import { DreamInterpretationPanel } from '@/features/dream-editor';
-import { DreamImageGenerator } from '@/features/dream-editor';
-import { DreamShareToggle } from '@/features/dream-editor';
+import 'sweetalert2/src/sweetalert2.scss';
 
 const DreamEditPage = () => {
   const navigate = useNavigate();

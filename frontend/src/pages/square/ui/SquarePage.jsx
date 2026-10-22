@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useRecoilValue } from 'recoil';
 import Swal from 'sweetalert2';
-import { baseURLState } from '@/shared/config/server';
+import { baseURLState } from '@/shared/config/server.atoms';
 import SquareSkeleton from './SquareSkeleton';
 
 const SquarePage = () => {

@@ -3,7 +3,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRecoilValue, useRecoilState } from 'recoil';
-import { baseURLState } from '@/shared/config/server';
+import { baseURLState } from '@/shared/config/server.atoms';
 import { userState } from '@/entities/user';
 import SquareDetailSkeleton from './SquareDetailSkeleton';
 

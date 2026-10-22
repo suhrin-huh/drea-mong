@@ -2,10 +2,9 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { userState } from '@/entities/user';
-import { baseURLState } from '@/shared/config/server';
-
 import 'ldrs/squircle';
+import { userState } from '@/entities/user';
+import { baseURLState } from '@/shared/config/server.atoms';
 
 const AuthCallbackPage = () => {
   const navigate = useNavigate();

@@ -1,18 +1,11 @@
-// React 관련 패키지
 import { useNavigate } from 'react-router-dom';
-
-// 앱 내부의 상태 관리와 관련된 파일
 import { useRecoilValue } from 'recoil';
-import { baseURLState } from '@/shared/config/server';
-import { userState } from '@/entities/user';
-
-// 외부 라이브러리
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-import 'sweetalert2/src/sweetalert2.scss';
 import axios from 'axios';
-
-// 앱 내부의 컴포넌트/아이콘
+import { baseURLState } from '@/shared/config/server.atoms';
+import { userState } from '@/entities/user';
 import { useHandleError } from '@/shared/lib/error';
+import 'sweetalert2/src/sweetalert2.scss';
 
 /** - mode에 따라 임시저장(create) / 삭제(detail)
  * - 현재 오류 경로 : login*/

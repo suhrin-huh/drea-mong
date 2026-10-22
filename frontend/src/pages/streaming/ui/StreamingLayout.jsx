@@ -1,13 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import Modal from 'react-modal';
-import { Button } from '@/shared/ui/button';
 import { useNavigate, Outlet } from 'react-router-dom';
-
 import { useSetRecoilState, useRecoilValue } from 'recoil';
-import { baseURLState } from '@/shared/config/server';
+import { Button } from '@/shared/ui/button';
+import { baseURLState } from '@/shared/config/server.atoms';
 import { userState } from '@/entities/user';
-
 import back from '../assets/icons/back.svg';
 
 // Make sure to set the app element for accessibility

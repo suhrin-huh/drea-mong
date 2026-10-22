@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
 import axios from 'axios';
-import { Button } from '@/shared/ui/button';
-
 import { useRecoilValue } from 'recoil';
+import { Button } from '@/shared/ui/button';
 import { userState } from '@/entities/user';
-import { baseURLState } from '@/shared/config/server';
+import { baseURLState } from '@/shared/config/server.atoms';
 
 Modal.setAppElement('#root');
 

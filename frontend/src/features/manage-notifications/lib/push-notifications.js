@@ -33,7 +33,7 @@ const initializeMessaging = async () => {
 };
 
 // FCM 토큰 가져오기
-export const getFCMToken = async () => {
+export const getFcmToken = async () => {
   if (!messaging) {
     const isInitialized = await initializeMessaging();
     if (!isInitialized) return null;

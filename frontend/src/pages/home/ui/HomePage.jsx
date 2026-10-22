@@ -1,13 +1,12 @@
 import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
 import StatisticsIcon from '@/shared/ui/icons/StatisticsIcon';
-import ScrollDownButton from './ScrollDownButton';
 import api from '@/shared/api/http-client';
 import { userState } from '@/entities/user';
-import { useRecoilState } from 'recoil';
+import ScrollDownButton from './ScrollDownButton';
 import MonthSelector from './MonthSelector';
 import DreamList from './DreamList';
-
 import { homeDreamsMock } from '../model/home-dreams.mock';
 
 const HomePage = () => {

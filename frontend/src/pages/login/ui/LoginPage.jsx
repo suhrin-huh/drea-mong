@@ -1,9 +1,8 @@
+import { useRecoilValue } from 'recoil';
+import { baseURLState } from '@/shared/config/server.atoms';
 import googleLogo from '../assets/logos/google-logo.svg';
 import naverLogo from '../assets/logos/naver-logo.svg';
 import kakaoLogo from '../assets/logos/kakao-logo.svg';
-import { useRecoilValue } from 'recoil';
-import { baseURLState } from '@/shared/config/server';
-
 import FadeInText from './FadeInText';
 
 const LoginPage = () => {

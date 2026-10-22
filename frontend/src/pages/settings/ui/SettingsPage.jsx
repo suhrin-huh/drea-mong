@@ -1,15 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
-import { Button } from '@/shared/ui/button';
 import axios from 'axios';
-
 import { useRecoilValue, useRecoilState } from 'recoil';
+import { Button } from '@/shared/ui/button';
 import { userState } from '@/entities/user';
-import { baseURLState } from '@/shared/config/server';
-
-import { getFCMToken, subscribeToTopic, unsubscribeFromTopic } from '@/features/manage-notifications';
-
+import { baseURLState } from '@/shared/config/server.atoms';
+import { getFcmToken, subscribeToTopic, unsubscribeFromTopic } from '@/features/manage-notifications';
 import login from '../assets/icons/login.svg';
 import logout from '../assets/icons/logout.svg';
 import user from '../assets/icons/user.svg';
@@ -73,7 +70,7 @@ const SettingsPage = () => {
   useEffect(() => {
     // ScrollToDiv();
     const checkPushStatus = async () => {
-      const fcmToken = await getFCMToken();
+      const fcmToken = await getFcmToken();
       console.log(fcmToken);
       if (fcmToken) {
         localStorage.setItem('fcmToken', fcmToken);

@@ -1,12 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useRecoilState } from 'recoil';
 import HomeNavigationItem from '@/app/ui/HomeNavigationItem';
 import SquareNavigationItem from '@/app/ui/SquareNavigationItem';
 import CreateNavigationItem from '@/app/ui/CreateNavigationItem';
 import StreamingNavigationItem from '@/app/ui/StreamingNavigationItem';
 import SettingsNavigationItem from '@/app/ui/SettingsNavigationItem';
-import { SpeechInputButton } from '@/features/dream-editor';
-import { useRecoilState } from 'recoil';
-import { isListeningState } from '@/features/dream-editor';
+import { SpeechInputButton, isListeningState } from '@/features/dream-editor';
 
 const NavigationBar = () => {
   const location = useLocation();

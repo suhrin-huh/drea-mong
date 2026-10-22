@@ -1,15 +1,7 @@
-// React 관련 패키지
 import { useEffect, useRef } from 'react';
-
-// 앱 내부의 상태 관리와 관련된 파일
 import { useRecoilState } from 'recoil';
-import { isListeningState } from '../model/speech.atoms';
-
-// 외부 라이브러리
-
-// 앱 내부의 컴포넌트/아이콘
-
 import { useHandleError } from '@/shared/lib/error';
+import { isListeningState } from '../model/speech.atoms';
 
 /** - 꿈 내용 작성 textarea / STT
  * - 내용 작성시에 isInterpVisible = false

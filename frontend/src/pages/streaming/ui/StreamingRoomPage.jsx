@@ -3,10 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import YouTube from 'react-youtube';
 import axios from 'axios';
 import io from 'socket.io-client';
-
 import { useRecoilValue } from 'recoil';
 import { userState } from '@/entities/user';
-import { baseURLState, socketURLState } from '@/shared/config/server';
+import { baseURLState, socketURLState } from '@/shared/config/server.atoms';
 
 const StreamingRoomPage = () => {
   const navigate = useNavigate();

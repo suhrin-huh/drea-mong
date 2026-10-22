@@ -23,8 +23,11 @@ module.exports = {
   },
   plugins: ['react', 'prettier', 'react-refresh'],
   overrides: [
-    { files: ['src/**/index.js'], rules: { 'import/prefer-default-export': 'off' } },
-    { files: ['vite.config.js', 'tailwind.config.js', 'postcss.config.js', 'scripts/**'], rules: { 'import/no-extraneous-dependencies': ['error', { devDependencies: true }] } },
+    { files: ['src/**/index.js', 'src/**/model/**/*.js', 'src/**/lib/**/*.js'], rules: { 'import/prefer-default-export': 'off' } },
+    {
+      files: ['vite.config.js', 'tailwind.config.js', 'postcss.config.js', 'scripts/**'],
+      rules: { 'import/no-extraneous-dependencies': ['error', { devDependencies: true }] },
+    },
     { files: ['public/firebase-messaging-sw.js'], env: { serviceworker: true }, globals: { firebase: 'readonly' } },
   ],
   rules: {

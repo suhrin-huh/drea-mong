@@ -1,18 +1,13 @@
-// 앱 내부의 상태 관리와 관련된 파일
 import { useRecoilValue } from 'recoil';
 import { useNavigate } from 'react-router-dom';
-import { baseURLState } from '@/shared/config/server';
-
-// 외부 라이브러리
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-import 'sweetalert2/src/sweetalert2.scss';
 import axios from 'axios';
-
-// 앱 내부의 컴포넌트/아이콘
+import { baseURLState } from '@/shared/config/server.atoms';
 import { Button } from '@/shared/ui/button';
 import { useHandleError } from '@/shared/lib/error';
 import { LoadingSpinner } from '@/shared/ui/loading-spinner';
 import ChevronDownIcon from '@/shared/ui/icons/ChevronDownIcon';
+import 'sweetalert2/src/sweetalert2.scss';
 
 /** - 해석 생성
  * - 오류 발생시 현재 페이지에 머무른다.*/

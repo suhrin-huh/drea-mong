@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilValue, useRecoilState } from 'recoil';
-import { baseURLState } from '@/shared/config/server';
-import { userState } from '@/entities/user';
 import axios from 'axios';
 import { Chart, registerables } from 'chart.js';
+import { baseURLState } from '@/shared/config/server.atoms';
+import { userState } from '@/entities/user';
 import StatisticsSkeleton from './StatisticsSkeleton';
 
 Chart.register(...registerables);
