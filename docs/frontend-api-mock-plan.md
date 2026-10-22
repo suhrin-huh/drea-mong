@@ -4,14 +4,14 @@
 
 ## 1. 목표와 기본 방향
 
-- URL, HTTP method, 인증 헤더, 요청 파라미터, 응답 변환을 페이지·컴포넌트에서 제거하고 `shared/api`에서 중앙 관리한다.
+- URL, HTTP method, 인증 헤더, 요청 파라미터와 통신 응답 계약 처리를 페이지·컴포넌트에서 제거하고 `shared/api`에서 중앙 관리한다. 도메인·화면 데이터 변환은 사용하는 계층에 남긴다.
 - API를 하나의 큰 파일에 넣지 않고 업무 영역별 모듈로 나눈다. 페이지는 `dreamsApi.getMonthlyDreams(...)`처럼 공개 메서드만 호출한다.
 - 개발 환경에서는 API 모드에 따라 실제 서버·fallback·mock을 선택한다. 인증·권한 우회 설정을 켜면 인증 실패를 기다리지 않고 앱에 바로 진입한다. 실제 요청 실패에 따른 mock 전환 정책은 별도로 유지한다.
 - 모든 대상 API에 대응하는 mock handler를 제공한다. 조회뿐 아니라 작성·수정·삭제·좋아요 후 다시 조회하는 흐름도 작동하도록 한다.
 - 실제 데이터와 mock 데이터가 섞이지 않도록 세션과 데이터 출처를 관리한다. mock 토큰을 실제 서버에 보내지 않는다.
 - 프로덕션에서는 mock을 실행하지 않고 정상적인 오류 처리·인증 흐름을 유지한다.
 
-기존 React/Recoil/Axios를 유지한다. 이번 계획의 기본 구현은 Axios 앞의 공통 요청 계층과 개발용 mock transport이며, 별도 요청 캐시 라이브러리나 네트워크 가로채기 라이브러리 도입은 전제하지 않는다.
+기존 React/Recoil/Axios를 유지한다. 이번 단계는 API 중앙 관리·API별 mock·개발 인증 우회까지다. TanStack Query 도입과 캐싱 정책은 후속 단계로 분리한다. 이번에는 query key, staleTime, gcTime, QueryClient, 캐시 무효화나 별도 요청 캐시를 구현하지 않는다. 라이브러리 도입 전에 순수 API 함수의 계약과 AbortSignal 전달만 준비한다.
 
 ## 2. 현재 상태와 선행 정리
 
@@ -105,7 +105,9 @@ FSD 적용 기준:
 | api-config | URL·모드·timeout 설정 검증 | Recoil 상태·페이지 이동 |
 | http-client | 전송·인증 헤더·cookie·timeout·AbortSignal | mock dataset 선택·모달·라우팅 |
 | request | endpoint ID별 요청 실행, fallback 판정, 출처·전환 관리 | 페이지 상태 변경·무조건적인 오류 무시 |
-| 업무별 api 모듈 | method/path/query/body, wire 응답 해석, 공개 반환값 | UI·entity import·직접 스토리지 조작 |
+| modules의 업무별 api 모듈 | 실제 endpoint 호출, method/path/query/body, 서버 DTO·성공 상태·특수 HTTP 계약 처리 | 도메인 모델 변환·화면 형식·React·캐시·직접 스토리지 조작 |
+| entity의 model/lib | 여러 곳에서 공유하는 도메인 모델 변환·규칙 | 화면 전용 문자열·HTTP 설정 |
+| 사용하는 page/feature의 model/lib | 화면 전용 가공·한 곳에서만 필요한 데이터 변환 | API 경로·공통 transport·캐시 구현 |
 | mock transport/handlers | 같은 HTTP 계약의 mock 응답·오류 | 임의의 성공 응답·상위 계층 의존 |
 | SessionProvider | 우회 설정에 따른 개발 사용자 주입 또는 실제 사용자 초기화, 실제/데모 세션 구분 | HTTP 경로별 세부 규칙 |
 | page/feature | loading·입력·검증·최종 오류 UI·완료 후 이동 | Axios 설정·URL 문자열·mock 분기 |
@@ -116,8 +118,10 @@ page / feature
         → request(endpoint ID, method/path/params/data)
             → live: http-client
             → mock: 개발용 mock transport → handler → mock-store
-        → 업무별 응답 변환
-    ← 데이터 또는 정규화된 오류
+        → 서버 통신 계약 처리
+    ← 서버 DTO 또는 정규화된 통신 오류
+    → 필요할 때 entity의 도메인 변환
+    → 사용하는 page/feature의 표시용 가공
 ```
 
 fallback의 catch 범위는 전송 결과에 한정한다. UI 코드, 응답 변환 코드, 계약 검증 코드의 오류까지 같은 catch로 감싸지 않는다. 취소된 요청은 mock 전환을 유발하지 않는다.
@@ -127,7 +131,7 @@ fallback의 catch 범위는 전송 결과에 한정한다. UI 코드, 응답 변
 ```js
 import { dreamsApi } from '@/shared/api/modules/dreams.api';
 
-const { dreams, totalCount } = await dreamsApi.getMonthlyDreams({
+const { dreamMainResponsesList, totalCount } = await dreamsApi.getMonthlyDreams({
   userId,
   year,
   month,
@@ -135,7 +139,35 @@ const { dreams, totalCount } = await dreamsApi.getMonthlyDreams({
 });
 ```
 
-응답 원본의 `dreamMainResponsesList`를 공개 메서드의 `dreams`로 변환할 수 있지만, 동일 메서드는 live/mock에서 같은 반환 형태를 보장해야 한다. JavaScript를 유지하고 JSDoc으로 인자·반환값·nullable 항목을 문서화한다.
+API 모듈은 통신 envelope를 처리한 서버 DTO를 반환하며 `dreamMainResponsesList` 같은 서버 필드명을 화면 취향에 맞춰 바꾸지 않는다. 동일 메서드는 live/mock에서 같은 반환 형태를 보장한다. JavaScript와 JSDoc으로 인자·반환값·nullable 항목을 문서화한다.
+
+### 4.1 응답 변환의 책임 경계
+
+| 변환 | 담당 | 예시 |
+| --- | --- | --- |
+| 통신 계약 | shared/api 공통 코드와 modules | Axios response에서 body 추출, 성공 status 검사, 204 처리, Authorization header 읽기 |
+| 도메인 모델 | entities/<대상>/model 또는 lib | 반복 사용하는 서버 DTO → Dream 모델, 공유 필드·날짜 의미의 정규화 |
+| 표시 형식·화면별 조합 | 사용하는 page/feature의 model 또는 lib | YYYYMMDD를 한국어 날짜로 표시, 차트 dataset, 그룹화·화면 문구 |
+
+`shared/api` 루트의 http-client/request는 공통 기능만 소유하고, 실제 endpoint 요청은 modules가 소유한다. 모든 변환을 shared/api로 모으지 않는다. 서버 오류를 숨기지 않기 위한 최소 계약 검사는 API 경계에서 할 수 있지만, 비즈니스 모델을 정의하거나 화면용 필드를 만들어 반환하지 않는다.
+
+entity 변환 계층을 모든 API 앞에 의무적으로 추가하지 않는다. 한 화면에서만 쓰는 단순 변환은 해당 사용처에 두고, 여러 곳에서 같은 도메인 규칙을 공유할 때 entity로 추출한다. shared/api는 이 변환 함수를 import하지 않는다.
+
+서버 데이터와 클라이언트 상태도 구분한다. 이번에는 페이지의 기존 조회 상태를 API 호출 이관에 필요한 만큼만 수정하고, 서버 상태를 TanStack Query로 옮기는 작업은 다음 단계로 남긴다.
+
+### 4.2 후속 Query 도입을 위한 최소 API 계약
+
+```js
+// React·Recoil·라우팅·QueryClient에 의존하지 않는 함수
+dreamsApi.getDream({ dreamId, signal }); // Promise<DreamResponseDto>
+```
+
+- 명시적인 인자를 받아 Promise로 데이터를 반환하거나 오류를 던진다. UI 상태 변경·navigate·모달을 실행하지 않는다.
+- AbortSignal을 Axios와 mock 지연 처리까지 전달한다. 취소를 fallback 오류로 해석하지 않는다.
+- 성공 조회는 null/빈 배열 등 명시한 값을 반환하고, undefined는 의도적인 void 명령에만 사용한다.
+- 응답 배열·객체를 예기치 않게 변경하지 않는다. 이후 Query가 보유할 데이터를 API 함수가 수정하지 않도록 한다.
+- API 함수에 query key, staleTime, gcTime, 재조회·캐시 무효화·자동 쓰기 재시도를 넣지 않는다.
+- mock-store는 가상 서버의 원본 데이터다. 클라이언트 Query 캐시와는 별개이며, 지금 별도 클라이언트 캐시를 추가하지 않는다.
 
 ## 5. 중앙 client와 응답 계약
 
@@ -219,8 +251,8 @@ export const bypassAuth =
 - 빈 방 목록의 204는 정상적인 `[]`로 변환하며 mock으로 대체하지 않는다.
 - 인증 refresh는 body가 아니라 Authorization header에서 token을 읽는다. 공개 반환값은 실제 세션과 데모 세션을 구분하는 union으로 정한다.
 - create/update/delete처럼 응답 data가 없는 명령은 `Promise<void>`를 기본으로 한다. 실제 응답에 없는 ID를 mock 반환값에만 추가하지 않는다.
-- 댓글 좋아요의 `like`/`unLike`는 `{ liked: boolean }`으로 정규화하고 사용 화면도 같이 바꾼다.
-- `isShared`/`shared`처럼 Java DTO와 frontend 사용명이 다른 항목은 실제 직렬화 응답을 확인하고 모듈 경계에서 하나의 공개 필드로 맞춘다.
+- 댓글 좋아요의 `like`/`unLike`는 성공 결과이므로 통신 계층에서 status를 잃지 않도록 반환 계약에 보존한다. `{ liked: boolean }` 같은 앱 모델이 필요하면 comments entity 또는 해당 feature의 변환 함수에서 만든다.
+- `isShared`/`shared`처럼 Java DTO와 frontend 사용명이 다른 항목은 실제 직렬화 응답을 확인해 서버 DTO 계약을 기록한다. 앱의 isShared로 통일할 필요가 있으면 사용하는 계층의 adapter에서 변환하며 shared/api에 도메인 모델을 넣지 않는다.
 
 ## 6. 개발 모드와 fallback 정책
 
@@ -393,7 +425,7 @@ AI 분석 결과는 mock 데이터의 고정 키워드·유형을 이용한다. 
 2. `refactor: 공통 API 설정과 요청 계층 통합`
    - config/client/request/error, timeout·인증·취소·원본 오류 보존, URL 테스트 추가.
 3. `refactor: 업무별 API 모듈로 요청 코드 분리`
-   - A01~A22 모듈과 응답 변환, 외부 알림 HTTP 경계 추가. 먼저 live로 검증.
+   - A01~A22 실제 요청 모듈과 통신 계약 처리, 외부 알림 HTTP 경계 추가. 서버 DTO 반환을 유지하고 필요한 도메인·화면 변환은 상위 사용처에 둔다. 먼저 live로 검증.
 4. `feat: API별 mock handler와 데이터 저장소 추가`
    - seed/factory/store, 22개 handler, 외부 알림 stub, CRUD·cursor·권한·통계 시나리오.
 5. `feat: 개발 mock 세션과 자동 fallback 적용`
@@ -413,7 +445,7 @@ AI 분석 결과는 mock 데이터의 고정 키워드·유형을 이용한다. 
 
 - A01~A22 모두 메서드·최종 URL·query/body·인증 조건·성공/실패 계약·mock handler가 존재한다.
 - 실제 서버를 호출하지 않는 HTTP transport stub으로 wire 응답·204·headers·application error를 검사한다. 실제 서버 통합 검증 여부는 별도로 기록한다.
-- live/mock 메서드가 같은 공개 반환 계약을 충족하고, API에 없는 필드를 mock에만 요구하지 않는다.
+- live/mock 메서드가 같은 서버 DTO·특수 응답 계약을 충족하고, API에 없는 필드를 mock에만 요구하지 않는다. 도메인·표시용 변환이 통신 계층으로 유입되지 않는지 확인한다.
 - 조회 실패 전환, 400/404 유지, 인증 데모 허용 여부, AbortSignal 취소, 계약 오류 미은폐, mock handler 누락을 검사한다.
 - 개발 flag의 미설정/false/true를 검사한다. 문자열 false로는 우회되지 않아야 한다.
 - bypass=true이면 실제 인증 초기화 없이 개발 사용자가 준비되고, 페이지 및 feature의 권한 제한도 같은 정책을 사용한다. bypass=false이면 실제/데모 세션의 권한 검사가 복원된다.
@@ -460,7 +492,19 @@ AI 분석 결과는 mock 데이터의 고정 키워드·유형을 이용한다. 
 
 특히 실제 backend의 외부 prefix와 DTO 직렬화, 삭제 시 연관 데이터·통계 정책은 controller/service 및 실제 응답을 함께 확인해 최종 계약표에 반영한다. 문서의 mock 정책을 실제 서버 동작이 확인된 것처럼 취급하지 않는다.
 
-## 13. 조사 근거
+## 13. 단계별 범위와 후속 작업
+
+| 단계 | 목표 | 구현 범위 | 이번 단계에서 제외 |
+| --- | --- | --- | --- |
+| 1 — 현재 | API 중앙 관리와 API별 mock | 공통 client/request, 업무별 요청 modules, 통신 계약, 22개 mock, 개발 인증·권한 우회, 순수 API 함수와 signal 전달 | Query 설치·캐시·서버 상태 전면 이관 |
+| 2 — 다음 | TanStack Query를 한 기능부터 도입 | QueryClient/Provider, query key 기본 구조, 조회·loading/error 이관, mutation과 최소 무효화 | 전체 화면 동시 교체·영속 캐시·일괄 낙관적 갱신 |
+| 3 — 이후 | 데이터 특성별 캐싱 전략 조정 | staleTime/gcTime, focus/reconnect 정책, mutation 영향 범위, 필요한 pagination·소켓 연계 | 근거 없는 전역 최적화 |
+
+후속 작업의 상세 단계·예시 정책·검증 기준은 별도 문서 `docs/frontend-query-cache-plan.md`로 관리한다. API와 mock 계약이 검증되기 전에는 Query 도입을 시작하지 않는다. API 이관과 상태관리 변경을 분리해 오류 원인을 추적할 수 있게 한다.
+
+위 순서는 논의한 작업 경계를 기록한 것이며, 후속 라이브러리 설치나 구현까지 이번 문서 수정으로 시작하는 것은 아니다.
+
+## 14. 조사 근거
 
 - [기존 폴더 구조 개편 계획](./frontend-restructure-plan.md)
 - [현재 HTTP client](../frontend/src/shared/api/http-client.js)
@@ -477,7 +521,7 @@ AI 분석 결과는 mock 데이터의 고정 키워드·유형을 이용한다. 
 - [CategoryController](../backend/dreamong/src/main/java/com/ssafy/dreamong/domain/entity/category/controller/CategoryController.java)
 - [ApiResponse](../backend/dreamong/src/main/java/com/ssafy/dreamong/domain/entity/common/ApiResponse.java)
 
-## 14. 추가 논의 반영 내역
+## 15. 추가 논의 반영 내역
 
 - Vite 개발 판정과 `.env`의 명시적 flag를 함께 사용하여 개발 전용 인증·권한 우회를 제공한다.
 - 인증 오류가 나야만 데모로 들어가는 흐름과 별개로, 우회 활성화 시 앱 초기 진입부터 고정 개발 사용자를 제공한다.
@@ -485,3 +529,6 @@ AI 분석 결과는 mock 데이터의 고정 키워드·유형을 이용한다. 
 - 우회 판정은 shared/config, 초기 사용자와 접근 정책 연결은 앱 세션 계층에서 관리한다. 페이지마다 개발 조건을 추가하지 않는다.
 - 개발 사용자와 실제 token을 분리하고, 관리자 UI 확인과 권한별 테스트를 모두 지원한다.
 - 프로덕션 비활성화·문자열 flag 해석·모드 조합·우회 해제 후 권한 복원을 검증 항목에 추가했다.
+
+- 응답의 통신 계약 처리·도메인 모델 변환·화면 표시 변환을 분리하고, modules는 실제 endpoint 호출만 담당하도록 책임 범위를 좁혔다.
+- 현재 목표는 API 중앙 관리와 API별 mock으로 유지하고, TanStack Query 도입·캐시 정책은 별도 후속 계획으로 분리했다.
