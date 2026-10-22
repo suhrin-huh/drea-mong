@@ -500,7 +500,7 @@ AI 분석 결과는 mock 데이터의 고정 키워드·유형을 이용한다. 
 | 2 — 다음 | TanStack Query를 한 기능부터 도입 | QueryClient/Provider, query key 기본 구조, 조회·loading/error 이관, mutation과 최소 무효화 | 전체 화면 동시 교체·영속 캐시·일괄 낙관적 갱신 |
 | 3 — 이후 | 데이터 특성별 캐싱 전략 조정 | staleTime/gcTime, focus/reconnect 정책, mutation 영향 범위, 필요한 pagination·소켓 연계 | 근거 없는 전역 최적화 |
 
-후속 작업의 상세 단계·예시 정책·검증 기준은 별도 문서 `docs/frontend-query-cache-plan.md`로 관리한다. API와 mock 계약이 검증되기 전에는 Query 도입을 시작하지 않는다. API 이관과 상태관리 변경을 분리해 오류 원인을 추적할 수 있게 한다.
+후속 작업의 상세 단계·예시 정책·검증 기준은 별도 [TanStack Query·캐싱 후속 계획](./frontend-query-cache-plan.md)으로 관리한다. API와 mock 계약이 검증되기 전에는 Query 도입을 시작하지 않는다. API 이관과 상태관리 변경을 분리해 오류 원인을 추적할 수 있게 한다.
 
 위 순서는 논의한 작업 경계를 기록한 것이며, 후속 라이브러리 설치나 구현까지 이번 문서 수정으로 시작하는 것은 아니다.
 
@@ -532,3 +532,12 @@ AI 분석 결과는 mock 데이터의 고정 키워드·유형을 이용한다. 
 
 - 응답의 통신 계약 처리·도메인 모델 변환·화면 표시 변환을 분리하고, modules는 실제 endpoint 호출만 담당하도록 책임 범위를 좁혔다.
 - 현재 목표는 API 중앙 관리와 API별 mock으로 유지하고, TanStack Query 도입·캐시 정책은 별도 후속 계획으로 분리했다.
+
+
+## 16. 브랜치와 현재 작업 상태
+
+- `refact/fe-directory-structure`의 구조 개편과 계획 변경을 `refactor`에 병합했다.
+- `refactor`에서 `feat/frontend-api-management`를 생성하여 API 중앙 관리·mock 작업을 이어간다.
+- 이번 변경은 현재 계획의 책임 경계·단계 정리와 후속 Query 계획 문서화다. API·mock·Query의 실제 구현이나 새 의존성 설치는 아직 시작하지 않았다.
+- 구현은 본 문서 10절 순서로 진행하고, Query 구현은 선행 API 작업 완료 후 별도 브랜치에서 수행한다.
+- 기존 package.json·package-lock.json의 사용자 변경은 브랜치 이동 중에도 보존하며, 계획 커밋에 섞지 않는다.
