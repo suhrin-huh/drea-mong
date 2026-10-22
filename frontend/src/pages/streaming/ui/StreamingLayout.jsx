@@ -8,7 +8,7 @@ import { useSetRecoilState, useRecoilValue } from 'recoil';
 import { baseURLState } from '@/shared/config/server';
 import { userState } from '@/entities/user';
 
-import back from '@/assets/back.svg';
+import back from '../assets/icons/back.svg';
 
 // Make sure to set the app element for accessibility
 Modal.setAppElement('#root');

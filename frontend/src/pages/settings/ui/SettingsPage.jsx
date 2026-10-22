@@ -10,9 +10,9 @@ import { baseURLState } from '@/shared/config/server';
 
 import { getFCMToken, subscribeToTopic, unsubscribeFromTopic } from '@/features/manage-notifications';
 
-import login from '@/assets/login.svg';
-import logout from '@/assets/logout.svg';
-import user from '@/assets/user.svg';
+import login from '../assets/icons/login.svg';
+import logout from '../assets/icons/logout.svg';
+import user from '../assets/icons/user.svg';
 
 const SettingsPage = () => {
   const navigate = useNavigate();

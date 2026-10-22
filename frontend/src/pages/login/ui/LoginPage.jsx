@@ -1,6 +1,6 @@
-import googleLogo from '@/assets/logoSVG/btn_google.svg';
-import naverLogo from '@/assets/logoSVG/btn_naver.svg';
-import kakaoLogo from '@/assets/logoSVG/btn_kakao.svg';
+import googleLogo from '../assets/logos/google-logo.svg';
+import naverLogo from '../assets/logos/naver-logo.svg';
+import kakaoLogo from '../assets/logos/kakao-logo.svg';
 import { useRecoilValue } from 'recoil';
 import { baseURLState } from '@/shared/config/server';
 

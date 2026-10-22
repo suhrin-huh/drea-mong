@@ -13,8 +13,8 @@ import axios from 'axios';
 // 앱 내부의 컴포넌트/아이콘
 import { useHandleError } from '@/shared/lib/error';
 import RegenerateIcon from '@/shared/ui/icons/RegenerateIcon';
-import imgGenerator from '@/assets/img_generator.png';
-import censoredImage from '@/assets/censoredImg.png';
+import imgGenerator from '../assets/images/image-generator.png';
+import censoredImage from '../assets/images/censored-image.png';
 
 /** - 이미지 생성 오류 발생시 현재위치
  * - 검열이미지 대체할 요소 고려 필요!

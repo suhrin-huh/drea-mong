@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import AUTHIMG from '@/assets/404.png';
-import NOTIMG from '@/assets/500.png';
+import AUTHIMG from '../assets/illustrations/not-found.png';
+import NOTIMG from '../assets/illustrations/server-error.png';
 const ErrorPage = () => {
   const location = useLocation();
   const navigate = useNavigate();

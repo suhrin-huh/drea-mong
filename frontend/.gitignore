@@ -26,3 +26,6 @@ dist-ssr
 # FSD lib segments are source code, not generated libraries.
 !src/**/lib/
 !src/**/lib/**
+
+# Vite PWA development output
+dev-dist/
