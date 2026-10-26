@@ -8,6 +8,8 @@
 
 현재 검토 단위는 공용 Axios instance의 baseURL, token interceptor, JSON/파일 등 Content-Type 처리, 원본 응답·오류 전달과 사용 예시다. mock 연결과 호출부 전면 이관은 하지 않으며 승인 후 다음 커밋 범위를 진행한다.
 
+공용 instance는 `8e5aacb`로 커밋했다. 다음 검토 단위는 `shared/api/modules`의 A01~A22 API 선언이다. 단순 분리 원칙에 따라 원래 AxiosResponse/오류를 반환하고 기존 호출부의 응답 처리·날짜 가공을 유지한다. 아래 DTO 반환 정규화·named import 설계는 이번 구현에 적용하지 않으며 모듈은 default export한다. OAuth URL·외부 알림 경계 분리도 별도 후속 작업이다.
+
 이번 작업은 **기존 동작을 유지하면서 API 선언과 통신 코드를 업무별 모듈로 분리하는 것**을 우선한다. 아래 장기 계획 중 범위가 충돌하는 내용은 이 절을 우선한다.
 
 - method/path/query/body, 공통 client 설정과 응답 계약 처리를 API 계층으로 이동한다. 호출부는 해당 메서드를 사용하도록 필요한 만큼만 수정한다.
@@ -342,7 +344,7 @@ export const bypassAuth =
 | ID | 모듈·메서드 제안 | HTTP / 경로 | mock 응답 및 상태 변화 |
 | --- | --- | --- | --- |
 | A01 | authApi.refreshSession | POST `/auth/refresh` | 실제 token 없는 demo 결과. 우회 초기 진입에서는 호출 생략, 인증 실패 시나리오 별도 제공 |
-| A02 | usersApi.getCurrentUser | GET `/users/info` | 선택한 데모 프로필의 userId/email/nickname/role |
+| A02 | usersApi.getUserInfo | GET `/users/info` | 선택한 데모 프로필의 userId/email/nickname/role |
 | A03 | usersApi.logout | POST `/users/logout` | mock 세션 종료, 상위 계층에서 사용자 상태 초기화 |
 | A04 | usersApi.updateNickname | PATCH `/users/nickname` | 해당 사용자의 nickname 갱신. 재조회와 댓글 표시에도 반영 |
 | A05 | dreamsApi.getMonthlyDreams | GET `/dream/{userId}/{writeTime}` | 사용자·월로 필터한 목록과 totalCount. writeTime 형식 검증 |
@@ -556,3 +558,5 @@ AI 분석 결과는 mock 데이터의 고정 키워드·유형을 이용한다. 
 - 이번 변경은 현재 계획의 책임 경계·단계 정리와 후속 Query 계획 문서화다. API·mock·Query의 실제 구현이나 새 의존성 설치는 아직 시작하지 않았다.
 - 구현은 본 문서 10절 순서로 진행하고, Query 구현은 선행 API 작업 완료 후 별도 브랜치에서 수행한다.
 - 기존 package.json·package-lock.json의 사용자 변경은 브랜치 이동 중에도 보존하며, 계획 커밋에 섞지 않는다.
+
+2026-10-26 추가: 사용자 조회 메서드는 `usersApi.getUserInfo`로 확정했다. modules 검토 후 기존 페이지·꿈 편집 기능의 요청을 해당 모듈로 이관한다. 기존 인증·권한 UI·응답 처리를 유지하고 mock은 추가 연결하지 않는다.

@@ -121,6 +121,20 @@ await api.post('/example', 'text', {
 
 성공은 원래 AxiosResponse, 실패는 원래 오류를 reject한다. 응답 body 추출·오류 UI·로그인 이동은 호출부가 처리하며 자동 refresh·재시도·mock 연결은 없다.
 
+업무별 API 선언은 `shared/api/modules/*.api.js`에서 default export한다. 마지막 인자는 선택적 Axios config이며 `signal`, `headers` 등을 전달할 수 있다. 현재는 선언만 분리한 단계로 기존 페이지 연결은 후속 작업이다.
+
+```js
+import dreamsApi from '@/shared/api/modules/dreams.api';
+import squareApi from '@/shared/api/modules/square.api';
+
+const response = await dreamsApi.getMonthlyDreams(userId, '20261001', { signal });
+const dreams = response.data.data;
+await dreamsApi.createDream(payload, { signal });
+await squareApi.getDreams({ cursorId: 20, size: 10 }, { signal });
+```
+
+모듈은 날짜 형식 변환·성공 status 판정·204 변환·refresh token 추출을 수행하지 않는다. `roomsApi.getRooms()`의 204, 댓글 좋아요의 `response.data.status`, refresh의 `response.headers.authorization`도 호출부에서 처리한다. square 모듈의 query는 전용 인자로 전달한다. OAuth URL 생성·외부 알림 HTTP는 이번 모듈 분리 범위에 포함하지 않는다.
+
 `archive/streaming`은 이전 OpenVidu/WebRTC 실험 코드이며 실행·lint·구조 검사 대상이 아니다. 상위 `.gitignore`의 `lib/` 규칙에 대해서는 `src/**/lib`만 예외 처리했다.
 
 ## 구조 검사와 검증 범위
