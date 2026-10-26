@@ -4,11 +4,13 @@
 
 선행 계획: [API 중앙 관리와 API별 mock](./frontend-api-mock-plan.md).
 
+2026-10-26 갱신: 공용 Axios와 업무별 모듈, 개발 전용 목 adapter를 연결했다. 현재 공개 반환값은 AxiosResponse이며 DTO 정규화·자동 fallback·세션 Provider·runtime generation은 구현하지 않았다. 개발 기본 목과 실제 서버 전환은 `VITE_API_MOCK`으로 선택하고 재시작·새로고침으로 적용한다. 아래 Query·캐시 설계는 후속 제안이며, 미구현된 전환 장치를 현재 기능으로 전제하지 않는다. Query 라이브러리와 런타임 코드는 이번 갱신에서 변경하지 않는다.
+
 ## 1. 단계별 목표와 작업 경계
 
 | 단계 | 목표 | 포함 | 제외 |
 | --- | --- | --- | --- |
-| 1 — 현재 API 작업 | 요청 경계와 개발 데이터 공급 안정화 | 공통 Axios/request, 업무별 modules, API 22개 mock, 개발 인증·권한 우회, DTO 계약·취소 신호 | TanStack Query 설치·캐시·서버 상태 전면 교체 |
+| 1 — 현재 API 작업 | 요청 경계와 개발 데이터 공급 안정화 | 공통 Axios·adapter, 업무별 modules, API 22개 목, 최소 데모 접근, 원본 응답·취소 신호 | TanStack Query 설치·캐시·서버 상태 전면 교체 |
 | 2 — Query 도입 | 한 기능씩 서버 상태 관리 이관 | QueryClient/Provider, key 기본 구조, query/mutation, loading/error, 최소 무효화·세션 격리 | 전체 화면 일괄 교체, 캐시 시간 전면 최적화, 영속 캐시·낙관적 갱신 |
 | 3 — 캐싱 전략 | 실제 변경 빈도에 맞춰 정책 조정 | 데이터별 staleTime/gcTime, focus/reconnect, 무효화 영향 범위, pagination·소켓 연계 | 측정 없이 전역 Infinity·polling·prefetch 적용 |
 
@@ -19,16 +21,17 @@ API 추출과 상태관리 변경을 한 번에 수행하지 않는다. 먼저 �
 ## 2. 1단계에서 준비해 둘 API 계약
 
 ```js
-// Promise<DreamResponseDto>. UI·QueryClient와 무관한 일반 함수.
-dreamsApi.getDream({ dreamId, signal });
+// 현재 API는 Promise<AxiosResponse>를 반환한다.
+const response = await dreamsApi.getDream(dreamId, { signal });
+return response.data.data; // Query queryFn에서 캐시에 저장할 데이터를 추출한다.
 ```
 
-- API 모듈은 인자와 AbortSignal을 받고 Promise로 서버 DTO를 반환하거나 정규화한 오류를 던진다.
-- `shared/api`의 공통 기반은 Axios·전송·오류·개발 fallback을 담당한다. `modules`가 실제 endpoint의 method/path/query/body를 담당한다.
+- API 모듈은 마지막 config의 signal을 전달하고 원본 AxiosResponse/AxiosError를 반환한다. Query의 queryFn 또는 재사용되는 소비 adapter에서 data를 추출한다. API 전체의 반환값 정규화가 필요하면 별도 계약 변경으로 진행한다.
+- `shared/api`의 공통 기반은 Axios·전송·원본 오류 전달·개발 목 adapter 선택을 담당한다. 자동 fallback은 없다. `modules`가 실제 endpoint의 method/path/query/body를 담당한다.
 - API 함수는 useQuery/useMutation을 호출하거나 QueryClient·Recoil·router·modal을 import하지 않는다.
-- signal을 실제 HTTP와 mock 지연에 전달한다. 취소는 fallback과 일반 오류 toast의 대상이 아니다.
-- 조회 성공은 undefined를 반환하지 않는다. 단건 없음은 명시적인 null 또는 404 계약, 목록 없음은 []를 사용한다. 명령형 API의 void 응답은 별개다.
-- 데이터 출처 live/mock, 사용자, 세션 generation을 확인할 수 있는 API runtime을 제공한다. 비밀 token은 공개하지 않는다.
+- signal은 실제 HTTP와 목에 전달한다. 현재 목은 지연 종료 후 취소를 확인한다. Query 취소를 일반 오류 toast의 대상으로 처리하지 않는다.
+- queryFn은 성공 시 undefined를 반환하지 않는다. 단건 없음과 빈 목록·서버 204는 자원별 계약에 따라 처리한다. API 명령 자체는 현재 void가 아닌 AxiosResponse를 반환한다.
+- Query 도입 시 데이터 출처와 사용자로 key 범위를 구분한다. runtime과 세션 generation은 현재 없으므로, 실시간 계정·출처 전환이 필요할 때 도입 범위를 별도로 정한다. 비밀 token은 key나 공개 상태에 넣지 않는다.
 - API에 자체 캐시·중복 요청 캐시·자동 쓰기 재시도를 추가하지 않는다.
 
 ## 3. 응답 변환과 상태의 소유권
@@ -50,12 +53,13 @@ Query에 서버 DTO를 저장할지 공통 도메인 모델을 저장할지는 �
 
 ## 4. 도입 전 완료 조건
 
-- 선행 계획의 22개 API와 mock handler가 동작하고 live/mock 반환 계약이 일치한다.
-- 페이지·컴포넌트의 직접 Axios 호출과 개별 dummy catch를 제거했다.
-- 개발 인증 우회와 API 모드가 독립적으로 작동하고, 실제 인증·권한 흐름을 복원할 수 있다.
-- 실제 저장 timeout의 자동 mock 재실행을 막고, source 전환 시 이전 응답을 폐기한다.
-- 새로고침/초기화 시 mock-store의 데이터 수명이 명시되어 있다.
-- 빌드·구조 검사와 주요 mock CRUD 흐름을 검증했다.
+- 첫 이관 기능의 API·목 응답과 화면 흐름을 확인하고, 현재 서버와 다른 요청 키·HTTP 상태·임시 저장 정책을 인지한다. 실제 서버 계약 일치를 아직 검증하지 않은 상태로 명시한다.
+- 앱 백엔드 요청은 업무별 모듈을 사용하고 홈의 개별 dummy fallback은 제거한다. 외부 알림 요청은 별도 경계로 유지한다.
+- `VITE_API_MOCK=false`로 기존 실제 인증 흐름을 사용할 수 있다. 독립 인증 우회 flag나 자동 fallback은 도입 선행 조건이 아니다.
+- 실제 쓰기 실패를 목으로 재실행하지 않는다. Query에서도 mutation 자동 재시도를 하지 않는다.
+- 현재 메모리 데이터가 새로고침 시 초기화되는 점과 Query 캐시가 별도 상태인 점을 구분한다.
+- 빌드와 주요 목 CRUD 검증에 더해 첫 이관 화면의 브라우저 동작을 확인한다. 현재 브라우저·실제 서버 통합 검증은 미수행이다.
+- 실시간 계정·출처 전환을 추가할 경우 진행 중 요청 취소·캐시 정리를 함께 설계한다. 현재 없는 generation 장치를 구현 완료로 보지 않는다.
 
 이 조건을 만족한 후 호환되는 TanStack Query 버전을 확인하여 설치한다. 조사 시점의 공식 문서는 React v5 기준이지만, 설치 버전은 작업 시작 시 package·React·환경 호환성을 다시 확인하고 lockfile에 고정한다.
 
@@ -80,7 +84,7 @@ Query에 서버 DTO를 저장할지 공통 도메인 모델을 저장할지는 �
 2. userId·선택 연월·출처·세션 generation을 key에 포함한다.
 3. queryFn에서 기존 dreamsApi.getMonthlyDreams를 호출하고 signal을 전달한다.
 4. 기존 useEffect의 요청·loading/error·목록 복사 상태를 제거한다.
-5. 월 전환·페이지 재방문·요청 취소·mock fallback 시 실제 동작을 비교한다.
+5. 월 전환·페이지 재방문·요청 취소와 목/실제 서버 각각의 동작을 비교한다. 자동 fallback은 범위 밖이다.
 6. 상세 조회를 추가하고 작성·수정·삭제 mutation과 최소 무효화를 연결한다.
 
 임의의 도메인별 캐시 시간을 전역에 먼저 적용하지 않는다. 이 첫 자원에서 key·오류·세션 정책을 검증한 다음 다른 자원으로 확대한다.
@@ -116,7 +120,6 @@ pages/
 └── <slice>/model/                     # 페이지 전용 query 조합·select·완료 후 처리
 shared/api/
 ├── http-client.js                    # Query 의존성 없음
-├── request.js
 ├── modules/
 └── mocks/
 ```
@@ -129,12 +132,12 @@ shared/api/
 
 ## 7. Query key와 세션 격리
 
-key는 데이터 결과를 바꾸는 입력을 식별한다. 최소한 데이터 출처·사용자·세션 generation과 자원별 파라미터를 포함한다. [공식 Query Keys](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)의 원칙을 적용한다.
+key는 데이터 결과를 바꾸는 입력을 식별한다. 데이터 출처·사용자와 자원별 파라미터를 포함하고, 실행 중 세션 전환을 도입하면 generation 등 격리 정책을 함께 정한다. [공식 Query Keys](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys)의 원칙을 적용한다.
 
 예시:
 
 ```js
-const scope = ['api', source, userId, sessionGeneration];
+const scope = ['api', source, userId]; // 실시간 세션 전환 도입 시 generation 등 추가 검토
 
 const monthlyKey = [...scope, 'dreams', 'monthly', yearMonth];
 const detailKey = [...scope, 'dreams', 'detail', dreamId];
@@ -146,9 +149,11 @@ const roomKey = [...scope, 'rooms', 'detail', roomId];
 - userId, 숫자 ID, 연월, query filter의 타입을 일관되게 정규화한다. 객체 key에 함수·클라이언트·token을 넣지 않는다.
 - 광장 상세는 현재 사용자에 따라 댓글 소유·좋아요 정보가 달라지므로 사용자 scope를 생략하지 않는다.
 - 같은 자원의 일반 query와 infinite query는 별도 key를 사용한다. infinite query의 cursor는 pageParam으로 전달하고 필터·size는 key에 포함한다.
-- 로그아웃, 실제/데모 사용자 변경, live/mock 전환, mock dataset reset에서 generation을 갱신하고 해당 캐시를 정리한다.
+- 로그아웃·사용자 변경 시 해당 캐시를 정리한다. 실시간 모드 전환·reset 도구를 추가하면 요청 취소와 generation 등 격리 정책을 함께 구현한다.
 
-### 7.1 fallback 도중 출처가 바뀌는 경우
+### 7.1 실시간 출처 전환을 도입하는 경우의 후속 설계
+
+현재는 자동 fallback이나 실행 중 출처 전환이 없다. 아래 항목은 해당 기능을 별도 도입할 때 적용할 제안이며 현재 Query 도입의 선행 조건이 아니다.
 
 요청 시작 시 live key였는데 내부 fallback이 mock 데이터를 반환하면, mock 결과가 live key 아래에 캐시될 수 있다. key에 source를 넣는 것만으로 충분하지 않다.
 
@@ -194,12 +199,12 @@ invalidate 범위는 해당 상위 조합에서 관리한다. 모든 API 메서�
 - focus/reconnect 재조회는 실시간성 요구와 입력 중단 여부를 확인한다. 모든 자원에서 일괄 끄지 않는다.
 - polling과 socket 업데이트를 동시에 사용해 동일 데이터가 경쟁하지 않게 한다. 참가자 수를 socket이 제공하면 query와의 역할을 명확히 한다.
 - 별도 요구가 없으면 브라우저 저장소의 영속 캐시, background persistence, prefetch, SSR hydration은 도입하지 않는다.
-- mock-store는 가상 서버 저장소다. Query 캐시를 비워도 mock 데이터 자체가 초기화되어서는 안 된다. 반대로 mock reset 시에는 query 캐시도 새로운 generation으로 갱신한다.
+- mock-store는 가상 서버 저장소다. Query 캐시를 비워도 mock 데이터 자체가 초기화되어서는 안 된다. 향후 mock reset 도구를 추가하면 query 캐시도 초기화하거나 새로운 scope로 갱신한다.
 
 ## 10. 오류·재시도·로딩·취소
 
 - 2단계 초기 retry=0을 유지하고, 3단계에서 멱등 조회에 한해 네트워크·일시적 5xx의 제한적 재시도를 검토한다.
-- 401/403, validation, 계약 오류, 사용자 취소는 반복 요청하지 않는다. 기존 fallback와 Query retry가 중첩되지 않도록 한다.
+- 401/403, validation, 계약 오류, 사용자 취소는 반복 요청하지 않는다. 현재 자동 fallback은 없으며, 향후 추가하는 재시도 계층과 Query retry가 중첩되지 않도록 한다.
 - 최초 로딩과 배경 재조회 UI를 구분한다. 재조회 때문에 기존 데이터 전체를 지우거나 폼을 초기화하지 않는다.
 - 캐시된 꿈 상세가 갱신돼도 사용자가 편집 중인 입력을 자동으로 덮어쓰지 않는다. 서버 초기값과 폼 수정 상태를 구분한다.
 - API 함수에 전달한 signal을 실제로 소비한다. mock 지연 처리도 취소 가능해야 한다. [공식 Query Cancellation](https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation)을 기준으로 검증한다.
@@ -213,7 +218,7 @@ invalidate 범위는 해당 상위 조합에서 관리한다. 모든 API 메서�
 - 새 Provider가 안정된 QueryClient 인스턴스를 사용하며 FSD 계층·공개 API 규칙을 위반하지 않는다.
 - 동일 key 조회를 여러 컴포넌트가 사용해도 의도한 캐시·로딩 상태를 공유한다.
 - 사용자·월·ID 변경 및 live/mock 전환 시 이전 데이터가 잘못 표시되거나 캐시되지 않는다.
-- 화면 이동·AbortSignal 취소가 fallback를 유발하지 않는다.
+- 화면 이동·AbortSignal 취소를 일반 오류로 표시하거나 자동 재시도하지 않는다.
 - 작성/수정/삭제·댓글·닉네임·방 관리 후 표의 관련 조회가 갱신된다.
 - 조회 결과를 Query와 Recoil/local state에 중복 보관하지 않으며, 편집 입력은 배경 재조회로 유실되지 않는다.
 - runtime 오류·접근 경로·mock CRUD·빌드·구조 검사를 재검증한다.
@@ -229,7 +234,7 @@ invalidate 범위는 해당 상위 조합에서 관리한다. 모든 API 메서�
 
 ## 12. 권장 커밋과 브랜치 흐름
 
-현재 API 작업 브랜치는 `feat/frontend-api-management`로 시작한다. 이 브랜치에서는 API 중앙화·mock·개발 우회를 구현하고 검증한다. Query 구현은 이 작업을 refactor에 병합한 이후 별도의 기능 브랜치에서 시작한다.
+API 작업은 `feat/frontend-api-management`에서 시작했으며 API 중앙화와 개발 목을 연결한 상태다. 브라우저·실제 서버 검증과 후속 범위는 선행 계획의 현재 상태를 따른다. Query 구현은 이 작업을 refactor에 병합한 이후 별도의 기능 브랜치에서 시작한다.
 
 후속 Query 단계의 커밋 예시:
 
