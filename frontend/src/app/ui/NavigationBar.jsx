@@ -31,7 +31,10 @@ const NavigationBar = () => {
   };
 
   return location.pathname === '/login' ? null : (
-    <div className="fixed bottom-0 z-50 max-w-[600px] bg-white py-1 text-white last:w-full">
+    <nav
+      className="relative z-50 w-full flex-none bg-white pb-[calc(4px+env(safe-area-inset-bottom,0px))] pt-1 text-white"
+      aria-label="주요 메뉴"
+    >
       <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
@@ -72,7 +75,7 @@ const NavigationBar = () => {
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 };
 

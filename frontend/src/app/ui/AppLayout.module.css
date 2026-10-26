@@ -1,0 +1,4 @@
+.nightSky {
+  background: radial-gradient(ellipse at 50% 110%, #2891cd33, transparent 55%),
+    linear-gradient(to bottom, #01030e 0%, #020818 35%, #03132c 70%, #0a3655 100%);
+}
