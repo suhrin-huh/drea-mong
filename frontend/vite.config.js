@@ -10,6 +10,20 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },
+    server: {
+      headers: {
+        'Service-Worker-Allowed': '/',
+      },
+      proxy: {
+        '/socket.io': {
+          target: env.VITE_API_BASE_URL,
+          changeOrigin: true,
+          ws: true,
+          secure: true,
+          rewrite: (path) => path.replace(/^\/socket.io/, '/socket.io'),
+        },
+      },
+    },
     plugins: [
       react(),
       // mkcert(),
@@ -55,26 +69,6 @@ export default defineConfig(({ mode }) => {
               size: '180x180',
             },
           ],
-        },
-        server: {
-          headers: {
-            'Service-Worker-Allowed': '/',
-          },
-          // '/ws': {
-          //   target: 'https://i11c106.p.ssafy.io/' || 'wss://i11c106.p.ssafy.io'  || 'ws://i11c106.p.ssafy.io' || 'https://i11c106.p.ssafy.io/socket/' || 'https://i11c106.p.ssafy.io/api/',
-          //   ws: true,
-          //   changeOrigin: true,
-          //   secure: true,  // HTTPS를 사용하도록 설정
-          // },
-          proxy: {
-            '/socket.io': {
-              target: 'https://i11c106.p.ssafy.io',
-              changeOrigin: true,
-              ws: true,
-              secure: true,
-              rewrite: (path) => path.replace(/^\/socket.io/, '/socket.io'),
-            },
-          },
         },
       }),
     ],
