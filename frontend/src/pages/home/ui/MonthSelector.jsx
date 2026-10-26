@@ -1,64 +1,41 @@
 import { useEffect, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination } from 'swiper/modules';
 import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
 
-const MonthSelector = ({ year, month, setMonth, setYear }) => {
+const MonthSelector = ({ month, setMonth }) => {
   const swiperRef = useRef(null);
 
   useEffect(() => {
-    swiperRef.current?.swiper.slideTo(month - 1, 0);
-  }, []);
-
-  // 선택한 달에 따라서 swiper 이동
-  useEffect(() => {
-    if (swiperRef.current) {
-      swiperRef.current.swiper.slideTo(month - 1, 0);
-    }
+    swiperRef.current?.slideTo(month - 1, 0);
   }, [month]);
 
-  const handleYear = (number) => {
-    setYear((prev) => Math.max(prev + number, 1900));
-  };
-
-  const handleMonth = (number) => {
-    setMonth(number + 1);
-  };
-
   return (
-    <div>
-      <div className="flex items-center justify-center gap-12 px-2.5 py-1 text-xl">
-        <button onClick={() => handleYear(-1)}>{'<'}</button>
-        <p className="md:text-lg lg:text-xl">{year}</p>
-        <button onClick={() => handleYear(1)}>{'>'}</button>
-      </div>
-      {/* 월 선택 */}
-      <div className="align-center my-3 flex items-center justify-center gap-1 text-base">
-        <Swiper
-          ref={swiperRef}
-          slidesPerView={6}
-          centeredSlides={true}
-          spaceBetween={10}
-          grabCursor={true}
-          modules={[Pagination]}
-          slideToClickedSlide={true}
-          className="mySwiper h-full"
-        >
-          {Array.from({ length: 12 }).map((_, i) => (
-            <SwiperSlide key={i} onClick={() => handleMonth(i)}>
-              <div className="flex justify-center">
-                <p
-                  className={`m-auto p-2 ${i + 1 == month ? 'rounded-lg bg-primary-500 text-white' : 'text-slate-600'}`}
-                >
-                  {`${i + 1}`}월
-                </p>
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
+    <div className="min-w-0 shrink-0 px-3 pb-2" role="group" aria-label="월 선택">
+      <Swiper
+        onSwiper={(swiper) => {
+          swiperRef.current = swiper;
+        }}
+        initialSlide={month - 1}
+        slidesPerView={6}
+        centeredSlides
+        spaceBetween={8}
+        grabCursor
+        slideToClickedSlide
+      >
+        {Array.from({ length: 12 }, (_, index) => index + 1).map((value) => (
+          <SwiperSlide key={value}>
+            <button
+              type="button"
+              aria-label={`${value}월`}
+              aria-pressed={value === month}
+              onClick={() => setMonth(value)}
+              className={`h-10 w-full whitespace-nowrap rounded-lg text-base focus-visible:outline-primary-500 ${value === month ? 'bg-primary-500 text-white' : 'text-slate-600'}`}
+            >
+              {value}월
+            </button>
+          </SwiperSlide>
+        ))}
+      </Swiper>
     </div>
   );
 };
