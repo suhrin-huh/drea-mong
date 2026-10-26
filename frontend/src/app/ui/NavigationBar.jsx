@@ -1,10 +1,10 @@
 import { useId } from 'react';
-import { IoHome, IoGrid } from 'react-icons/io5';
-import { FaMusic, FaGear } from 'react-icons/fa6';
+import { IoHome, IoGrid, IoMusicalNotes } from 'react-icons/io5';
+import { FaGear } from 'react-icons/fa6';
+import { FaPlusCircle } from 'react-icons/fa';
 import NavigationItem from '@/app/ui/NavigationItem';
 import { Link, useLocation } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
-import CreateNavigationItem from '@/app/ui/CreateNavigationItem';
 import { SpeechInputButton, isListeningState } from '@/features/dream-editor';
 
 const NavigationBar = () => {
@@ -14,7 +14,7 @@ const NavigationBar = () => {
     { pathname: '/', label: 'HOME', Icon: IoHome },
     { pathname: '/square/dreams', activePath: '/square', label: 'SQUARE', Icon: IoGrid },
     { pathname: '/dream/create', isCreate: true },
-    { pathname: '/streaming', label: 'MUSIC', Icon: FaMusic },
+    { pathname: '/streaming', label: 'MUSIC', Icon: IoMusicalNotes },
     { pathname: '/settings', label: 'SETTINGS', Icon: FaGear },
   ];
   const isDreamPage = location.pathname.startsWith('/dream/');
@@ -49,10 +49,20 @@ const NavigationBar = () => {
             location.pathname === activePath || (activePath !== '/' && location.pathname.startsWith(`${activePath}/`));
           const iconColor = isCurrentPath ? MAIN_COLOR : SECONDARY_COLOR;
 
-          if (isCreate && isDreamPage) {
+          if (isCreate) {
             return (
-              <div className="flex w-[55px] items-center justify-center" key={pathname}>
-                <SpeechInputButton handleSTT={handleSTT} />
+              <div className="flex h-[55px] w-[55px] shrink-0 items-center justify-center" key={pathname}>
+                {isDreamPage ? (
+                  <SpeechInputButton handleSTT={handleSTT} />
+                ) : (
+                  <Link
+                    to={pathname}
+                    aria-label="꿈 기록하기"
+                    className="flex h-full w-full items-center justify-center"
+                  >
+                    <FaPlusCircle size={28} fill="#737DFE" aria-hidden="true" />
+                  </Link>
+                )}
               </div>
             );
           }
@@ -61,16 +71,11 @@ const NavigationBar = () => {
               key={pathname}
               to={pathname}
               aria-current={isCurrentPath ? 'page' : undefined}
-              aria-label={isCreate ? '꿈 기록하기' : undefined}
-              className={`flex items-center justify-center ${isCreate ? 'w-[55px]' : 'w-[35px]'}`}
+              className="flex w-[35px] items-center justify-center"
             >
-              {isCreate ? (
-                <CreateNavigationItem />
-              ) : (
-                <NavigationItem label={label}>
-                  <Icon size={28} fill={iconColor} aria-hidden="true" />
-                </NavigationItem>
-              )}
+              <NavigationItem label={label}>
+                <Icon size={28} fill={iconColor} aria-hidden="true" />
+              </NavigationItem>
             </Link>
           );
         })}
