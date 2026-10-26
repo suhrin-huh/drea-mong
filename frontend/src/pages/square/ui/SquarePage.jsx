@@ -1,134 +1,38 @@
-import { hasApiSession } from '@/shared/config/api-mode';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import squareApi from '@/shared/api/modules/square.api';
-import Swal from 'sweetalert2';
+import { Link } from 'react-router-dom';
+import useSquareDreams from '../model/useSquareDreams';
 import SquareSkeleton from './SquareSkeleton';
 
 const SquarePage = () => {
-  const navigate = useNavigate();
-
-  const [dreams, setDreams] = useState([]);
-  // 페이지네이션을 위한 커서 ID
-  const [cursorId, setCursorId] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(true);
-
-  // IntersectionObserver를 위한 ref
-  const observer = useRef();
-
-  const handleError = () => {
-    Swal.fire({
-      title: 'ERROR',
-      text: '오류가 발생했습니다.',
-      icon: 'error',
-      confirmButtonText: '돌아가기',
-    });
-  };
-
-  // 페이지 최상단으로 스크롤하기 위한 ref와 함수
-  const mainRef = useRef(null);
-  const ScrollToDiv = () => {
-    if (mainRef.current) {
-      mainRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  // 로컬 스토리지에서 액세스 토큰 가져오기
-  const hasSession = hasApiSession();
-
-  // 꿈 데이터를 가져오는 함수
-  const fetchDreams = useCallback(
-    async (cursorId = null, size = 10) => {
-      console.log(`Fetching dreams with cursorId: ${cursorId}`);
-      try {
-        const response = await squareApi.getDreams({
-          cursorId: cursorId,
-          size: size,
-        });
-
-        const newDreams = response.data.data;
-        console.log('newDreams', newDreams);
-        if (newDreams.length > 0) {
-          // 중복 제거 후 새로운 꿈 추가
-          setDreams((prevDreams) => {
-            const existingDreamIds = new Set(prevDreams.map((dream) => dream.dreamId));
-            const uniqueDreams = newDreams.filter((dream) => !existingDreamIds.has(dream.dreamId));
-            return [...prevDreams, ...uniqueDreams];
-          });
-          // 새로운 커서 ID 설정
-          const newCursorId = newDreams[newDreams.length - 1].dreamId;
-          setCursorId(newCursorId);
-        } else {
-          // 더 이상 로드할 데이터가 없음
-          setHasMore(false);
-          console.log('없음');
-        }
-      } catch (error) {
-        if (error.response && error.response.status === 401) {
-          // 인증 오류 시 로그인 페이지로 이동
-          navigate('/login');
-        } else {
-          // 기타 오류 처리
-          console.error('오류 발생:', error);
-          navigate('/error');
-        }
-      }
-    },
-    [navigate],
-  );
-
-  // IntersectionObserver를 위한 콜백 함수
-  const lastDreamElementRef = useCallback(
-    (node) => {
-      if (loading) return;
-      if (observer.current) observer.current.disconnect();
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          // 마지막 요소가 화면에 보이고, 더 로드할 데이터가 있으면 fetchDreams 호출
-          fetchDreams(cursorId);
-        }
-      });
-      if (node) observer.current.observe(node);
-    },
-    [loading, hasMore, cursorId, fetchDreams],
-  );
-
-  useEffect(() => {
-    ScrollToDiv();
-    if (!hasSession) return navigate('/login');
-
-    const timer = setTimeout(() => setLoading(false), 1500);
-
-    fetchDreams();
-    // 컴포넌트 언마운트 시 타이머 클리어
-    return () => clearTimeout(timer);
-  }, [hasSession, navigate, fetchDreams]);
-
-  // 꿈 상세 페이지로 이동하는 함수
-  const handleSquareClick = (dreamId) => {
-    navigate(`/square/${dreamId}`);
-  };
-
-  if (loading) {
-    return <SquareSkeleton />;
-  }
+  const { dreams, loading, hasMore, loadMoreRef } = useSquareDreams();
 
   return (
-    <div ref={mainRef} className="min-h-screen bg-[#222222] p-6">
-      <div className="flex flex-wrap justify-between">
-        {dreams.map((dream, index) => (
-          <div
-            key={dream.dreamId}
-            // 마지막 요소에 ref 설정
-            ref={index === dreams.length - 1 ? lastDreamElementRef : null}
-            className="mb-4 h-40 w-40 cursor-pointer rounded-[30px]"
-            onClick={() => handleSquareClick(dream.dreamId)}
-            style={{ backgroundImage: `url(${dream.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-          ></div>
+    <section aria-labelledby="square-title" className="min-h-full px-4 py-6 sm:px-6">
+      <ul aria-label="공유된 꿈" aria-busy={loading} className="mx-auto grid max-w-3xl grid-cols-3 gap-2 sm:gap-4">
+        {dreams.map((dream) => (
+          <li key={dream.dreamId} className="min-w-0">
+            <Link
+              to={`/square/${dream.dreamId}`}
+              aria-label={`공유된 꿈 ${dream.dreamId} 자세히 보기`}
+              className="group block overflow-hidden rounded-md bg-neutral-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-500"
+            >
+              <img
+                src={dream.image}
+                alt="공유된 꿈 이미지"
+                loading="lazy"
+                decoding="async"
+                className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
+              />
+            </Link>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+
+      {loading && <SquareSkeleton />}
+      {!loading && dreams.length === 0 && (
+        <p className="py-16 text-center text-sm text-neutral-400">아직 공유된 꿈이 없어요.</p>
+      )}
+      {hasMore && <div ref={loadMoreRef} aria-hidden="true" className="h-px" />}
+    </section>
   );
 };
 
