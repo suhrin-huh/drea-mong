@@ -1,8 +1,6 @@
-import { useRecoilValue } from 'recoil';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-import axios from 'axios';
-import { baseURLState } from '@/shared/config/server.atoms';
+import generationApi from '@/shared/api/modules/generation.api';
 import { Button } from '@/shared/ui/button';
 import { useHandleError } from '@/shared/lib/error';
 import { LoadingSpinner } from '@/shared/ui/loading-spinner';
@@ -20,7 +18,6 @@ const DreamInterpretationPanel = ({
   isInterpVisible,
   setIsInterpVisible,
 }) => {
-  const baseURL = useRecoilValue(baseURLState);
   const handleError = useHandleError();
   const accessToken = localStorage.getItem('accessToken');
   const navigate = useNavigate();
@@ -28,7 +25,7 @@ const DreamInterpretationPanel = ({
   /** 해석 생성 함수 해석*/
   const handleInterp = async () => {
     try {
-      if (!accessToken) return Navigate('/login');
+      if (!accessToken) return navigate('/login');
       // 1) 공백 및 최소 글자수 미만으로 작성 시 생성
       if (content.replace(/ /g, '') == '') {
         Swal.fire({
@@ -59,10 +56,7 @@ const DreamInterpretationPanel = ({
         message: content,
       };
 
-      const response = await axios.post(`${baseURL}/api/generate-interpretation`, requestData, {
-        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
-        withCredentials: true,
-      });
+      const response = await generationApi.generateInterpretation(requestData);
 
       setInterpretation(response.data.data);
     } catch (error) {
@@ -119,7 +113,9 @@ const DreamInterpretationPanel = ({
               className="absolute right-3 top-2 text-center text-2xl text-slate-100"
               onClick={() => closeInterp()}
             >
-              <div className={`transition-transform duration-1000 ease-in-out`}><ChevronDownIcon /></div>
+              <div className={`transition-transform duration-1000 ease-in-out`}>
+                <ChevronDownIcon />
+              </div>
             </button>
           </div>
         </div>

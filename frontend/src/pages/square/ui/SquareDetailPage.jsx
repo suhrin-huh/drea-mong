@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import usersApi from '@/shared/api/modules/users.api';
+import squareApi from '@/shared/api/modules/square.api';
+import commentsApi from '@/shared/api/modules/comments.api';
 import Swal from 'sweetalert2';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useRecoilValue, useRecoilState } from 'recoil';
-import { baseURLState } from '@/shared/config/server.atoms';
+import { useRecoilState } from 'recoil';
 import { userState } from '@/entities/user';
 import SquareDetailSkeleton from './SquareDetailSkeleton';
 
@@ -16,7 +17,6 @@ const SquareDetailPage = () => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
-  const baseURL = useRecoilValue(baseURLState);
   const [user, setUser] = useRecoilState(userState);
   const navigate = useNavigate();
 
@@ -24,7 +24,7 @@ const SquareDetailPage = () => {
     fetchDreamDetail();
   }, []);
 
-  const fetchDreamDetail = () => {
+  const fetchDreamDetail = async () => {
     const accessToken = localStorage.getItem('accessToken');
 
     if (!accessToken) {
@@ -32,36 +32,28 @@ const SquareDetailPage = () => {
       return navigate('/login');
     }
 
-    axios
-      .get(`${baseURL}/users/info`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        withCredentials: true,
-      })
-      .then((userInfoResponse) => {
-        const userInfo = userInfoResponse.data.data;
-        setUser(userInfo);
-        return axios.get(`${baseURL}/square/${dreamId}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          withCredentials: true,
-          params: { userId: userInfo.userId },
-        });
-      })
-      .then((dreamDetailResponse) => {
-        const data = dreamDetailResponse.data.data;
-        setSummary(data.summary);
-        setContent(data.content);
-        setImage(data.image);
-        setComments(data.comments);
-        setTimeout(() => setLoading(false), 1000); // 1초 후에 로딩 상태 변경
-      })
-      .catch((error) => {
-        if (error.response && error.response.status === 401) {
-          navigate('/login');
-        } else {
-          console.error('오류 발생:', error);
-          navigate('/error');
-        }
-      });
+    try {
+      const userInfoResponse = await usersApi.getUserInfo();
+
+      const userInfo = userInfoResponse.data.data;
+      setUser(userInfo);
+
+      const dreamDetailResponse = await squareApi.getDream(dreamId, userInfo.userId);
+
+      const data = dreamDetailResponse.data.data;
+      setSummary(data.summary);
+      setContent(data.content);
+      setImage(data.image);
+      setComments(data.comments);
+      setTimeout(() => setLoading(false), 1000); // 1초 후에 로딩 상태 변경
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        navigate('/login');
+      } else {
+        console.error('오류 발생:', error);
+        navigate('/error');
+      }
+    }
   };
 
   const handleToggleClick = () => {
@@ -70,15 +62,7 @@ const SquareDetailPage = () => {
 
   const handleLikeClick = async (commentId) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await axios.post(
-        `${baseURL}/comments/${user.userId}/${commentId}/like`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          withCredentials: true,
-        },
-      );
+      const response = await commentsApi.toggleLike(user.userId, commentId);
 
       setComments((prevComments) =>
         prevComments.map((comment) =>
@@ -107,19 +91,11 @@ const SquareDetailPage = () => {
 
   const handleCommentSubmit = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await axios.post(
-        `${baseURL}/comments/create`,
-        {
-          content: newComment,
-          dreamId: parseInt(dreamId),
-          userId: user.userId,
-        },
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          withCredentials: true,
-        },
-      );
+      const response = await commentsApi.createComment({
+        content: newComment,
+        dreamId: parseInt(dreamId),
+        userId: user.userId,
+      });
 
       if (response.data.status === 'success') {
         fetchDreamDetail();
@@ -139,11 +115,7 @@ const SquareDetailPage = () => {
 
   const handleDeleteComment = async (commentId) => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await axios.delete(`${baseURL}/comments/${commentId}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        withCredentials: true,
-      });
+      const response = await commentsApi.deleteComment(commentId);
 
       if (response.data.status === 'success') {
         Swal.fire({

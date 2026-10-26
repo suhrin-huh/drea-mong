@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
-import axios from 'axios';
+import roomsApi from '@/shared/api/modules/rooms.api';
 import { useRecoilValue } from 'recoil';
 import { Button } from '@/shared/ui/button';
 import { userState } from '@/entities/user';
-import { baseURLState } from '@/shared/config/server.atoms';
 
 Modal.setAppElement('#root');
 
@@ -18,7 +17,6 @@ const StreamingListPage = () => {
   const [newRoom, setNewRoom] = useState({ title: '', youtubeLink: '' });
 
   const isAdmin = useRecoilValue(userState).role === 'ADMIN' ? true : false;
-  const baseURL = useRecoilValue(baseURLState);
 
   // 방 목록 업데이트
   useEffect(() => {
@@ -26,28 +24,21 @@ const StreamingListPage = () => {
   }, []);
 
   // 방 목록 가져오기 함수
-  const fetchRooms = () => {
-    axios({
-      method: 'get',
-      url: `${baseURL}/rooms`, // 백엔드 api 명세 관련 논의 후 수정 예정
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        withCredentials: true,
-      },
-    })
-      .then((response) => {
-        if (response.status === 204) {
-          setRooms([]);
-          console.log('스트리밍방 목록이 비어 있습니다.');
-        } else {
-          setRooms(response.data.data);
-          console.log('스트리밍방 목록 fetch 완료!');
-        }
-      })
-      .catch((error) => {
-        console.error('방 목록 조회 중 오류 발생', error);
-        alert('방 목록을 불러오는 데 실패했습니다. 나중에 다시 시도해 주세요.');
-      });
+  const fetchRooms = async () => {
+    try {
+      const response = await roomsApi.getRooms();
+
+      if (response.status === 204) {
+        setRooms([]);
+        console.log('스트리밍방 목록이 비어 있습니다.');
+      } else {
+        setRooms(response.data.data);
+        console.log('스트리밍방 목록 fetch 완료!');
+      }
+    } catch (error) {
+      console.error('방 목록 조회 중 오류 발생', error);
+      alert('방 목록을 불러오는 데 실패했습니다. 나중에 다시 시도해 주세요.');
+    }
   };
 
   // 유튜브 링크에서 비디오 ID 추출 함수
@@ -79,57 +70,44 @@ const StreamingListPage = () => {
     setNewRoom((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCreateRoom = (event) => {
+  const handleCreateRoom = async (event) => {
     event.preventDefault();
     // 방 생성 API 호출
-    axios({
-      method: 'post',
-      url: `${baseURL}/rooms`,
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-      data: {
+    try {
+      await roomsApi.createRoom({
         title: newRoom.title,
         youtubeLink: newRoom.youtubeLink,
         thumbnail: `https://img.youtube.com/vi/${extractVideoId(newRoom.youtubeLink)}/0.jpg`,
-      },
-    })
-      .then((response) => {
-        fetchRooms();
-        toggleModalIsOpen();
-        console.log('방 생성 성공!');
-
-        setNewRoom({ title: '', youtubeLink: '' });
-        console.log('newRoom State 초기화 완료');
-      })
-      .catch((error) => {
-        console.error(error);
-        alert('방 생성에 실패했습니다. 나중에 다시 시도해 주세요.');
       });
+
+      fetchRooms();
+      toggleModalIsOpen();
+      console.log('방 생성 성공!');
+
+      setNewRoom({ title: '', youtubeLink: '' });
+      console.log('newRoom State 초기화 완료');
+    } catch (error) {
+      console.error(error);
+      alert('방 생성에 실패했습니다. 나중에 다시 시도해 주세요.');
+    }
   };
 
-  const handleDeleteRoom = (event, selectedRoomId) => {
+  const handleDeleteRoom = async (event, selectedRoomId) => {
     event.preventDefault();
     event.stopPropagation();
-    axios({
-      method: 'delete',
-      url: `${baseURL}/rooms/${selectedRoomId}`,
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    })
-      .then((response) => {
-        setRooms(
-          rooms.filter((room) => {
-            return room.roomId !== selectedRoomId;
-          }),
-        );
-        alert('선택하신 방이 성공적으로 삭제되었습니다!');
-      })
-      .catch((error) => {
-        console.error('방 삭제 실패!', error);
-        alert('방 삭제 실패!');
-      });
+    try {
+      await roomsApi.deleteRoom(selectedRoomId);
+
+      setRooms(
+        rooms.filter((room) => {
+          return room.roomId !== selectedRoomId;
+        }),
+      );
+      alert('선택하신 방이 성공적으로 삭제되었습니다!');
+    } catch (error) {
+      console.error('방 삭제 실패!', error);
+      alert('방 삭제 실패!');
+    }
   };
 
   return (

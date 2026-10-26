@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useRecoilValue, useRecoilState } from 'recoil';
-import axios from 'axios';
+import { useRecoilState } from 'recoil';
+import usersApi from '@/shared/api/modules/users.api';
+import statisticsApi from '@/shared/api/modules/statistics.api';
 import { Chart, registerables } from 'chart.js';
-import { baseURLState } from '@/shared/config/server.atoms';
 import { userState } from '@/entities/user';
 import StatisticsSkeleton from './StatisticsSkeleton';
 
@@ -11,7 +11,6 @@ Chart.register(...registerables);
 
 const StatisticsPage = () => {
   const [user, setUser] = useRecoilState(userState);
-  const baseURL = useRecoilValue(baseURLState);
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
 
@@ -54,39 +53,31 @@ const StatisticsPage = () => {
     }
 
     // 유저정보 가져오기
-    axios
-      .get(`${baseURL}/users/info`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        withCredentials: true,
-      })
-      // 유저정보 가져와서 userState 갱신하기
-      .then((userInfoResponse) => {
-        console.log('유저정보 가져왔어!', userInfoResponse);
-        const userInfo = userInfoResponse.data.data;
-        setUser(userInfo);
-        return axios.get(`${baseURL}/statistics/${userInfo.userId}/${currentDate}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-      })
-      .then((response) => {
-        const statistics = response.data.data;
-        setObjects(statistics.objects || []);
-        setCharacters(statistics.characters || []);
-        setLocations(statistics.locations || []);
-        setMoods(statistics.moods || []);
-        setDreamTypeCounts(statistics.dreamTypeCounts || []);
-      })
-      .catch((error) => {
-        if (error.response && error.response.status === 401) {
-          navigate('/login');
-        } else {
-          console.error('오류 발생:', error);
-          navigate('/error');
-        }
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    try {
+      const userInfoResponse = await usersApi.getUserInfo();
+
+      console.log('유저정보 가져왔어!', userInfoResponse);
+      const userInfo = userInfoResponse.data.data;
+      setUser(userInfo);
+
+      const response = await statisticsApi.getMonthlyStatistics(userInfo.userId, currentDate);
+
+      const statistics = response.data.data;
+      setObjects(statistics.objects || []);
+      setCharacters(statistics.characters || []);
+      setLocations(statistics.locations || []);
+      setMoods(statistics.moods || []);
+      setDreamTypeCounts(statistics.dreamTypeCounts || []);
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        navigate('/login');
+      } else {
+        console.error('오류 발생:', error);
+        navigate('/error');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleYearMonthChange = (e) => {

@@ -2,7 +2,8 @@ import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import StatisticsIcon from '@/shared/ui/icons/StatisticsIcon';
-import api from '@/shared/api/http-client';
+import usersApi from '@/shared/api/modules/users.api';
+import dreamsApi from '@/shared/api/modules/dreams.api';
 import { userState } from '@/entities/user';
 import ScrollDownButton from './ScrollDownButton';
 import MonthSelector from './MonthSelector';
@@ -22,10 +23,15 @@ const HomePage = () => {
     //   return navigate('/login');
     // }
     try {
-      const userInfo = await api.get('api/users/info').data.data;
+      const userResponse = await usersApi.getUserInfo();
+      const userInfo = userResponse.data.data;
       setUser(userInfo);
-      const dreamInfo = await api.get(`api/dream/${user.userId}/${year}${String(month).padStart(2, '0')}01`);
-      etDreams(dreamInfo.dreamMainResponsesList);
+      const dreamResponse = await dreamsApi.getMonthlyDreams(
+        userInfo.userId,
+        `${year}${String(month).padStart(2, '0')}01`,
+      );
+      const dreamInfo = dreamResponse.data.data;
+      setDreams(dreamInfo.dreamMainResponsesList);
       setTotalCount(dreamInfo.totalCount);
     } catch {
       setDreams(homeDreamsMock.dreams);

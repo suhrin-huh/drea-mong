@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-import axios from 'axios';
+import usersApi from '@/shared/api/modules/users.api';
+import dreamsApi from '@/shared/api/modules/dreams.api';
 import { DREAM_MIN_LENGTH, DREAM_MAX_LENGTH, formatDreamDate } from '@/entities/dream';
-import { baseURLState } from '@/shared/config/server.atoms';
 import {
   isListeningState,
   SpeechListeningOverlay,
@@ -32,7 +32,6 @@ const DreamCreatePage = () => {
 
   // recoil atoms
   const [user, setUser] = useRecoilState(userState);
-  const baseURL = useRecoilValue(baseURLState);
   const accessToken = localStorage.getItem('accessToken');
 
   // 꿈 등록을 위해 필요한 데이터
@@ -68,27 +67,26 @@ const DreamCreatePage = () => {
 
   /** 초기 렌더링시에 accessToken 존재 유무 파악 후 없으면 redirect to login page*/
   useEffect(() => {
-    ScrollToDiv();
-    if (!accessToken) {
-      navigate('/login');
-    }
-    axios
-      .get(`${baseURL}/users/info`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        withCredentials: true,
-      })
-      .then((response) => {
+    const initialize = async () => {
+      ScrollToDiv();
+      if (!accessToken) {
+        navigate('/login');
+      }
+      try {
+        const response = await usersApi.getUserInfo();
+
         // console.log('유저정보 가져왔어!', response);
         setUser(response.data.data);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.log(error);
         if (error.response && error.response.status === 401) {
           navigate('/login');
         } else {
           handleError('/');
         }
-      });
+      }
+    };
+    initialize();
   }, []);
 
   // 이미지를 새로 만들때에 공유하기 갱신
@@ -126,21 +124,14 @@ const DreamCreatePage = () => {
       // 유효성 통과 후 저장 시작
       if (isSaving) return;
       setIsSaving(true);
-      const response = await axios.post(
-        `${baseURL}/dream/create`,
-        {
-          content: content,
-          image: image,
-          interpretation: interpretation,
-          userId: user.userId,
-          isShared: isShared,
-          writeTime: date.replace(/-/g, ''),
-        },
-        {
-          headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
-          withCredentials: true,
-        },
-      );
+      const response = await dreamsApi.createDream({
+        content: content,
+        image: image,
+        interpretation: interpretation,
+        userId: user.userId,
+        isShared: isShared,
+        writeTime: date.replace(/-/g, ''),
+      });
       console.log(response.data);
       navigate('/');
     } catch (error) {

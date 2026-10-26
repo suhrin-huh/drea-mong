@@ -1,11 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import YouTube from 'react-youtube';
-import axios from 'axios';
+import roomsApi from '@/shared/api/modules/rooms.api';
 import io from 'socket.io-client';
 import { useRecoilValue } from 'recoil';
 import { userState } from '@/entities/user';
-import { baseURLState, socketURLState } from '@/shared/config/server.atoms';
+import { socketURLState } from '@/shared/config/server.atoms';
 
 const StreamingRoomPage = () => {
   const navigate = useNavigate();
@@ -19,7 +19,6 @@ const StreamingRoomPage = () => {
   const playerRef = useRef(null); // YouTube 플레이어 참조 관리
 
   const userNickname = useRecoilValue(userState).nickname;
-  const baseURL = useRecoilValue(baseURLState);
   const socketURL = useRecoilValue(socketURLState);
 
   const messageEndRef = useRef(null); // 메시지 목록의 끝 참조하기 위한 ref
@@ -27,22 +26,15 @@ const StreamingRoomPage = () => {
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
 
   // 컴포넌트 마운트 시 방 정보를 가져오는 함수
-  const fetchRoomInfo = useCallback(() => {
-    axios({
-      method: 'get',
-      url: `${baseURL}/rooms/${roomId}`,
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        withCredentials: true,
-      },
-    })
-      .then((response) => {
-        setRoomInfo(response.data.data);
-        setVideoId(extractVideoId(response.data.data.youtubeLink));
-      })
-      .catch((err) => {
-        console.error('방 정보를 가져오는데 실패했습니다:', err);
-      });
+  const fetchRoomInfo = useCallback(async () => {
+    try {
+      const response = await roomsApi.getRoom(roomId);
+
+      setRoomInfo(response.data.data);
+      setVideoId(extractVideoId(response.data.data.youtubeLink));
+    } catch (err) {
+      console.error('방 정보를 가져오는데 실패했습니다:', err);
+    }
   }, [roomId]);
 
   // 소켓 연결 및 이벤트 리스너 설정

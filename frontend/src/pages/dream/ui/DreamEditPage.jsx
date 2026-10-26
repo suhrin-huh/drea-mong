@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-import axios from 'axios';
+import usersApi from '@/shared/api/modules/users.api';
+import dreamsApi from '@/shared/api/modules/dreams.api';
 import { DREAM_MIN_LENGTH, DREAM_MAX_LENGTH, formatDreamDate } from '@/entities/dream';
-import { baseURLState } from '@/shared/config/server.atoms';
 import {
   isListeningState,
   SpeechListeningOverlay,
@@ -27,7 +27,6 @@ const DreamEditPage = () => {
   const navigate = useNavigate();
   const handleError = useHandleError();
   const [user, setUser] = useRecoilState(userState);
-  const baseURL = useRecoilValue(baseURLState);
   const { dreamId } = useParams();
 
   /** 꿈 일기 최소, 최대 길이 # DREAM_MIN_LENGTH, DREAM_MAX_LENGTH */
@@ -54,24 +53,19 @@ const DreamEditPage = () => {
     }
   };
   useEffect(() => {
-    ScrollToDiv();
-    if (!accessToken) {
-      navigate('/login');
-      return;
-    }
-    axios
-      .get(`${baseURL}/users/info`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        withCredentials: true,
-      })
-      .then((response) => {
+    const initialize = async () => {
+      ScrollToDiv();
+      if (!accessToken) {
+        navigate('/login');
+        return;
+      }
+      try {
+        const response = await usersApi.getUserInfo();
+
         setUser(response.data.data);
-        return axios.get(`${baseURL}/dream/${dreamId}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          withCredentials: true,
-        });
-      })
-      .then((res) => {
+
+        const res = await dreamsApi.getDream(dreamId);
+
         const responseData = res.data.data;
         if (responseData.userId != user.userId) {
           console.log(responseData, 'user', user);
@@ -86,15 +80,16 @@ const DreamEditPage = () => {
         const writeTime = responseData.writeTime;
         const formattedDate = `${writeTime.slice(0, 4)}-${writeTime.slice(4, 6)}-${writeTime.slice(6, 8)}`;
         setDate(formattedDate);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.log(error);
         if (error.response && error.response.status === 401) {
           navigate('/login');
         } else {
           navigate('/error');
         }
-      });
+      }
+    };
+    initialize();
   }, []);
 
   useEffect(() => {
@@ -143,10 +138,7 @@ const DreamEditPage = () => {
         return;
       }
 
-      const dreamResponse = await axios.get(`${baseURL}/dream/${dreamId}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        withCredentials: true,
-      });
+      const dreamResponse = await dreamsApi.getDream(dreamId);
 
       const responseData = dreamResponse.data.data;
 
@@ -161,21 +153,14 @@ const DreamEditPage = () => {
       }
 
       // 업데이트 요청 실행
-      const updateResponse = await axios.put(
-        `${baseURL}/dream/${dreamId}`,
-        {
-          content: content,
-          image: image,
-          interpretation: interpretation,
-          userId: user.userId,
-          isShared: isShared,
-          writeTime: date.replace(/-/g, ''),
-        },
-        {
-          headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
-          withCredentials: true,
-        },
-      );
+      const updateResponse = await dreamsApi.updateDream(dreamId, {
+        content: content,
+        image: image,
+        interpretation: interpretation,
+        userId: user.userId,
+        isShared: isShared,
+        writeTime: date.replace(/-/g, ''),
+      });
       // updateResponse();
       // 성공 시 알림 및 페이지 이동
       Swal.fire({

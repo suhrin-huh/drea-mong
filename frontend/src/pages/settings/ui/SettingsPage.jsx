@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
-import axios from 'axios';
-import { useRecoilValue, useRecoilState } from 'recoil';
+import usersApi from '@/shared/api/modules/users.api';
+import { useRecoilState } from 'recoil';
 import { Button } from '@/shared/ui/button';
 import { userState } from '@/entities/user';
-import { baseURLState } from '@/shared/config/server.atoms';
 import { getFcmToken, subscribeToTopic, unsubscribeFromTopic } from '@/features/manage-notifications';
 import login from '../assets/icons/login.svg';
 import logout from '../assets/icons/logout.svg';
@@ -13,7 +12,6 @@ import user from '../assets/icons/user.svg';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
-  const baseURL = useRecoilValue(baseURLState);
   const [userInfo, setUserInfo] = useRecoilState(userState);
 
   // useRef를 사용하여 토글 상태를 관리
@@ -83,26 +81,20 @@ const SettingsPage = () => {
   }, []);
 
   // 로그아웃 핸들러
-  const handleLogout = (event) => {
+  const handleLogout = async (event) => {
     event.preventDefault();
-    axios({
-      method: 'post',
-      url: `${baseURL}/users/logout`,
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    })
-      .then((response) => {
-        localStorage.removeItem('accessToken');
-        navigate('/login');
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    try {
+      await usersApi.logout();
+
+      localStorage.removeItem('accessToken');
+      navigate('/login');
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // 닉네임 변경사항 저장
-  const handleNicknameSave = (event) => {
+  const handleNicknameSave = async (event) => {
     event.preventDefault();
 
     if (newNickname.length < 1) {
@@ -110,30 +102,22 @@ const SettingsPage = () => {
       return;
     }
 
-    axios({
-      method: 'patch',
-      url: `${baseURL}/users/nickname`,
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-      data: {
+    try {
+      await usersApi.updateNickname({
         nickname: newNickname.trim(),
-      },
-    })
-      .then((response) => {
-        // 닉네임 변경에 따른 recoil atom 업데이트 로직
-        setUserInfo((prevUserInfo) => ({ ...prevUserInfo, nickname: newNickname }));
-        setNewNickname('');
-      })
-      .then((response) => {
-        setModalContentVisible(false);
-        setTimeout(() => setModalIsOpen(false), 300);
-        alert('닉네임 변경이 완료되었습니다!');
-      })
-      .catch((error) => {
-        console.error('닉네임 변경 오류!', error);
-        alert('닉네임 변경에 실패했습니다. 잠시 후 다시 변경해 주세요!');
       });
+
+      // 닉네임 변경에 따른 recoil atom 업데이트 로직
+      setUserInfo((prevUserInfo) => ({ ...prevUserInfo, nickname: newNickname }));
+      setNewNickname('');
+
+      setModalContentVisible(false);
+      setTimeout(() => setModalIsOpen(false), 300);
+      alert('닉네임 변경이 완료되었습니다!');
+    } catch (error) {
+      console.error('닉네임 변경 오류!', error);
+      alert('닉네임 변경에 실패했습니다. 잠시 후 다시 변경해 주세요!');
+    }
   };
 
   // // 다크 모드 토글 핸들러

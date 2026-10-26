@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { useRecoilValue } from 'recoil';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-import axios from 'axios';
-import { baseURLState } from '@/shared/config/server.atoms';
+import generationApi from '@/shared/api/modules/generation.api';
 import { useHandleError } from '@/shared/lib/error';
 import RegenerateIcon from '@/shared/ui/icons/RegenerateIcon';
 import imgGenerator from '../assets/images/image-generator.png';
@@ -13,7 +11,6 @@ import 'sweetalert2/src/sweetalert2.scss';
  * - 검열이미지 대체할 요소 고려 필요!
  */
 const DreamImageGenerator = ({ minLength, classList, content, image, setImage }) => {
-  const baseURL = useRecoilValue(baseURLState);
   const handleError = useHandleError();
 
   // 이미지 생성시에 필요한 요소들
@@ -37,11 +34,7 @@ const DreamImageGenerator = ({ minLength, classList, content, image, setImage })
       const requestData = {
         prompt: content,
       };
-      const accessToken = localStorage.getItem('accessToken');
-      const response = await axios.post(`${baseURL}/api/generate-image`, requestData, {
-        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json; charset=UTF-8' },
-        withCredentials: true,
-      });
+      const response = await generationApi.generateImages(requestData);
 
       // 검열된 이미지 존재시에 그만큼 공백 추가
       const censoredOptions = response.data.data;
@@ -96,7 +89,7 @@ const DreamImageGenerator = ({ minLength, classList, content, image, setImage })
   if (image) {
     return (
       <div className={`${classList} relative rounded-lg`}>
-        <button onClick={() => imgRegenerator()} className="absolute z-1 right-6 top-6">
+        <button onClick={() => imgRegenerator()} className="z-1 absolute right-6 top-6">
           <RegenerateIcon />
         </button>
         <img src={image}></img>
@@ -107,7 +100,7 @@ const DreamImageGenerator = ({ minLength, classList, content, image, setImage })
   if (options) {
     return (
       <div className={`${classList}`}>
-        <p className="my-3 text-lg text-center">그림을 선택하세요</p>
+        <p className="my-3 text-center text-lg">그림을 선택하세요</p>
         <div className="grid grid-cols-2">
           {options.map((img, idx) => (
             <div
@@ -122,9 +115,9 @@ const DreamImageGenerator = ({ minLength, classList, content, image, setImage })
                 key={idx}
               ></img>
               {selected == idx ? (
-                <div className="absolute inset-0 flex items-center justify-center text-white bg-black bg-opacity-50 rounded-lg">
+                <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black bg-opacity-50 text-white">
                   <button
-                    className="px-3 py-1 text-white rounded-full bg-primary-500"
+                    className="rounded-full bg-primary-500 px-3 py-1 text-white"
                     onClick={() => {
                       handleImage(idx);
                     }}
@@ -136,8 +129,10 @@ const DreamImageGenerator = ({ minLength, classList, content, image, setImage })
             </div>
           ))}
         </div>
-        <div className="flex justify-around my-3">
-          <button onClick={() => imgRegenerator()}><RegenerateIcon /></button>
+        <div className="my-3 flex justify-around">
+          <button onClick={() => imgRegenerator()}>
+            <RegenerateIcon />
+          </button>
         </div>
       </div>
     );
@@ -158,9 +153,9 @@ const DreamImageGenerator = ({ minLength, classList, content, image, setImage })
   return (
     <button
       onClick={() => handleImgGenerator()}
-      className="flex-row items-center justify-center w-full p-4 my-2 rounded-lg bg-primary-500"
+      className="my-2 w-full flex-row items-center justify-center rounded-lg bg-primary-500 p-4"
     >
-      <img className="inline-block w-20 h-20" src={imgGenerator} alt="이미지 생성하기"/>
+      <img className="inline-block h-20 w-20" src={imgGenerator} alt="이미지 생성하기" />
 
       <p className="py-2 font-bold">꿈 이미지 생성하기</p>
     </button>

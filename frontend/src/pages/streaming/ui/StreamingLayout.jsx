@@ -1,10 +1,9 @@
 import { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import usersApi from '@/shared/api/modules/users.api';
 import Modal from 'react-modal';
 import { useNavigate, Outlet } from 'react-router-dom';
-import { useSetRecoilState, useRecoilValue } from 'recoil';
+import { useSetRecoilState } from 'recoil';
 import { Button } from '@/shared/ui/button';
-import { baseURLState } from '@/shared/config/server.atoms';
 import { userState } from '@/entities/user';
 import back from '../assets/icons/back.svg';
 
@@ -17,7 +16,6 @@ const StreamingLayout = () => {
   const [modalContentVisible, setModalContentVisible] = useState(false);
   const [sleepTime, setSleepTime] = useState(sessionStorage.getItem('sleepTime') || null);
 
-  const baseURL = useRecoilValue(baseURLState);
   const setUser = useSetRecoilState(userState);
   const mainRef = useRef(null);
 
@@ -72,23 +70,20 @@ const StreamingLayout = () => {
     };
   }, [sleepTime]);
 
-  const fetchUserInfo = () => {
+  const fetchUserInfo = async () => {
     const accessToken = localStorage.getItem('accessToken');
 
     if (!accessToken) {
       return navigate('/login');
     }
 
-    axios({
-      method: 'get',
-      url: `${baseURL}/users/info`,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        withCredentials: true,
-      },
-    }).then((response) => {
+    try {
+      const response = await usersApi.getUserInfo();
+
       setUser(response.data.data);
-    });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   // 취침 시간 체크 함수

@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
-import axios from 'axios';
-import { baseURLState } from '@/shared/config/server.atoms';
+import dreamsApi from '@/shared/api/modules/dreams.api';
 import { userState } from '@/entities/user';
 import { useHandleError } from '@/shared/lib/error';
 import 'sweetalert2/src/sweetalert2.scss';
@@ -11,20 +10,22 @@ import 'sweetalert2/src/sweetalert2.scss';
  * - 현재 오류 경로 : login*/
 const DreamEditorHeader = ({ content = '', image = '', interpretation = '', date = '', dreamId = '', mode }) => {
   const user = useRecoilValue(userState);
-  const baseURL = useRecoilValue(baseURLState);
-  const accessToken = localStorage.getItem('accessToken');
   const navigate = useNavigate();
   const handleError = useHandleError();
 
-  const navigateBack = () => {
-    Swal.fire({
-      icon: 'warning',
-      text: '변경사항이 저장되지 않습니다. 페이지를 이동하시겠습니까?',
-    }).then((result) => {
+  const navigateBack = async () => {
+    try {
+      const result = await Swal.fire({
+        icon: 'warning',
+        text: '변경사항이 저장되지 않습니다. 페이지를 이동하시겠습니까?',
+      });
+
       if (result.isConfirmed) {
         navigate(-1);
       }
-    });
+    } catch (error) {
+      console.error(error);
+    }
   };
   /** 임시저장 : 공백만 입력, 내용 미입력시에는 모달 표시 */
   const saveDraft = async () => {
@@ -54,13 +55,8 @@ const DreamEditorHeader = ({ content = '', image = '', interpretation = '', date
             userId: user.userId,
             writeTime: date.replace(/-/g, ''),
           };
-          axios.post(`${baseURL}/dream/temporary`, requestData, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-            withCredentials: true,
-          });
-          setTimeout(() => {
-            navigate('/');
-          }, 500);
+          await dreamsApi.saveDraft(requestData);
+          navigate('/');
         } catch (error) {
           if (error.response && error.response.status === 401) {
             navigate('/login');
@@ -83,10 +79,7 @@ const DreamEditorHeader = ({ content = '', image = '', interpretation = '', date
         denyButtonText: '취소',
       });
       if (confirmed) {
-        const response = await axios.delete(`${baseURL}/dream/${dreamId}`, {
-          headers: { Authorization: `Bearer ${accessToken}` },
-          withCredentials: true,
-        });
+        const response = await dreamsApi.deleteDream(dreamId);
         console.log(response);
         navigate('/');
       }

@@ -121,7 +121,7 @@ await api.post('/example', 'text', {
 
 성공은 원래 AxiosResponse, 실패는 원래 오류를 reject한다. 응답 body 추출·오류 UI·로그인 이동은 호출부가 처리하며 자동 refresh·재시도·mock 연결은 없다.
 
-업무별 API 선언은 `shared/api/modules/*.api.js`에서 default export한다. 마지막 인자는 선택적 Axios config이며 `signal`, `headers` 등을 전달할 수 있다. 현재는 선언만 분리한 단계로 기존 페이지 연결은 후속 작업이다.
+업무별 API 선언은 `shared/api/modules/*.api.js`에서 default export한다. 마지막 인자는 선택적 Axios config이며 `signal`, `headers` 등을 전달할 수 있다. 페이지와 꿈 편집 기능의 백엔드 HTTP 요청은 이 모듈을 사용한다. 사용자 정보 조회 이름은 `usersApi.getUserInfo()`다.
 
 ```js
 import dreamsApi from '@/shared/api/modules/dreams.api';
@@ -134,6 +134,10 @@ await squareApi.getDreams({ cursorId: 20, size: 10 }, { signal });
 ```
 
 모듈은 날짜 형식 변환·성공 status 판정·204 변환·refresh token 추출을 수행하지 않는다. `roomsApi.getRooms()`의 204, 댓글 좋아요의 `response.data.status`, refresh의 `response.headers.authorization`도 호출부에서 처리한다. square 모듈의 query는 전용 인자로 전달한다. OAuth URL 생성·외부 알림 HTTP는 이번 모듈 분리 범위에 포함하지 않는다.
+
+호출부의 비동기 처리는 `async/await`와 `try/catch`로 작성한다. effect 자체를 async로 만들지 않고 내부 async 함수를 호출하며, 성공·실패 모두 필요한 정리는 `finally`에서 처리한다.
+
+기존 페이지의 로그인·권한 UI와 홈 전용 오류 fallback은 유지한다. 새 mock 연결이나 자동 fallback은 추가하지 않았다. 홈 조회의 Promise 접근·사용자 ID 참조·setDreams 오타, 해몽의 navigate 오타와 임시저장의 미await는 호출부 이관 과정에서 수정했다.
 
 `archive/streaming`은 이전 OpenVidu/WebRTC 실험 코드이며 실행·lint·구조 검사 대상이 아니다. 상위 `.gitignore`의 `lib/` 규칙에 대해서는 `src/**/lib`만 예외 처리했다.
 

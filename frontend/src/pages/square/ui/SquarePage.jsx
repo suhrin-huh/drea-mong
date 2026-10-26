@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { useRecoilValue } from 'recoil';
+import squareApi from '@/shared/api/modules/square.api';
 import Swal from 'sweetalert2';
-import { baseURLState } from '@/shared/config/server.atoms';
 import SquareSkeleton from './SquareSkeleton';
 
 const SquarePage = () => {
@@ -14,7 +12,6 @@ const SquarePage = () => {
   const [cursorId, setCursorId] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
-  const baseURL = useRecoilValue(baseURLState);
 
   // IntersectionObserver를 위한 ref
   const observer = useRef();
@@ -41,49 +38,43 @@ const SquarePage = () => {
 
   // 꿈 데이터를 가져오는 함수
   const fetchDreams = useCallback(
-    (cursorId = null, size = 10) => {
+    async (cursorId = null, size = 10) => {
       console.log(`Fetching dreams with cursorId: ${cursorId}`);
-      axios({
-        method: 'get',
-        url: `${baseURL}/square/dreams`,
-        headers: { Authorization: `Bearer ${accessToken}` },
-        withCredentials: true,
-        params: {
+      try {
+        const response = await squareApi.getDreams({
           cursorId: cursorId,
           size: size,
-        },
-      })
-        .then((response) => {
-          const newDreams = response.data.data;
-          console.log('newDreams', newDreams);
-          if (newDreams.length > 0) {
-            // 중복 제거 후 새로운 꿈 추가
-            setDreams((prevDreams) => {
-              const existingDreamIds = new Set(prevDreams.map((dream) => dream.dreamId));
-              const uniqueDreams = newDreams.filter((dream) => !existingDreamIds.has(dream.dreamId));
-              return [...prevDreams, ...uniqueDreams];
-            });
-            // 새로운 커서 ID 설정
-            const newCursorId = newDreams[newDreams.length - 1].dreamId;
-            setCursorId(newCursorId);
-          } else {
-            // 더 이상 로드할 데이터가 없음
-            setHasMore(false);
-            console.log('없음');
-          }
-        })
-        .catch((error) => {
-          if (error.response && error.response.status === 401) {
-            // 인증 오류 시 로그인 페이지로 이동
-            navigate('/login');
-          } else {
-            // 기타 오류 처리
-            console.error('오류 발생:', error);
-            navigate('/error');
-          }
         });
+
+        const newDreams = response.data.data;
+        console.log('newDreams', newDreams);
+        if (newDreams.length > 0) {
+          // 중복 제거 후 새로운 꿈 추가
+          setDreams((prevDreams) => {
+            const existingDreamIds = new Set(prevDreams.map((dream) => dream.dreamId));
+            const uniqueDreams = newDreams.filter((dream) => !existingDreamIds.has(dream.dreamId));
+            return [...prevDreams, ...uniqueDreams];
+          });
+          // 새로운 커서 ID 설정
+          const newCursorId = newDreams[newDreams.length - 1].dreamId;
+          setCursorId(newCursorId);
+        } else {
+          // 더 이상 로드할 데이터가 없음
+          setHasMore(false);
+          console.log('없음');
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          // 인증 오류 시 로그인 페이지로 이동
+          navigate('/login');
+        } else {
+          // 기타 오류 처리
+          console.error('오류 발생:', error);
+          navigate('/error');
+        }
+      }
     },
-    [baseURL, accessToken, navigate],
+    [navigate],
   );
 
   // IntersectionObserver를 위한 콜백 함수
