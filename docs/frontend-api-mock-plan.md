@@ -2,6 +2,21 @@
 
 작성일: 2026-10-22. 현재 frontend와 대응하는 backend 컨트롤러·DTO를 조사한 구현 전 계획이다. 이 문서 작성 단계에서는 API 코드나 페이지 동작을 변경하지 않는다.
 
+2026-10-26: 10절의 첫 커밋 단위에 해당하는 [구현 계약](./frontend-api-contract.md)을 작성했다(검토 대기). URL 결합·A01~A22 요청/응답·fallback·세션·메모리 데이터 수명과 서버/mock 차이는 해당 문서를 기준으로 검토한다. 아래 초기 제안과 차이가 있는 부분은 구현 계약에 명시했다. 운영 프록시 및 실제 서버 응답 검증은 아직 수행하지 않았다.
+
+## 현재 적용 범위 (2026-10-26 수정)
+
+현재 검토 단위는 공용 Axios instance의 baseURL, token interceptor, JSON/파일 등 Content-Type 처리, 원본 응답·오류 전달과 사용 예시다. mock 연결과 호출부 전면 이관은 하지 않으며 승인 후 다음 커밋 범위를 진행한다.
+
+이번 작업은 **기존 동작을 유지하면서 API 선언과 통신 코드를 업무별 모듈로 분리하는 것**을 우선한다. 아래 장기 계획 중 범위가 충돌하는 내용은 이 절을 우선한다.
+
+- method/path/query/body, 공통 client 설정과 응답 계약 처리를 API 계층으로 이동한다. 호출부는 해당 메서드를 사용하도록 필요한 만큼만 수정한다.
+- 기존 페이지의 로그인·권한 UI·상태·라우팅·데이터 가공은 가능한 한 유지한다. API 분리에 필요한 오류 수정만 해당 커밋에서 설명한다.
+- 소유자 검증은 백엔드 책임이다. 현재 검증 유무를 프론트 이관의 선행 조건으로 삼지 않으며, 향후 백엔드가 반환하는 오류는 기존 오류 처리 흐름으로 전달한다. 프론트 API 계층에 소유자·역할 판정이나 요청 차단을 추가하지 않는다.
+- mock에도 별도의 소유자 정책을 구현하지 않는다. 권한 오류 확인이 필요하면 지정한 endpoint의 403 응답 시나리오로 검증한다.
+- mock/store, 자동 fallback, 개발 세션·인증 우회, 공통 접근 제어 재설계는 API 분리 이후의 후속 범위로 보류한다. 기존 fallback/인증 동작도 이번 분리에서 전면 변경하지 않는다.
+- 당장의 순서는 계약 문서 정리 → 최소 공통 설정/client 정리 → 업무별 API 선언 분리 → 기존 호출부 이관 → 관련 검증·사용 문서다. 10절의 mock·세션 작업 및 이를 전제로 하는 완료 기준은 후속 범위이며, 각 커밋은 계속 검토·승인 후 생성한다.
+
 ## 1. 목표와 기본 방향
 
 - URL, HTTP method, 인증 헤더, 요청 파라미터와 통신 응답 계약 처리를 페이지·컴포넌트에서 제거하고 `shared/api`에서 중앙 관리한다. 도메인·화면 데이터 변환은 사용하는 계층에 남긴다.
@@ -311,7 +326,7 @@ export const bypassAuth =
 2. 우회가 켜져 있으면 실제 로그인·refresh·사용자 인증 API 성공을 기다리지 않고 고정 개발 사용자를 주입한다. 앱 진입을 위해 임의의 가짜 token을 생성하거나 localStorage에 넣지 않는다.
 3. 우회 상태에서는 보호된 페이지 접근, 로그인 리다이렉트, 관리자 UI와 작업에 대한 프론트 권한 제한을 공통 정책으로 생략한다. userId·nickname·role 등 화면 렌더링에 필요한 데이터는 개발 프로필이 제공한다.
 4. 권한 우회는 role 문자열을 무조건 ADMIN으로 바꾸는 방식 대신 `bypassAuth || 실제 권한 판정` 형태의 공통 정책으로 적용한다. role별 화면을 검증할 때는 우회를 끄고 일반 사용자/ADMIN 프로필을 선택한다.
-5. mock handler도 공통 개발 설정에 따라 인증·권한 검사를 모방한다. bypass=true이면 로컬 인증·권한 거부를 생략하되, 필수 입력·데이터 존재 여부 같은 검증은 유지한다. bypass=false이면 A08/A09/A17의 소유자 검사와 A21/A22의 ADMIN 검사를 적용한다. 실제 백엔드 검사는 변경하지 않는다.
+5. 소유자·역할 검증은 백엔드 책임으로 두며 프론트 API 계층과 mock에 별도 검증을 추가하지 않는다. 권한 오류는 endpoint별 오류 시나리오로 재현한다. 세션·우회 기능 자체는 현재 API 분리 이후로 보류한다.
 6. 우회하지 않은 live에서는 실제 token/refresh와 사용자 정보를 확인하고 실패 시 실제 로그인 흐름으로 이동한다. fallback은 VITE_ENABLE_DEMO_SESSION이 허용할 때만 인증 실패 후 데모로 전환한다.
 7. mock 데이터 모드와 인증 우회는 같은 flag로 묶지 않는다. 인증 우회를 켜도 live API의 요청이 성공하는 것은 아니다. 개발 사용자와 실제 서버 사용자의 ID도 같다고 가정하지 않는다.
 8. `authApi.refreshSession()`의 공개 결과는 실제 token이 있는 authenticated 결과와 token이 null인 demo 결과를 구분한다. 우회가 켜진 초기 진입에서는 이 메서드를 호출할 필요가 없다.
@@ -333,8 +348,8 @@ export const bypassAuth =
 | A05 | dreamsApi.getMonthlyDreams | GET `/dream/{userId}/{writeTime}` | 사용자·월로 필터한 목록과 totalCount. writeTime 형식 검증 |
 | A06 | dreamsApi.createDream | POST `/dream/create` | 새 ID를 내부 할당해 저장. 응답은 실제 API처럼 성공·빈 data |
 | A07 | dreamsApi.getDream | GET `/dream/{dreamId}` | 동일 store의 content/image/interpretation/summary/공유 여부/userId/writeTime. 없는 ID는 404 |
-| A08 | dreamsApi.updateDream | PUT `/dream/{dreamId}` | 작성자 권한 검사 후 갱신. 홈·상세·광장 재조회에 반영 |
-| A09 | dreamsApi.deleteDream | DELETE `/dream/{dreamId}` | 작성자 권한 검사 후 삭제. 연관 댓글 정리·광장 제외 |
+| A08 | dreamsApi.updateDream | PUT `/dream/{dreamId}` | 갱신. 홈·상세·광장 재조회에 반영 |
+| A09 | dreamsApi.deleteDream | DELETE `/dream/{dreamId}` | 삭제. 연관 댓글 정리·광장 제외 |
 | A10 | dreamsApi.saveDraft | POST `/dream/temporary` | 하위 필드가 비어 있을 수 있는 임시 꿈 저장. 통계 제외 규칙 적용 |
 | A11 | generationApi.generateImages | POST `/api/generate-image` | 로컬 샘플 이미지 4개, 검열로 빈 항목이 있는 경우·전체 실패 시나리오 |
 | A12 | generationApi.generateInterpretation | POST `/api/generate-interpretation` | 입력에 대응하는 고정 seed의 한국어 해몽 문자열. 짧은 입력 오류 시나리오 |
@@ -342,12 +357,12 @@ export const bypassAuth =
 | A14 | squareApi.getDream | GET `/square/{dreamId}` + userId query | summary/content/image/comments, 현재 사용자 기준 소유·좋아요 여부 |
 | A15 | commentsApi.createComment | POST `/comments/create` | dreamId/userId 관계 검사 후 댓글 추가. 성공·빈 data |
 | A16 | commentsApi.toggleLike | POST `/comments/{userId}/{commentId}/like` | 사용자별 좋아요 토글. wire status like/unLike, 재조회 count와 일치 |
-| A17 | commentsApi.deleteComment | DELETE `/comments/{commentId}` | 작성자 권한 검사 후 삭제. 없는 ID·타인 댓글 오류 제공 |
+| A17 | commentsApi.deleteComment | DELETE `/comments/{commentId}` | 삭제. 없는 ID·지정 오류 시나리오 제공 |
 | A18 | statisticsApi.getMonthlyStatistics | GET `/statistics/{userId}/{currentDate}` | 선택 월의 objects/characters/locations/moods/dreamTypeCounts. 데이터 없는 월은 빈 배열 |
 | A19 | roomsApi.getRooms | GET `/rooms` | 동일 방 store의 목록. 빈 목록은 204 시나리오 지원 |
 | A20 | roomsApi.getRoom | GET `/rooms/{roomId}` | roomId/title/youtubeLink/thumbnail/participantCount, 없는 ID는 404 |
-| A21 | roomsApi.createRoom | POST `/rooms` | ADMIN 권한 검사 후 방 생성. 실제처럼 201·성공 응답 |
-| A22 | roomsApi.deleteRoom | DELETE `/rooms/{roomId}` | ADMIN 권한 검사 후 삭제. 목록·상세에 반영 |
+| A21 | roomsApi.createRoom | POST `/rooms` | 방 생성. 실제처럼 201·성공 응답 |
+| A22 | roomsApi.deleteRoom | DELETE `/rooms/{roomId}` | 삭제. 목록·상세에 반영 |
 
 추가 범위의 구분:
 
@@ -394,7 +409,7 @@ AI 분석 결과는 mock 데이터의 고정 키워드·유형을 이용한다. 
 - cursor 첫 페이지·다음 페이지·마지막 빈 페이지.
 - 검열된 이미지 일부/전체, 해몽 실패.
 - 401/403/404/5xx, network, timeout, HTTP 200 application error.
-- 사용자/ADMIN 프로필과 타인 데이터 변경 거부.
+- 사용자/ADMIN 프로필과 endpoint별 403 오류 시나리오.
 - 선택한 endpoint만 실패시키는 개발 설정, 지연 시간, 실패 횟수.
 
 설정은 `mock-config.js`와 개발 초기화 도구에서 관리한다. 페이지마다 flag나 fixture를 추가하지 않는다. 실패 시나리오는 mock 자체가 해당 오류를 반환하도록 하며, 다시 fallback하여 무한히 성공으로 바꾸지 않는다.

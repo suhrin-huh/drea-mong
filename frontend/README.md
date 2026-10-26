@@ -99,7 +99,27 @@ public은 고정 URL이 필요할 때 사용한다. 이름을 바꾸면 HTML, Vi
 
 현재 API/소켓 URL 상태는 `shared/config/server.atoms.js`에 있다. 사용자 상태와 음성 상태의 기존 Recoil key, 스토리지 key, 공개 URL은 유지했다.
 
-HTTP client의 기존 환경변수 접근, API 경로/인증 처리, 빈 Firebase 설정·VAPID key 등은 [개편 계획서](../docs/frontend-restructure-plan.md)의 후속 과제로 남겨두었다. 아직 동작하는 환경변수 계약을 새로 확정하지 않았으므로 `.env.example`을 추가하지 않았다.
+공용 백엔드 Axios instance는 `shared/api/http-client.js`다. baseURL은 `VITE_API_BASE_URL`, 미설정 시 기존 `VITE_BASE_URL`을 사용한다. Vite 환경변수 변경 후에는 개발 서버를 재시작한다. API 호출부 이관과 빈 Firebase 설정·VAPID key 정리는 후속 작업이다.
+
+```js
+import api from '@/shared/api/http-client';
+
+const response = await api.post('/dream/create', payload);
+
+const form = new FormData();
+form.append('file', file);
+await api.post('/files', form, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+}); // 사용 예시 경로. 실제 업로드 endpoint에 맞춰 사용한다.
+
+await api.post('/example', 'text', {
+  headers: { 'Content-Type': 'text/plain' },
+});
+```
+
+요청마다 localStorage의 `accessToken`이 있으면 Bearer 헤더를 붙이고 cookie 전송을 허용한다. 외부 서비스는 별도 client를 사용한다. 기본 Content-Type은 `application/json`이며 요청 config의 `headers['Content-Type']`으로 덮어쓸 수 있다. 파일을 FormData로 보낼 때는 위 예시처럼 `multipart/form-data`를 지정한다. multipart boundary는 Axios와 브라우저가 처리한다.
+
+성공은 원래 AxiosResponse, 실패는 원래 오류를 reject한다. 응답 body 추출·오류 UI·로그인 이동은 호출부가 처리하며 자동 refresh·재시도·mock 연결은 없다.
 
 `archive/streaming`은 이전 OpenVidu/WebRTC 실험 코드이며 실행·lint·구조 검사 대상이 아니다. 상위 `.gitignore`의 `lib/` 규칙에 대해서는 `src/**/lib`만 예외 처리했다.
 
