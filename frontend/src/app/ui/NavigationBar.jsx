@@ -1,74 +1,73 @@
+import { useId } from 'react';
+import { IoHome, IoGrid } from 'react-icons/io5';
+import { FaMusic, FaGear } from 'react-icons/fa6';
+import NavigationItem from '@/app/ui/NavigationItem';
 import { Link, useLocation } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
-import HomeNavigationItem from '@/app/ui/HomeNavigationItem';
-import SquareNavigationItem from '@/app/ui/SquareNavigationItem';
 import CreateNavigationItem from '@/app/ui/CreateNavigationItem';
-import StreamingNavigationItem from '@/app/ui/StreamingNavigationItem';
-import SettingsNavigationItem from '@/app/ui/SettingsNavigationItem';
 import { SpeechInputButton, isListeningState } from '@/features/dream-editor';
 
 const NavigationBar = () => {
   const location = useLocation();
-  const paths = [
-    {
-      pathname: '/',
-      icon: (color) => <HomeNavigationItem color={color} />,
-    },
-    {
-      pathname: '/square/dreams',
-      icon: (color) => <SquareNavigationItem color={color} />,
-    },
-    {
-      pathname: '/dream/create',
-      icon: (color) => <CreateNavigationItem color={color} />,
-    },
-    {
-      pathname: '/streaming',
-      icon: (color) => <StreamingNavigationItem color={color} />,
-    },
-    {
-      pathname: '/settings',
-      icon: (color) => <SettingsNavigationItem color={color} />,
-    },
+  const gradientId = `navigation-gradient-${useId().replace(/:/g, '')}`;
+  const items = [
+    { pathname: '/', label: 'HOME', Icon: IoHome },
+    { pathname: '/square/dreams', activePath: '/square', label: 'SQUARE', Icon: IoGrid },
+    { pathname: '/dream/create', isCreate: true },
+    { pathname: '/streaming', label: 'MUSIC', Icon: FaMusic },
+    { pathname: '/settings', label: 'SETTINGS', Icon: FaGear },
   ];
-
-  // 음성인식을 사용할 url
-  const useSTTPath = ['/dream/create', '/dream/'];
+  const isDreamPage = location.pathname.startsWith('/dream/');
 
   /** 아이콘 컬러색상 변경 */
-  const MAIN_COLOR = '#737DFE';
+  const MAIN_COLOR = `url(#${gradientId})`;
   const SECONDARY_COLOR = '#000000';
 
   const [isListening, setIsListening] = useRecoilState(isListeningState);
-  const handleSTT = async () => {
+  const handleSTT = () => {
     if (!isListening) {
       setIsListening(true);
     }
   };
 
-  // path에 따라서 렌더링되는 내용이 바뀌도록 설정
-  return location.pathname == '/login' ? null : (
+  return location.pathname === '/login' ? null : (
     <div className="fixed bottom-0 z-50 max-w-[600px] bg-white py-1 text-white last:w-full">
-      <div className="mx-5 my-3 flex justify-between">
-        {paths.map(({ pathname, icon }) => {
-          const isCurrentPath = location.pathname === pathname;
+      <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
+        <defs>
+          <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#7C81F2" />
+            <stop offset="100%" stopColor="#E9C3CE" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className="mx-5 my-3 flex items-center justify-between">
+        {items.map(({ pathname, activePath = pathname, label, Icon, isCreate }) => {
+          const isCurrentPath =
+            location.pathname === activePath || (activePath !== '/' && location.pathname.startsWith(`${activePath}/`));
           const iconColor = isCurrentPath ? MAIN_COLOR : SECONDARY_COLOR;
 
-          // paths 내부에서 pathname == "/dream/create"인 path에 대해서
-          /** 현재 경로가 useSTTPath(STT를 사용하는 경로)에 해당될 때 true 반환 */
-          const isSTTActive =
-            pathname == '/dream/create' && useSTTPath.some((path) => location.pathname.includes(path));
-          // SpeechInputButton 사용시에는 Link 연결 X
-          if (isSTTActive) {
+          if (isCreate && isDreamPage) {
             return (
-              <div className="relative w-[35px]" key={pathname}>
-                <SpeechInputButton handleSTT={handleSTT}></SpeechInputButton>
+              <div className="flex w-[55px] items-center justify-center" key={pathname}>
+                <SpeechInputButton handleSTT={handleSTT} />
               </div>
             );
           }
           return (
-            <Link key={pathname} to={pathname} className="relative w-[35px]">
-              {icon(iconColor)}
+            <Link
+              key={pathname}
+              to={pathname}
+              aria-current={isCurrentPath ? 'page' : undefined}
+              aria-label={isCreate ? '꿈 기록하기' : undefined}
+              className={`flex items-center justify-center ${isCreate ? 'w-[55px]' : 'w-[35px]'}`}
+            >
+              {isCreate ? (
+                <CreateNavigationItem />
+              ) : (
+                <NavigationItem label={label}>
+                  <Icon size={28} fill={iconColor} aria-hidden="true" />
+                </NavigationItem>
+              )}
             </Link>
           );
         })}
