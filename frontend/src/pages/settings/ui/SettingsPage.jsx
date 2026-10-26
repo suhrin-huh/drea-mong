@@ -1,3 +1,4 @@
+import { hasApiSession, isMockMode } from '@/shared/config/api-mode';
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Modal from 'react-modal';
@@ -20,7 +21,7 @@ const SettingsPage = () => {
 
   // const [darkMode, setDarkMode] = useState(darkModeRef.current);
   const [push, setPush] = useState(pushRef.current);
-  const [isLogin] = useState(localStorage.getItem('accessToken') ? true : false);
+  const [isLogin] = useState(hasApiSession());
   const [isPushEnabled, setIsPushEnabled] = useState(false);
 
   // 사용자 닉네임 변경 모달 관리
@@ -80,13 +81,19 @@ const SettingsPage = () => {
     checkPushStatus();
   }, []);
 
+  useEffect(() => {
+    if (!isMockMode) return;
+    usersApi.getUserInfo().then((response) => setUserInfo(response.data.data)).catch(console.error);
+  }, [setUserInfo]);
+
   // 로그아웃 핸들러
   const handleLogout = async (event) => {
     event.preventDefault();
     try {
       await usersApi.logout();
 
-      localStorage.removeItem('accessToken');
+      if (!isMockMode) localStorage.removeItem('accessToken');
+      setUserInfo({});
       navigate('/login');
     } catch (error) {
       console.error(error);
@@ -137,6 +144,10 @@ const SettingsPage = () => {
   // 푸시 알림 토글 핸들러
   const handlePushToggle = async () => {
     const newPushState = !isPushEnabled;
+    if (isMockMode) {
+      setIsPushEnabled(newPushState);
+      return;
+    }
     const fcmToken = localStorage.getItem('fcmToken');
 
     if (!fcmToken) {

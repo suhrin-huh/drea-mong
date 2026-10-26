@@ -1,3 +1,4 @@
+import { hasApiSession } from '@/shared/config/api-mode';
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
@@ -27,7 +28,7 @@ const StatisticsPage = () => {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const accessToken = localStorage.getItem('accessToken');
+  const hasSession = hasApiSession();
   const navigate = useNavigate();
 
   const mainRef = useRef(null);
@@ -47,7 +48,7 @@ const StatisticsPage = () => {
   }, [currentDate]);
 
   const fetchStatistics = async () => {
-    if (!accessToken) {
+    if (!hasSession) {
       console.error('토큰이 없습니다. 로그인 페이지로 이동합니다.');
       return navigate('/login');
     }

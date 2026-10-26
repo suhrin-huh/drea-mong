@@ -8,7 +8,6 @@ import { userState } from '@/entities/user';
 import ScrollDownButton from './ScrollDownButton';
 import MonthSelector from './MonthSelector';
 import DreamList from './DreamList';
-import { homeDreamsMock } from '../model/home-dreams.mock';
 
 const HomePage = () => {
   const current = new Date();
@@ -33,9 +32,9 @@ const HomePage = () => {
       const dreamInfo = dreamResponse.data.data;
       setDreams(dreamInfo.dreamMainResponsesList);
       setTotalCount(dreamInfo.totalCount);
-    } catch {
-      setDreams(homeDreamsMock.dreams);
-      setTotalCount(homeDreamsMock.totalCount);
+    } catch (error) {
+      console.error('꿈 목록 조회 실패:', error);
+      navigate(error.response?.status === 401 ? '/login' : '/error');
     }
   };
 

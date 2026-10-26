@@ -1,3 +1,4 @@
+import { isMockMode } from '@/shared/config/api-mode';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import authApi from '@/shared/api/modules/auth.api';
@@ -19,7 +20,7 @@ const AuthCallbackPage = () => {
         if (!accessToken) {
           throw new Error('No access token in response');
         }
-        localStorage.setItem('accessToken', accessToken);
+        if (!isMockMode) localStorage.setItem('accessToken', accessToken);
 
         const res = await usersApi.getUserInfo();
 

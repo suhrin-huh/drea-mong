@@ -1,3 +1,4 @@
+import { hasApiSession } from '@/shared/config/api-mode';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -32,7 +33,7 @@ const DreamCreatePage = () => {
 
   // recoil atoms
   const [user, setUser] = useRecoilState(userState);
-  const accessToken = localStorage.getItem('accessToken');
+  const hasSession = hasApiSession();
 
   // 꿈 등록을 위해 필요한 데이터
   const [content, setContent] = useState('');
@@ -69,7 +70,7 @@ const DreamCreatePage = () => {
   useEffect(() => {
     const initialize = async () => {
       ScrollToDiv();
-      if (!accessToken) {
+      if (!hasSession) {
         navigate('/login');
       }
       try {
@@ -135,7 +136,7 @@ const DreamCreatePage = () => {
       console.log(response.data);
       navigate('/');
     } catch (error) {
-      console.log(err);
+      console.log(error);
       setIsSaving(false);
       if (error.response && error.response.status === 401) {
         navigate('/login');

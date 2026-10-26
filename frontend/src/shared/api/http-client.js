@@ -1,8 +1,17 @@
 import axios from 'axios';
+import { isMockMode } from '../config/api-mode';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_BASE_URL,
   withCredentials: true,
+  ...(isMockMode
+    ? {
+        adapter: async (config) => {
+          const { default: mockAdapter } = await import('./mocks/mock-adapter');
+          return mockAdapter(config);
+        },
+      }
+    : {}),
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -10,7 +19,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
-    if (token) {
+    if (token && !isMockMode) {
       config.headers.set('Authorization', `Bearer ${token}`);
     }
     return config;

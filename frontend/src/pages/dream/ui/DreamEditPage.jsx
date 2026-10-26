@@ -1,3 +1,4 @@
+import { hasApiSession } from '@/shared/config/api-mode';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -42,7 +43,7 @@ const DreamEditPage = () => {
   // 날짜의 형식을 변경해야하므로 함수 설정 후에 변수 선언
   const [date, setDate] = useState(formatDreamDate(new Date()));
   const [writerId, setWriterId] = useState();
-  const accessToken = localStorage.getItem('accessToken');
+  const hasSession = hasApiSession();
 
   const mainRef = useRef(null);
   const ScrollToDiv = () => {
@@ -55,7 +56,7 @@ const DreamEditPage = () => {
   useEffect(() => {
     const initialize = async () => {
       ScrollToDiv();
-      if (!accessToken) {
+      if (!hasSession) {
         navigate('/login');
         return;
       }
@@ -67,7 +68,7 @@ const DreamEditPage = () => {
         const res = await dreamsApi.getDream(dreamId);
 
         const responseData = res.data.data;
-        if (responseData.userId != user.userId) {
+        if (responseData.userId != response.data.data.userId) {
           console.log(responseData, 'user', user);
           navigate('/');
           return;
@@ -133,7 +134,7 @@ const DreamEditPage = () => {
       if (isSaving) return;
       setIsSaving(true);
 
-      if (!accessToken) {
+      if (!hasSession) {
         navigate('/login');
         return;
       }

@@ -1,3 +1,4 @@
+import { hasApiSession } from '@/shared/config/api-mode';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import squareApi from '@/shared/api/modules/square.api';
@@ -34,7 +35,7 @@ const SquarePage = () => {
   };
 
   // 로컬 스토리지에서 액세스 토큰 가져오기
-  const accessToken = localStorage.getItem('accessToken');
+  const hasSession = hasApiSession();
 
   // 꿈 데이터를 가져오는 함수
   const fetchDreams = useCallback(
@@ -95,14 +96,14 @@ const SquarePage = () => {
 
   useEffect(() => {
     ScrollToDiv();
-    if (!accessToken) return navigate('/login');
+    if (!hasSession) return navigate('/login');
 
     const timer = setTimeout(() => setLoading(false), 1500);
 
     fetchDreams();
     // 컴포넌트 언마운트 시 타이머 클리어
     return () => clearTimeout(timer);
-  }, [accessToken, navigate, fetchDreams]);
+  }, [hasSession, navigate, fetchDreams]);
 
   // 꿈 상세 페이지로 이동하는 함수
   const handleSquareClick = (dreamId) => {

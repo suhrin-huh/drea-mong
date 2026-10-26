@@ -1,3 +1,4 @@
+import { isMockMode } from '@/shared/config/api-mode';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import YouTube from 'react-youtube';
@@ -40,6 +41,11 @@ const StreamingRoomPage = () => {
   // 소켓 연결 및 이벤트 리스너 설정
   useEffect(() => {
     fetchRoomInfo();
+
+    if (isMockMode) {
+      setMessages([{ nickname: '별빛 여행자', message: '편안한 밤 보내세요. 이 채팅은 데모예요.' }]);
+      return undefined;
+    }
 
     const newSocket = io(socketURL, {
       // transports: ['websocket'],
@@ -107,7 +113,7 @@ const StreamingRoomPage = () => {
     if (messageContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = messageContainerRef.current;
       // 스크롤이 맨 아래에 있는지 확인
-      const isScrollecToBottom = scrollHeight - scrollTop - clientHeight < 1;
+      const isScrolledToBottom = scrollHeight - scrollTop - clientHeight < 1;
       // 스크롤 위치에 따라 자동 스크롤 상태 업데이트
       setShouldAutoScroll(isScrolledToBottom);
     }
@@ -115,11 +121,16 @@ const StreamingRoomPage = () => {
 
   // 채팅 메시지 전송 함수
   const sendMessage = useCallback(() => {
+    if (isMockMode && inputMessage.trim()) {
+      setMessages((previous) => [...previous, { roomId, nickname: userNickname, message: inputMessage }]);
+      setInputMessage('');
+      return;
+    }
     if (inputMessage && socket) {
       socket.emit('chat-message', { roomId, nickname: userNickname, message: inputMessage });
       setInputMessage('');
     }
-  }, [inputMessage, socket, roomId]);
+  }, [inputMessage, socket, roomId, userNickname]);
 
   // YouTube 링크에서 비디오 ID 추출 함수
   const extractVideoId = useCallback((url) => {

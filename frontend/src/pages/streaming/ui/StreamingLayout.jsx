@@ -1,3 +1,4 @@
+import { hasApiSession } from '@/shared/config/api-mode';
 import { useEffect, useState, useRef } from 'react';
 import usersApi from '@/shared/api/modules/users.api';
 import Modal from 'react-modal';
@@ -71,9 +72,9 @@ const StreamingLayout = () => {
   }, [sleepTime]);
 
   const fetchUserInfo = async () => {
-    const accessToken = localStorage.getItem('accessToken');
+    const hasSession = hasApiSession();
 
-    if (!accessToken) {
+    if (!hasSession) {
       return navigate('/login');
     }
 

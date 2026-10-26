@@ -1,3 +1,5 @@
+import { useNavigate } from 'react-router-dom';
+import { isMockMode } from '@/shared/config/api-mode';
 import { useRecoilValue } from 'recoil';
 import { baseURLState } from '@/shared/config/server.atoms';
 import googleLogo from '../assets/logos/google-logo.svg';
@@ -6,17 +8,21 @@ import kakaoLogo from '../assets/logos/kakao-logo.svg';
 import FadeInText from './FadeInText';
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const baseURL = useRecoilValue(baseURLState);
 
   const onGoogleLogin = () => {
+    if (isMockMode) { navigate('/'); return; }
     window.location.href = `${baseURL}/oauth2/authorization/google`;
   };
 
   const onNaverLogin = () => {
+    if (isMockMode) { navigate('/'); return; }
     window.location.href = `${baseURL}/oauth2/authorization/naver`;
   };
 
   const onKakaoLogin = () => {
+    if (isMockMode) { navigate('/'); return; }
     window.location.href = `${baseURL}/oauth2/authorization/kakao`;
   };
 
@@ -38,7 +44,7 @@ const LoginPage = () => {
           className="flex h-12 w-[80%] select-none items-center justify-center space-x-2 rounded-xl bg-white hover:bg-gray-200"
         >
           <img src={googleLogo} alt="google logo" className="mr-1 h-5 w-5" />
-          <p className="font-medium">구글로 시작하기</p>
+          <p className="font-medium">{isMockMode ? '데모로 시작하기' : '구글로 시작하기'}</p>
         </button>
         <button
           onClick={onNaverLogin}

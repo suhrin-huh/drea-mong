@@ -1,3 +1,4 @@
+import { hasApiSession } from '@/shared/config/api-mode';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2/dist/sweetalert2.js';
 import generationApi from '@/shared/api/modules/generation.api';
@@ -19,13 +20,13 @@ const DreamInterpretationPanel = ({
   setIsInterpVisible,
 }) => {
   const handleError = useHandleError();
-  const accessToken = localStorage.getItem('accessToken');
+  const hasSession = hasApiSession();
   const navigate = useNavigate();
 
   /** 해석 생성 함수 해석*/
   const handleInterp = async () => {
     try {
-      if (!accessToken) return navigate('/login');
+      if (!hasSession) return navigate('/login');
       // 1) 공백 및 최소 글자수 미만으로 작성 시 생성
       if (content.replace(/ /g, '') == '') {
         Swal.fire({

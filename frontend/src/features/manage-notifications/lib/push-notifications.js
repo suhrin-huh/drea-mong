@@ -1,3 +1,4 @@
+import { isMockMode } from '@/shared/config/api-mode';
 import { initializeApp } from 'firebase/app';
 import { getMessaging, getToken, isSupported } from 'firebase/messaging';
 import axios from 'axios';
@@ -12,7 +13,7 @@ const firebaseConfig = {
 };
 
 // Firebase 앱 초기화
-const app = initializeApp(firebaseConfig);
+const app = isMockMode ? null : initializeApp(firebaseConfig);
 
 let messaging;
 
@@ -34,6 +35,7 @@ const initializeMessaging = async () => {
 
 // FCM 토큰 가져오기
 export const getFcmToken = async () => {
+  if (isMockMode) return null;
   if (!messaging) {
     const isInitialized = await initializeMessaging();
     if (!isInitialized) return null;
@@ -58,6 +60,7 @@ export const getFcmToken = async () => {
 
 // 토픽 구독
 export const subscribeToTopic = async (token, topic) => {
+  if (isMockMode) return true;
   try {
     const response = await axios({
       method: 'post',
@@ -77,6 +80,7 @@ export const subscribeToTopic = async (token, topic) => {
 
 // 토픽 구독 해제
 export const unsubscribeFromTopic = async (token, topic) => {
+  if (isMockMode) return true;
   try {
     const response = await axios({
       method: 'delete',
